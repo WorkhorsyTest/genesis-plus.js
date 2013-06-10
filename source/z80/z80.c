@@ -123,13 +123,14 @@
  *    to a detailed description by Sean Young which can be found at:
  *      http://www.msxnet.org/tech/z80-documented.pdf
  *****************************************************************************/
+#include <stdbool.h>
 #include "shared.h"
 #include "z80.h"
 
 /* execute main opcodes inside a big switch statement */
-#define BIG_SWITCH 1
+bool BIG_SWITCH = TRUE;
 
-#define VERBOSE 0
+bool VERBOSE = FALSE;
 
 #if VERBOSE
 #define LOG(x)  logerror x
@@ -137,8 +138,13 @@
 #define LOG(x)
 #endif
 
-#define cpu_readop(a)     z80_readmap[(a) >> 10][(a) & 0x03FF]
-#define cpu_readop_arg(a) z80_readmap[(a) >> 10][(a) & 0x03FF]
+unsigned cpu_readop(unsigned a) {
+	return z80_readmap[(a) >> 10][(a) & 0x03FF];
+}
+
+unsigned cpu_readop_arg(unsigned a) {
+	return z80_readmap[(a) >> 10][(a) & 0x03FF];
+}
 
 #define CF  0x01
 #define NF  0x02
@@ -1384,73 +1390,78 @@ INLINE UINT8 SET(UINT8 bit, UINT8 value)
 /***************************************************************
  * OTIR
  ***************************************************************/
-#define OTIR      \
-  OUTI;           \
-  if( B )         \
-  {               \
-    PC -= 2;      \
-    CC(ex,0xb3);  \
+void OTIR() {
+  OUTI;
+  if( B )
+  {
+    PC -= 2;
+    CC(ex,0xb3);
   }
+}
 
 /***************************************************************
  * LDDR
  ***************************************************************/
-#define LDDR            \
-  LDD;                  \
-  if( BC )              \
-  {                     \
-    PC -= 2;            \
-    WZ = PC + 1;        \
-    CC(ex,0xb8);        \
+void LDDR() {
+  LDD;
+  if( BC )
+  {
+    PC -= 2;
+    WZ = PC + 1;
+    CC(ex,0xb8);
   }
+}
 
 /***************************************************************
  * CPDR
  ***************************************************************/
-#define CPDR            \
-  CPD;                  \
-  if( BC && !(F & ZF) ) \
-  {                     \
-    PC -= 2;            \
-   WZ = PC + 1;         \
-    CC(ex,0xb9);        \
+void CPDR() {
+  CPD;
+  if( BC && !(F & ZF) )
+  {
+    PC -= 2;
+   WZ = PC + 1;
+    CC(ex,0xb9);
   }
+}
 
 /***************************************************************
  * INDR
  ***************************************************************/
-#define INDR      \
-  IND;            \
-  if( B )         \
-  {               \
-    PC -= 2;      \
-    CC(ex,0xba);  \
+void INDR() {
+  IND;
+  if( B )
+  {
+    PC -= 2;
+    CC(ex,0xba);
   }
+}
 
 /***************************************************************
  * OTDR
  ***************************************************************/
-#define OTDR      \
-  OUTD;           \
-  if( B )         \
-  {               \
-    PC -= 2;      \
-    CC(ex,0xbb);  \
+void OTDR() {
+  OUTD;
+  if( B )
+  {
+    PC -= 2;
+    CC(ex,0xbb);
   }
+}
 
 /***************************************************************
  * EI
  ***************************************************************/
-#define EI {            \
-  IFF1 = IFF2 = 1;      \
-  Z80.after_ei = TRUE;  \
+void EI() {
+  IFF1 = IFF2 = 1;
+  Z80.after_ei = TRUE;
 }
 
 /**********************************************************
  * opcodes with CB prefix
  * rotate, shift and bit operations
  **********************************************************/
-OP(cb,00) { B = RLC(B);                      } /* RLC  B           */
+INLINE void cb_00(void) { B = RLC(B);                      } /* RLC  B           */
 OP(cb,01) { C = RLC(C);                      } /* RLC  C           */
 OP(cb,02) { D = RLC(D);                      } /* RLC  D           */
 OP(cb,03) { E = RLC(E);                      } /* RLC  E           */
@@ -2831,16 +2842,16 @@ OP(ed,af) { illegal_2();                                      } /* DB   ED      
 OP(ed,b0) { LDIR;                                             } /* LDIR         */
 OP(ed,b1) { CPIR;                                             } /* CPIR         */
 OP(ed,b2) { INIR;                                             } /* INIR         */
-OP(ed,b3) { OTIR;                                             } /* OTIR         */
+OP(ed,b3) { OTIR();                                             } /* OTIR         */
 OP(ed,b4) { illegal_2();                                      } /* DB   ED      */
 OP(ed,b5) { illegal_2();                                      } /* DB   ED      */
 OP(ed,b6) { illegal_2();                                      } /* DB   ED      */
 OP(ed,b7) { illegal_2();                                      } /* DB   ED      */
 
-OP(ed,b8) { LDDR;                                             } /* LDDR         */
-OP(ed,b9) { CPDR;                                             } /* CPDR         */
-OP(ed,ba) { INDR;                                             } /* INDR         */
-OP(ed,bb) { OTDR;                                             } /* OTDR         */
+OP(ed,b8) { LDDR();                                             } /* LDDR         */
+OP(ed,b9) { CPDR();                                             } /* CPDR         */
+OP(ed,ba) { INDR();                                             } /* INDR         */
+OP(ed,bb) { OTDR();                                             } /* OTDR         */
 OP(ed,bc) { illegal_2();                                      } /* DB   ED      */
 OP(ed,bd) { illegal_2();                                      } /* DB   ED      */
 OP(ed,be) { illegal_2();                                      } /* DB   ED      */
@@ -3204,7 +3215,7 @@ OP(op,f7) { RST(0x30);                                                          
 OP(op,f8) { RET_COND( F & SF, 0xf8 );                                                                      } /* RET  M           */
 OP(op,f9) { SP = HL;                                                                                       } /* LD   SP,HL       */
 OP(op,fa) { JP_COND(F & SF);                                                                               } /* JP   M,a         */
-OP(op,fb) { EI;                                                                                            } /* EI               */
+OP(op,fb) { EI();                                                                                            } /* EI               */
 OP(op,fc) { CALL_COND( F & SF, 0xfc );                                                                     } /* CALL M,a         */
 OP(op,fd) { R++; EXEC(fd,ROP());                                                                           } /* **** FD xx       */
 OP(op,fe) { CP(ARG());                                                                                     } /* CP   n           */
