@@ -149,3 +149,6 @@ pack	:
 
 clean:
 	rm -f $(OBJECTS) $(NAME)
+	rm -rf -f $(OBJDIR)
+
+
