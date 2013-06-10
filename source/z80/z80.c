@@ -127,8 +127,6 @@
 #include "shared.h"
 #include "z80.h"
 
-/* execute main opcodes inside a big switch statement */
-bool BIG_SWITCH = TRUE;
 
 bool VERBOSE = FALSE;
 
@@ -282,24 +280,6 @@ static const UINT16 cc_ed[0x100] = {
    8*15, 8*15, 8*15, 8*15, 8*15, 8*15, 8*15, 8*15, 8*15, 8*15, 8*15, 8*15, 8*15, 8*15, 8*15, 8*15,
    8*15, 8*15, 8*15, 8*15, 8*15, 8*15, 8*15, 8*15, 8*15, 8*15, 8*15, 8*15, 8*15, 8*15, 8*15, 8*15};
 
-/*static const UINT8 cc_xy[0x100] = {
- 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15,15*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15,
- 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15,15*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15,
- 4*15,14*15,20*15,10*15, 9*15, 9*15,11*15, 4*15, 4*15,15*15,20*15,10*15, 9*15, 9*15,11*15, 4*15,
- 4*15, 4*15, 4*15, 4*15,23*15,23*15,19*15, 4*15, 4*15,15*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15,
- 4*15, 4*15, 4*15, 4*15, 9*15, 9*15,19*15, 4*15, 4*15, 4*15, 4*15, 4*15, 9*15, 9*15,19*15, 4*15,
- 4*15, 4*15, 4*15, 4*15, 9*15, 9*15,19*15, 4*15, 4*15, 4*15, 4*15, 4*15, 9*15, 9*15,19*15, 4*15,
- 9*15, 9*15, 9*15, 9*15, 9*15, 9*15,19*15, 9*15, 9*15, 9*15, 9*15, 9*15, 9*15, 9*15,19*15, 9*15,
-19*15,19*15,19*15,19*15,19*15,19*15, 4*15,19*15, 4*15, 4*15, 4*15, 4*15, 9*15, 9*15,19*15, 4*15,
- 4*15, 4*15, 4*15, 4*15, 9*15, 9*15,19*15, 4*15, 4*15, 4*15, 4*15, 4*15, 9*15, 9*15,19*15, 4*15,
- 4*15, 4*15, 4*15, 4*15, 9*15, 9*15,19*15, 4*15, 4*15, 4*15, 4*15, 4*15, 9*15, 9*15,19*15, 4*15,
- 4*15, 4*15, 4*15, 4*15, 9*15, 9*15,19*15, 4*15, 4*15, 4*15, 4*15, 4*15, 9*15, 9*15,19*15, 4*15,
- 4*15, 4*15, 4*15, 4*15, 9*15, 9*15,19*15, 4*15, 4*15, 4*15, 4*15, 4*15, 9*15, 9*15,19*15, 4*15,
- 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 0*15, 4*15, 4*15, 4*15, 4*15,
- 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15,
- 4*15,14*15, 4*15,23*15, 4*15,15*15, 4*15, 4*15, 4*15, 8*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15,
- 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15,10*15, 4*15, 4*15, 4*15, 4*15, 4*15, 4*15};
-*/
 
 /* illegal combo should return 4 + cc_op[i] */
 static const UINT16 cc_xy[0x100] ={
@@ -363,118 +343,626 @@ static const UINT16 *cc[6];
 
 typedef void (*funcptr)(void);
 
-#define PROTOTYPES(tablename,prefix) \
-  INLINE void prefix##_00(void); INLINE void prefix##_01(void); INLINE void prefix##_02(void); INLINE void prefix##_03(void); \
-  INLINE void prefix##_04(void); INLINE void prefix##_05(void); INLINE void prefix##_06(void); INLINE void prefix##_07(void); \
-  INLINE void prefix##_08(void); INLINE void prefix##_09(void); INLINE void prefix##_0a(void); INLINE void prefix##_0b(void); \
-  INLINE void prefix##_0c(void); INLINE void prefix##_0d(void); INLINE void prefix##_0e(void); INLINE void prefix##_0f(void); \
-  INLINE void prefix##_10(void); INLINE void prefix##_11(void); INLINE void prefix##_12(void); INLINE void prefix##_13(void); \
-  INLINE void prefix##_14(void); INLINE void prefix##_15(void); INLINE void prefix##_16(void); INLINE void prefix##_17(void); \
-  INLINE void prefix##_18(void); INLINE void prefix##_19(void); INLINE void prefix##_1a(void); INLINE void prefix##_1b(void); \
-  INLINE void prefix##_1c(void); INLINE void prefix##_1d(void); INLINE void prefix##_1e(void); INLINE void prefix##_1f(void); \
-  INLINE void prefix##_20(void); INLINE void prefix##_21(void); INLINE void prefix##_22(void); INLINE void prefix##_23(void); \
-  INLINE void prefix##_24(void); INLINE void prefix##_25(void); INLINE void prefix##_26(void); INLINE void prefix##_27(void); \
-  INLINE void prefix##_28(void); INLINE void prefix##_29(void); INLINE void prefix##_2a(void); INLINE void prefix##_2b(void); \
-  INLINE void prefix##_2c(void); INLINE void prefix##_2d(void); INLINE void prefix##_2e(void); INLINE void prefix##_2f(void); \
-  INLINE void prefix##_30(void); INLINE void prefix##_31(void); INLINE void prefix##_32(void); INLINE void prefix##_33(void); \
-  INLINE void prefix##_34(void); INLINE void prefix##_35(void); INLINE void prefix##_36(void); INLINE void prefix##_37(void); \
-  INLINE void prefix##_38(void); INLINE void prefix##_39(void); INLINE void prefix##_3a(void); INLINE void prefix##_3b(void); \
-  INLINE void prefix##_3c(void); INLINE void prefix##_3d(void); INLINE void prefix##_3e(void); INLINE void prefix##_3f(void); \
-  INLINE void prefix##_40(void); INLINE void prefix##_41(void); INLINE void prefix##_42(void); INLINE void prefix##_43(void); \
-  INLINE void prefix##_44(void); INLINE void prefix##_45(void); INLINE void prefix##_46(void); INLINE void prefix##_47(void); \
-  INLINE void prefix##_48(void); INLINE void prefix##_49(void); INLINE void prefix##_4a(void); INLINE void prefix##_4b(void); \
-  INLINE void prefix##_4c(void); INLINE void prefix##_4d(void); INLINE void prefix##_4e(void); INLINE void prefix##_4f(void); \
-  INLINE void prefix##_50(void); INLINE void prefix##_51(void); INLINE void prefix##_52(void); INLINE void prefix##_53(void); \
-  INLINE void prefix##_54(void); INLINE void prefix##_55(void); INLINE void prefix##_56(void); INLINE void prefix##_57(void); \
-  INLINE void prefix##_58(void); INLINE void prefix##_59(void); INLINE void prefix##_5a(void); INLINE void prefix##_5b(void); \
-  INLINE void prefix##_5c(void); INLINE void prefix##_5d(void); INLINE void prefix##_5e(void); INLINE void prefix##_5f(void); \
-  INLINE void prefix##_60(void); INLINE void prefix##_61(void); INLINE void prefix##_62(void); INLINE void prefix##_63(void); \
-  INLINE void prefix##_64(void); INLINE void prefix##_65(void); INLINE void prefix##_66(void); INLINE void prefix##_67(void); \
-  INLINE void prefix##_68(void); INLINE void prefix##_69(void); INLINE void prefix##_6a(void); INLINE void prefix##_6b(void); \
-  INLINE void prefix##_6c(void); INLINE void prefix##_6d(void); INLINE void prefix##_6e(void); INLINE void prefix##_6f(void); \
-  INLINE void prefix##_70(void); INLINE void prefix##_71(void); INLINE void prefix##_72(void); INLINE void prefix##_73(void); \
-  INLINE void prefix##_74(void); INLINE void prefix##_75(void); INLINE void prefix##_76(void); INLINE void prefix##_77(void); \
-  INLINE void prefix##_78(void); INLINE void prefix##_79(void); INLINE void prefix##_7a(void); INLINE void prefix##_7b(void); \
-  INLINE void prefix##_7c(void); INLINE void prefix##_7d(void); INLINE void prefix##_7e(void); INLINE void prefix##_7f(void); \
-  INLINE void prefix##_80(void); INLINE void prefix##_81(void); INLINE void prefix##_82(void); INLINE void prefix##_83(void); \
-  INLINE void prefix##_84(void); INLINE void prefix##_85(void); INLINE void prefix##_86(void); INLINE void prefix##_87(void); \
-  INLINE void prefix##_88(void); INLINE void prefix##_89(void); INLINE void prefix##_8a(void); INLINE void prefix##_8b(void); \
-  INLINE void prefix##_8c(void); INLINE void prefix##_8d(void); INLINE void prefix##_8e(void); INLINE void prefix##_8f(void); \
-  INLINE void prefix##_90(void); INLINE void prefix##_91(void); INLINE void prefix##_92(void); INLINE void prefix##_93(void); \
-  INLINE void prefix##_94(void); INLINE void prefix##_95(void); INLINE void prefix##_96(void); INLINE void prefix##_97(void); \
-  INLINE void prefix##_98(void); INLINE void prefix##_99(void); INLINE void prefix##_9a(void); INLINE void prefix##_9b(void); \
-  INLINE void prefix##_9c(void); INLINE void prefix##_9d(void); INLINE void prefix##_9e(void); INLINE void prefix##_9f(void); \
-  INLINE void prefix##_a0(void); INLINE void prefix##_a1(void); INLINE void prefix##_a2(void); INLINE void prefix##_a3(void); \
-  INLINE void prefix##_a4(void); INLINE void prefix##_a5(void); INLINE void prefix##_a6(void); INLINE void prefix##_a7(void); \
-  INLINE void prefix##_a8(void); INLINE void prefix##_a9(void); INLINE void prefix##_aa(void); INLINE void prefix##_ab(void); \
-  INLINE void prefix##_ac(void); INLINE void prefix##_ad(void); INLINE void prefix##_ae(void); INLINE void prefix##_af(void); \
-  INLINE void prefix##_b0(void); INLINE void prefix##_b1(void); INLINE void prefix##_b2(void); INLINE void prefix##_b3(void); \
-  INLINE void prefix##_b4(void); INLINE void prefix##_b5(void); INLINE void prefix##_b6(void); INLINE void prefix##_b7(void); \
-  INLINE void prefix##_b8(void); INLINE void prefix##_b9(void); INLINE void prefix##_ba(void); INLINE void prefix##_bb(void); \
-  INLINE void prefix##_bc(void); INLINE void prefix##_bd(void); INLINE void prefix##_be(void); INLINE void prefix##_bf(void); \
-  INLINE void prefix##_c0(void); INLINE void prefix##_c1(void); INLINE void prefix##_c2(void); INLINE void prefix##_c3(void); \
-  INLINE void prefix##_c4(void); INLINE void prefix##_c5(void); INLINE void prefix##_c6(void); INLINE void prefix##_c7(void); \
-  INLINE void prefix##_c8(void); INLINE void prefix##_c9(void); INLINE void prefix##_ca(void); INLINE void prefix##_cb(void); \
-  INLINE void prefix##_cc(void); INLINE void prefix##_cd(void); INLINE void prefix##_ce(void); INLINE void prefix##_cf(void); \
-  INLINE void prefix##_d0(void); INLINE void prefix##_d1(void); INLINE void prefix##_d2(void); INLINE void prefix##_d3(void); \
-  INLINE void prefix##_d4(void); INLINE void prefix##_d5(void); INLINE void prefix##_d6(void); INLINE void prefix##_d7(void); \
-  INLINE void prefix##_d8(void); INLINE void prefix##_d9(void); INLINE void prefix##_da(void); INLINE void prefix##_db(void); \
-  INLINE void prefix##_dc(void); INLINE void prefix##_dd(void); INLINE void prefix##_de(void); INLINE void prefix##_df(void); \
-  INLINE void prefix##_e0(void); INLINE void prefix##_e1(void); INLINE void prefix##_e2(void); INLINE void prefix##_e3(void); \
-  INLINE void prefix##_e4(void); INLINE void prefix##_e5(void); INLINE void prefix##_e6(void); INLINE void prefix##_e7(void); \
-  INLINE void prefix##_e8(void); INLINE void prefix##_e9(void); INLINE void prefix##_ea(void); INLINE void prefix##_eb(void); \
-  INLINE void prefix##_ec(void); INLINE void prefix##_ed(void); INLINE void prefix##_ee(void); INLINE void prefix##_ef(void); \
-  INLINE void prefix##_f0(void); INLINE void prefix##_f1(void); INLINE void prefix##_f2(void); INLINE void prefix##_f3(void); \
-  INLINE void prefix##_f4(void); INLINE void prefix##_f5(void); INLINE void prefix##_f6(void); INLINE void prefix##_f7(void); \
-  INLINE void prefix##_f8(void); INLINE void prefix##_f9(void); INLINE void prefix##_fa(void); INLINE void prefix##_fb(void); \
-  INLINE void prefix##_fc(void); INLINE void prefix##_fd(void); INLINE void prefix##_fe(void); INLINE void prefix##_ff(void); \
-static const funcptr tablename[0x100] = {  \
-  prefix##_00,prefix##_01,prefix##_02,prefix##_03,prefix##_04,prefix##_05,prefix##_06,prefix##_07, \
-  prefix##_08,prefix##_09,prefix##_0a,prefix##_0b,prefix##_0c,prefix##_0d,prefix##_0e,prefix##_0f, \
-  prefix##_10,prefix##_11,prefix##_12,prefix##_13,prefix##_14,prefix##_15,prefix##_16,prefix##_17, \
-  prefix##_18,prefix##_19,prefix##_1a,prefix##_1b,prefix##_1c,prefix##_1d,prefix##_1e,prefix##_1f, \
-  prefix##_20,prefix##_21,prefix##_22,prefix##_23,prefix##_24,prefix##_25,prefix##_26,prefix##_27, \
-  prefix##_28,prefix##_29,prefix##_2a,prefix##_2b,prefix##_2c,prefix##_2d,prefix##_2e,prefix##_2f, \
-  prefix##_30,prefix##_31,prefix##_32,prefix##_33,prefix##_34,prefix##_35,prefix##_36,prefix##_37, \
-  prefix##_38,prefix##_39,prefix##_3a,prefix##_3b,prefix##_3c,prefix##_3d,prefix##_3e,prefix##_3f, \
-  prefix##_40,prefix##_41,prefix##_42,prefix##_43,prefix##_44,prefix##_45,prefix##_46,prefix##_47, \
-  prefix##_48,prefix##_49,prefix##_4a,prefix##_4b,prefix##_4c,prefix##_4d,prefix##_4e,prefix##_4f, \
-  prefix##_50,prefix##_51,prefix##_52,prefix##_53,prefix##_54,prefix##_55,prefix##_56,prefix##_57, \
-  prefix##_58,prefix##_59,prefix##_5a,prefix##_5b,prefix##_5c,prefix##_5d,prefix##_5e,prefix##_5f, \
-  prefix##_60,prefix##_61,prefix##_62,prefix##_63,prefix##_64,prefix##_65,prefix##_66,prefix##_67, \
-  prefix##_68,prefix##_69,prefix##_6a,prefix##_6b,prefix##_6c,prefix##_6d,prefix##_6e,prefix##_6f, \
-  prefix##_70,prefix##_71,prefix##_72,prefix##_73,prefix##_74,prefix##_75,prefix##_76,prefix##_77, \
-  prefix##_78,prefix##_79,prefix##_7a,prefix##_7b,prefix##_7c,prefix##_7d,prefix##_7e,prefix##_7f, \
-  prefix##_80,prefix##_81,prefix##_82,prefix##_83,prefix##_84,prefix##_85,prefix##_86,prefix##_87, \
-  prefix##_88,prefix##_89,prefix##_8a,prefix##_8b,prefix##_8c,prefix##_8d,prefix##_8e,prefix##_8f, \
-  prefix##_90,prefix##_91,prefix##_92,prefix##_93,prefix##_94,prefix##_95,prefix##_96,prefix##_97, \
-  prefix##_98,prefix##_99,prefix##_9a,prefix##_9b,prefix##_9c,prefix##_9d,prefix##_9e,prefix##_9f, \
-  prefix##_a0,prefix##_a1,prefix##_a2,prefix##_a3,prefix##_a4,prefix##_a5,prefix##_a6,prefix##_a7, \
-  prefix##_a8,prefix##_a9,prefix##_aa,prefix##_ab,prefix##_ac,prefix##_ad,prefix##_ae,prefix##_af, \
-  prefix##_b0,prefix##_b1,prefix##_b2,prefix##_b3,prefix##_b4,prefix##_b5,prefix##_b6,prefix##_b7, \
-  prefix##_b8,prefix##_b9,prefix##_ba,prefix##_bb,prefix##_bc,prefix##_bd,prefix##_be,prefix##_bf, \
-  prefix##_c0,prefix##_c1,prefix##_c2,prefix##_c3,prefix##_c4,prefix##_c5,prefix##_c6,prefix##_c7, \
-  prefix##_c8,prefix##_c9,prefix##_ca,prefix##_cb,prefix##_cc,prefix##_cd,prefix##_ce,prefix##_cf, \
-  prefix##_d0,prefix##_d1,prefix##_d2,prefix##_d3,prefix##_d4,prefix##_d5,prefix##_d6,prefix##_d7, \
-  prefix##_d8,prefix##_d9,prefix##_da,prefix##_db,prefix##_dc,prefix##_dd,prefix##_de,prefix##_df, \
-  prefix##_e0,prefix##_e1,prefix##_e2,prefix##_e3,prefix##_e4,prefix##_e5,prefix##_e6,prefix##_e7, \
-  prefix##_e8,prefix##_e9,prefix##_ea,prefix##_eb,prefix##_ec,prefix##_ed,prefix##_ee,prefix##_ef, \
-  prefix##_f0,prefix##_f1,prefix##_f2,prefix##_f3,prefix##_f4,prefix##_f5,prefix##_f6,prefix##_f7, \
-  prefix##_f8,prefix##_f9,prefix##_fa,prefix##_fb,prefix##_fc,prefix##_fd,prefix##_fe,prefix##_ff  \
-}
 
-PROTOTYPES(Z80op,op);
-PROTOTYPES(Z80cb,cb);
-PROTOTYPES(Z80dd,dd);
-PROTOTYPES(Z80ed,ed);
-PROTOTYPES(Z80fd,fd);
-PROTOTYPES(Z80xycb,xycb);
+  //PROTOTYPES(Z80op,op);
+  void op_00(void); void op_01(void); void op_02(void); void op_03(void); 
+  void op_04(void); void op_05(void); void op_06(void); void op_07(void); 
+  void op_08(void); void op_09(void); void op_0a(void); void op_0b(void); 
+  void op_0c(void); void op_0d(void); void op_0e(void); void op_0f(void); 
+  void op_10(void); void op_11(void); void op_12(void); void op_13(void); 
+  void op_14(void); void op_15(void); void op_16(void); void op_17(void); 
+  void op_18(void); void op_19(void); void op_1a(void); void op_1b(void); 
+  void op_1c(void); void op_1d(void); void op_1e(void); void op_1f(void); 
+  void op_20(void); void op_21(void); void op_22(void); void op_23(void); 
+  void op_24(void); void op_25(void); void op_26(void); void op_27(void); 
+  void op_28(void); void op_29(void); void op_2a(void); void op_2b(void); 
+  void op_2c(void); void op_2d(void); void op_2e(void); void op_2f(void); 
+  void op_30(void); void op_31(void); void op_32(void); void op_33(void); 
+  void op_34(void); void op_35(void); void op_36(void); void op_37(void); 
+  void op_38(void); void op_39(void); void op_3a(void); void op_3b(void); 
+  void op_3c(void); void op_3d(void); void op_3e(void); void op_3f(void); 
+  void op_40(void); void op_41(void); void op_42(void); void op_43(void); 
+  void op_44(void); void op_45(void); void op_46(void); void op_47(void); 
+  void op_48(void); void op_49(void); void op_4a(void); void op_4b(void); 
+  void op_4c(void); void op_4d(void); void op_4e(void); void op_4f(void); 
+  void op_50(void); void op_51(void); void op_52(void); void op_53(void); 
+  void op_54(void); void op_55(void); void op_56(void); void op_57(void); 
+  void op_58(void); void op_59(void); void op_5a(void); void op_5b(void); 
+  void op_5c(void); void op_5d(void); void op_5e(void); void op_5f(void); 
+  void op_60(void); void op_61(void); void op_62(void); void op_63(void); 
+
+  void op_64(void); void op_65(void); void op_66(void); void op_67(void); 
+  void op_68(void); void op_69(void); void op_6a(void); void op_6b(void); 
+  void op_6c(void); void op_6d(void); void op_6e(void); void op_6f(void); 
+  void op_70(void); void op_71(void); void op_72(void); void op_73(void); 
+  void op_74(void); void op_75(void); void op_76(void); void op_77(void); 
+  void op_78(void); void op_79(void); void op_7a(void); void op_7b(void); 
+  void op_7c(void); void op_7d(void); void op_7e(void); void op_7f(void); 
+  void op_80(void); void op_81(void); void op_82(void); void op_83(void); 
+  void op_84(void); void op_85(void); void op_86(void); void op_87(void); 
+  void op_88(void); void op_89(void); void op_8a(void); void op_8b(void); 
+  void op_8c(void); void op_8d(void); void op_8e(void); void op_8f(void); 
+  void op_90(void); void op_91(void); void op_92(void); void op_93(void); 
+  void op_94(void); void op_95(void); void op_96(void); void op_97(void); 
+  void op_98(void); void op_99(void); void op_9a(void); void op_9b(void); 
+  void op_9c(void); void op_9d(void); void op_9e(void); void op_9f(void); 
+  void op_a0(void); void op_a1(void); void op_a2(void); void op_a3(void); 
+  void op_a4(void); void op_a5(void); void op_a6(void); void op_a7(void); 
+
+  void op_a8(void); void op_a9(void); void op_aa(void); void op_ab(void); 
+  void op_ac(void); void op_ad(void); void op_ae(void); void op_af(void); 
+  void op_b0(void); void op_b1(void); void op_b2(void); void op_b3(void); 
+  void op_b4(void); void op_b5(void); void op_b6(void); void op_b7(void); 
+
+  void op_b8(void); void op_b9(void); void op_ba(void); void op_bb(void); 
+  void op_bc(void); void op_bd(void); void op_be(void); void op_bf(void); 
+  void op_c0(void); void op_c1(void); void op_c2(void); void op_c3(void); 
+  void op_c4(void); void op_c5(void); void op_c6(void); void op_c7(void); 
+  void op_c8(void); void op_c9(void); void op_ca(void); void op_cb(void); 
+  void op_cc(void); void op_cd(void); void op_ce(void); void op_cf(void); 
+  void op_d0(void); void op_d1(void); void op_d2(void); void op_d3(void); 
+  void op_d4(void); void op_d5(void); void op_d6(void); void op_d7(void); 
+  void op_d8(void); void op_d9(void); void op_da(void); void op_db(void); 
+  void op_dc(void); void op_dd(void); void op_de(void); void op_df(void); 
+  void op_e0(void); void op_e1(void); void op_e2(void); void op_e3(void); 
+  void op_e4(void); void op_e5(void); void op_e6(void); void op_e7(void); 
+  void op_e8(void); void op_e9(void); void op_ea(void); void op_eb(void); 
+  void op_ec(void); void op_ed(void); void op_ee(void); void op_ef(void); 
+  void op_f0(void); void op_f1(void); void op_f2(void); void op_f3(void); 
+  void op_f4(void); void op_f5(void); void op_f6(void); void op_f7(void); 
+  void op_f8(void); void op_f9(void); void op_fa(void); void op_fb(void); 
+  void op_fc(void); void op_fd(void); void op_fe(void); void op_ff(void); 
+
+static const funcptr Z80op[0x100] = {  
+  op_00,op_01,op_02,op_03,op_04,op_05,op_06,op_07, 
+  op_08,op_09,op_0a,op_0b,op_0c,op_0d,op_0e,op_0f, 
+  op_10,op_11,op_12,op_13,op_14,op_15,op_16,op_17, 
+  op_18,op_19,op_1a,op_1b,op_1c,op_1d,op_1e,op_1f, 
+  op_20,op_21,op_22,op_23,op_24,op_25,op_26,op_27, 
+  op_28,op_29,op_2a,op_2b,op_2c,op_2d,op_2e,op_2f, 
+  op_30,op_31,op_32,op_33,op_34,op_35,op_36,op_37, 
+  op_38,op_39,op_3a,op_3b,op_3c,op_3d,op_3e,op_3f, 
+  op_40,op_41,op_42,op_43,op_44,op_45,op_46,op_47, 
+  op_48,op_49,op_4a,op_4b,op_4c,op_4d,op_4e,op_4f, 
+  op_50,op_51,op_52,op_53,op_54,op_55,op_56,op_57, 
+  op_58,op_59,op_5a,op_5b,op_5c,op_5d,op_5e,op_5f, 
+  op_60,op_61,op_62,op_63,op_64,op_65,op_66,op_67, 
+  op_68,op_69,op_6a,op_6b,op_6c,op_6d,op_6e,op_6f, 
+  op_70,op_71,op_72,op_73,op_74,op_75,op_76,op_77, 
+  op_78,op_79,op_7a,op_7b,op_7c,op_7d,op_7e,op_7f, 
+  op_80,op_81,op_82,op_83,op_84,op_85,op_86,op_87, 
+  op_88,op_89,op_8a,op_8b,op_8c,op_8d,op_8e,op_8f, 
+  op_90,op_91,op_92,op_93,op_94,op_95,op_96,op_97, 
+  op_98,op_99,op_9a,op_9b,op_9c,op_9d,op_9e,op_9f, 
+  op_a0,op_a1,op_a2,op_a3,op_a4,op_a5,op_a6,op_a7, 
+  op_a8,op_a9,op_aa,op_ab,op_ac,op_ad,op_ae,op_af, 
+  op_b0,op_b1,op_b2,op_b3,op_b4,op_b5,op_b6,op_b7, 
+  op_b8,op_b9,op_ba,op_bb,op_bc,op_bd,op_be,op_bf, 
+  op_c0,op_c1,op_c2,op_c3,op_c4,op_c5,op_c6,op_c7, 
+  op_c8,op_c9,op_ca,op_cb,op_cc,op_cd,op_ce,op_cf, 
+  op_d0,op_d1,op_d2,op_d3,op_d4,op_d5,op_d6,op_d7, 
+  op_d8,op_d9,op_da,op_db,op_dc,op_dd,op_de,op_df, 
+  op_e0,op_e1,op_e2,op_e3,op_e4,op_e5,op_e6,op_e7, 
+
+  op_e8,op_e9,op_ea,op_eb,op_ec,op_ed,op_ee,op_ef, 
+  op_f0,op_f1,op_f2,op_f3,op_f4,op_f5,op_f6,op_f7, 
+  op_f8,op_f9,op_fa,op_fb,op_fc,op_fd,op_fe,op_ff  
+};
+
+
+  // PROTOTYPES(Z80cb,cb);
+  void cb_00(void); void cb_01(void); void cb_02(void); void cb_03(void); 
+  void cb_04(void); void cb_05(void); void cb_06(void); void cb_07(void); 
+  void cb_08(void); void cb_09(void); void cb_0a(void); void cb_0b(void); 
+  void cb_0c(void); void cb_0d(void); void cb_0e(void); void cb_0f(void); 
+  void cb_10(void); void cb_11(void); void cb_12(void); void cb_13(void); 
+  void cb_14(void); void cb_15(void); void cb_16(void); void cb_17(void); 
+  void cb_18(void); void cb_19(void); void cb_1a(void); void cb_1b(void); 
+  void cb_1c(void); void cb_1d(void); void cb_1e(void); void cb_1f(void); 
+  void cb_20(void); void cb_21(void); void cb_22(void); void cb_23(void); 
+  void cb_24(void); void cb_25(void); void cb_26(void); void cb_27(void); 
+  void cb_28(void); void cb_29(void); void cb_2a(void); void cb_2b(void); 
+  void cb_2c(void); void cb_2d(void); void cb_2e(void); void cb_2f(void); 
+  void cb_30(void); void cb_31(void); void cb_32(void); void cb_33(void); 
+  void cb_34(void); void cb_35(void); void cb_36(void); void cb_37(void); 
+  void cb_38(void); void cb_39(void); void cb_3a(void); void cb_3b(void); 
+  void cb_3c(void); void cb_3d(void); void cb_3e(void); void cb_3f(void); 
+  void cb_40(void); void cb_41(void); void cb_42(void); void cb_43(void); 
+  void cb_44(void); void cb_45(void); void cb_46(void); void cb_47(void); 
+  void cb_48(void); void cb_49(void); void cb_4a(void); void cb_4b(void); 
+  void cb_4c(void); void cb_4d(void); void cb_4e(void); void cb_4f(void); 
+  void cb_50(void); void cb_51(void); void cb_52(void); void cb_53(void); 
+  void cb_54(void); void cb_55(void); void cb_56(void); void cb_57(void); 
+  void cb_58(void); void cb_59(void); void cb_5a(void); void cb_5b(void); 
+  void cb_5c(void); void cb_5d(void); void cb_5e(void); void cb_5f(void); 
+  void cb_60(void); void cb_61(void); void cb_62(void); void cb_63(void); 
+
+  void cb_64(void); void cb_65(void); void cb_66(void); void cb_67(void); 
+  void cb_68(void); void cb_69(void); void cb_6a(void); void cb_6b(void); 
+  void cb_6c(void); void cb_6d(void); void cb_6e(void); void cb_6f(void); 
+  void cb_70(void); void cb_71(void); void cb_72(void); void cb_73(void); 
+  void cb_74(void); void cb_75(void); void cb_76(void); void cb_77(void); 
+  void cb_78(void); void cb_79(void); void cb_7a(void); void cb_7b(void); 
+  void cb_7c(void); void cb_7d(void); void cb_7e(void); void cb_7f(void); 
+  void cb_80(void); void cb_81(void); void cb_82(void); void cb_83(void); 
+  void cb_84(void); void cb_85(void); void cb_86(void); void cb_87(void); 
+  void cb_88(void); void cb_89(void); void cb_8a(void); void cb_8b(void); 
+  void cb_8c(void); void cb_8d(void); void cb_8e(void); void cb_8f(void); 
+  void cb_90(void); void cb_91(void); void cb_92(void); void cb_93(void); 
+  void cb_94(void); void cb_95(void); void cb_96(void); void cb_97(void); 
+  void cb_98(void); void cb_99(void); void cb_9a(void); void cb_9b(void); 
+  void cb_9c(void); void cb_9d(void); void cb_9e(void); void cb_9f(void); 
+  void cb_a0(void); void cb_a1(void); void cb_a2(void); void cb_a3(void); 
+  void cb_a4(void); void cb_a5(void); void cb_a6(void); void cb_a7(void); 
+
+  void cb_a8(void); void cb_a9(void); void cb_aa(void); void cb_ab(void); 
+  void cb_ac(void); void cb_ad(void); void cb_ae(void); void cb_af(void); 
+  void cb_b0(void); void cb_b1(void); void cb_b2(void); void cb_b3(void); 
+  void cb_b4(void); void cb_b5(void); void cb_b6(void); void cb_b7(void); 
+
+  void cb_b8(void); void cb_b9(void); void cb_ba(void); void cb_bb(void); 
+  void cb_bc(void); void cb_bd(void); void cb_be(void); void cb_bf(void); 
+  void cb_c0(void); void cb_c1(void); void cb_c2(void); void cb_c3(void); 
+  void cb_c4(void); void cb_c5(void); void cb_c6(void); void cb_c7(void); 
+  void cb_c8(void); void cb_c9(void); void cb_ca(void); void cb_cb(void); 
+  void cb_cc(void); void cb_cd(void); void cb_ce(void); void cb_cf(void); 
+  void cb_d0(void); void cb_d1(void); void cb_d2(void); void cb_d3(void); 
+  void cb_d4(void); void cb_d5(void); void cb_d6(void); void cb_d7(void); 
+  void cb_d8(void); void cb_d9(void); void cb_da(void); void cb_db(void); 
+  void cb_dc(void); void cb_dd(void); void cb_de(void); void cb_df(void); 
+  void cb_e0(void); void cb_e1(void); void cb_e2(void); void cb_e3(void); 
+  void cb_e4(void); void cb_e5(void); void cb_e6(void); void cb_e7(void); 
+  void cb_e8(void); void cb_e9(void); void cb_ea(void); void cb_eb(void); 
+  void cb_ec(void); void cb_ed(void); void cb_ee(void); void cb_ef(void); 
+  void cb_f0(void); void cb_f1(void); void cb_f2(void); void cb_f3(void); 
+  void cb_f4(void); void cb_f5(void); void cb_f6(void); void cb_f7(void); 
+  void cb_f8(void); void cb_f9(void); void cb_fa(void); void cb_fb(void); 
+  void cb_fc(void); void cb_fd(void); void cb_fe(void); void cb_ff(void); 
+
+static const funcptr Z80cb[0x100] = {  
+  cb_00,cb_01,cb_02,cb_03,cb_04,cb_05,cb_06,cb_07, 
+  cb_08,cb_09,cb_0a,cb_0b,cb_0c,cb_0d,cb_0e,cb_0f, 
+  cb_10,cb_11,cb_12,cb_13,cb_14,cb_15,cb_16,cb_17, 
+  cb_18,cb_19,cb_1a,cb_1b,cb_1c,cb_1d,cb_1e,cb_1f, 
+  cb_20,cb_21,cb_22,cb_23,cb_24,cb_25,cb_26,cb_27, 
+  cb_28,cb_29,cb_2a,cb_2b,cb_2c,cb_2d,cb_2e,cb_2f, 
+  cb_30,cb_31,cb_32,cb_33,cb_34,cb_35,cb_36,cb_37, 
+  cb_38,cb_39,cb_3a,cb_3b,cb_3c,cb_3d,cb_3e,cb_3f, 
+  cb_40,cb_41,cb_42,cb_43,cb_44,cb_45,cb_46,cb_47, 
+  cb_48,cb_49,cb_4a,cb_4b,cb_4c,cb_4d,cb_4e,cb_4f, 
+  cb_50,cb_51,cb_52,cb_53,cb_54,cb_55,cb_56,cb_57, 
+  cb_58,cb_59,cb_5a,cb_5b,cb_5c,cb_5d,cb_5e,cb_5f, 
+  cb_60,cb_61,cb_62,cb_63,cb_64,cb_65,cb_66,cb_67, 
+  cb_68,cb_69,cb_6a,cb_6b,cb_6c,cb_6d,cb_6e,cb_6f, 
+  cb_70,cb_71,cb_72,cb_73,cb_74,cb_75,cb_76,cb_77, 
+  cb_78,cb_79,cb_7a,cb_7b,cb_7c,cb_7d,cb_7e,cb_7f, 
+  cb_80,cb_81,cb_82,cb_83,cb_84,cb_85,cb_86,cb_87, 
+  cb_88,cb_89,cb_8a,cb_8b,cb_8c,cb_8d,cb_8e,cb_8f, 
+  cb_90,cb_91,cb_92,cb_93,cb_94,cb_95,cb_96,cb_97, 
+  cb_98,cb_99,cb_9a,cb_9b,cb_9c,cb_9d,cb_9e,cb_9f, 
+  cb_a0,cb_a1,cb_a2,cb_a3,cb_a4,cb_a5,cb_a6,cb_a7, 
+  cb_a8,cb_a9,cb_aa,cb_ab,cb_ac,cb_ad,cb_ae,cb_af, 
+  cb_b0,cb_b1,cb_b2,cb_b3,cb_b4,cb_b5,cb_b6,cb_b7, 
+  cb_b8,cb_b9,cb_ba,cb_bb,cb_bc,cb_bd,cb_be,cb_bf, 
+  cb_c0,cb_c1,cb_c2,cb_c3,cb_c4,cb_c5,cb_c6,cb_c7, 
+  cb_c8,cb_c9,cb_ca,cb_cb,cb_cc,cb_cd,cb_ce,cb_cf, 
+  cb_d0,cb_d1,cb_d2,cb_d3,cb_d4,cb_d5,cb_d6,cb_d7, 
+  cb_d8,cb_d9,cb_da,cb_db,cb_dc,cb_dd,cb_de,cb_df, 
+  cb_e0,cb_e1,cb_e2,cb_e3,cb_e4,cb_e5,cb_e6,cb_e7, 
+
+  cb_e8,cb_e9,cb_ea,cb_eb,cb_ec,cb_ed,cb_ee,cb_ef, 
+  cb_f0,cb_f1,cb_f2,cb_f3,cb_f4,cb_f5,cb_f6,cb_f7, 
+  cb_f8,cb_f9,cb_fa,cb_fb,cb_fc,cb_fd,cb_fe,cb_ff 
+};
+
+
+// PROTOTYPES(Z80dd,dd);
+  void dd_00(void); void dd_01(void); void dd_02(void); void dd_03(void); 
+  void dd_04(void); void dd_05(void); void dd_06(void); void dd_07(void); 
+  void dd_08(void); void dd_09(void); void dd_0a(void); void dd_0b(void); 
+  void dd_0c(void); void dd_0d(void); void dd_0e(void); void dd_0f(void); 
+  void dd_10(void); void dd_11(void); void dd_12(void); void dd_13(void); 
+  void dd_14(void); void dd_15(void); void dd_16(void); void dd_17(void); 
+  void dd_18(void); void dd_19(void); void dd_1a(void); void dd_1b(void); 
+  void dd_1c(void); void dd_1d(void); void dd_1e(void); void dd_1f(void); 
+  void dd_20(void); void dd_21(void); void dd_22(void); void dd_23(void); 
+  void dd_24(void); void dd_25(void); void dd_26(void); void dd_27(void); 
+  void dd_28(void); void dd_29(void); void dd_2a(void); void dd_2b(void); 
+  void dd_2c(void); void dd_2d(void); void dd_2e(void); void dd_2f(void); 
+  void dd_30(void); void dd_31(void); void dd_32(void); void dd_33(void); 
+  void dd_34(void); void dd_35(void); void dd_36(void); void dd_37(void); 
+  void dd_38(void); void dd_39(void); void dd_3a(void); void dd_3b(void); 
+  void dd_3c(void); void dd_3d(void); void dd_3e(void); void dd_3f(void); 
+  void dd_40(void); void dd_41(void); void dd_42(void); void dd_43(void); 
+  void dd_44(void); void dd_45(void); void dd_46(void); void dd_47(void); 
+  void dd_48(void); void dd_49(void); void dd_4a(void); void dd_4b(void); 
+  void dd_4c(void); void dd_4d(void); void dd_4e(void); void dd_4f(void); 
+  void dd_50(void); void dd_51(void); void dd_52(void); void dd_53(void); 
+  void dd_54(void); void dd_55(void); void dd_56(void); void dd_57(void); 
+  void dd_58(void); void dd_59(void); void dd_5a(void); void dd_5b(void); 
+  void dd_5c(void); void dd_5d(void); void dd_5e(void); void dd_5f(void); 
+  void dd_60(void); void dd_61(void); void dd_62(void); void dd_63(void); 
+  void dd_64(void); void dd_65(void); void dd_66(void); void dd_67(void); 
+  void dd_68(void); void dd_69(void); void dd_6a(void); void dd_6b(void); 
+  void dd_6c(void); void dd_6d(void); void dd_6e(void); void dd_6f(void); 
+  void dd_70(void); void dd_71(void); void dd_72(void); void dd_73(void); 
+  void dd_74(void); void dd_75(void); void dd_76(void); void dd_77(void); 
+  void dd_78(void); void dd_79(void); void dd_7a(void); void dd_7b(void); 
+  void dd_7c(void); void dd_7d(void); void dd_7e(void); void dd_7f(void); 
+  void dd_80(void); void dd_81(void); void dd_82(void); void dd_83(void); 
+  void dd_84(void); void dd_85(void); void dd_86(void); void dd_87(void); 
+  void dd_88(void); void dd_89(void); void dd_8a(void); void dd_8b(void); 
+  void dd_8c(void); void dd_8d(void); void dd_8e(void); void dd_8f(void); 
+  void dd_90(void); void dd_91(void); void dd_92(void); void dd_93(void); 
+  void dd_94(void); void dd_95(void); void dd_96(void); void dd_97(void); 
+  void dd_98(void); void dd_99(void); void dd_9a(void); void dd_9b(void); 
+  void dd_9c(void); void dd_9d(void); void dd_9e(void); void dd_9f(void); 
+  void dd_a0(void); void dd_a1(void); void dd_a2(void); void dd_a3(void); 
+  void dd_a4(void); void dd_a5(void); void dd_a6(void); void dd_a7(void); 
+  void dd_a8(void); void dd_a9(void); void dd_aa(void); void dd_ab(void); 
+  void dd_ac(void); void dd_ad(void); void dd_ae(void); void dd_af(void); 
+  void dd_b0(void); void dd_b1(void); void dd_b2(void); void dd_b3(void); 
+  void dd_b4(void); void dd_b5(void); void dd_b6(void); void dd_b7(void); 
+  void dd_b8(void); void dd_b9(void); void dd_ba(void); void dd_bb(void); 
+  void dd_bc(void); void dd_bd(void); void dd_be(void); void dd_bf(void); 
+  void dd_c0(void); void dd_c1(void); void dd_c2(void); void dd_c3(void); 
+  void dd_c4(void); void dd_c5(void); void dd_c6(void); void dd_c7(void); 
+  void dd_c8(void); void dd_c9(void); void dd_ca(void); void dd_cb(void); 
+  void dd_cc(void); void dd_cd(void); void dd_ce(void); void dd_cf(void); 
+  void dd_d0(void); void dd_d1(void); void dd_d2(void); void dd_d3(void); 
+  void dd_d4(void); void dd_d5(void); void dd_d6(void); void dd_d7(void); 
+  void dd_d8(void); void dd_d9(void); void dd_da(void); void dd_db(void); 
+  void dd_dc(void); void dd_dd(void); void dd_de(void); void dd_df(void); 
+  void dd_e0(void); void dd_e1(void); void dd_e2(void); void dd_e3(void); 
+  void dd_e4(void); void dd_e5(void); void dd_e6(void); void dd_e7(void); 
+  void dd_e8(void); void dd_e9(void); void dd_ea(void); void dd_eb(void); 
+  void dd_ec(void); void dd_ed(void); void dd_ee(void); void dd_ef(void); 
+  void dd_f0(void); void dd_f1(void); void dd_f2(void); void dd_f3(void); 
+  void dd_f4(void); void dd_f5(void); void dd_f6(void); void dd_f7(void); 
+  void dd_f8(void); void dd_f9(void); void dd_fa(void); void dd_fb(void); 
+  void dd_fc(void); void dd_fd(void); void dd_fe(void); void dd_ff(void); 
+static const funcptr Z80dd[0x100] = {  
+  dd_00,dd_01,dd_02,dd_03,dd_04,dd_05,dd_06,dd_07, 
+  dd_08,dd_09,dd_0a,dd_0b,dd_0c,dd_0d,dd_0e,dd_0f, 
+  dd_10,dd_11,dd_12,dd_13,dd_14,dd_15,dd_16,dd_17, 
+  dd_18,dd_19,dd_1a,dd_1b,dd_1c,dd_1d,dd_1e,dd_1f, 
+  dd_20,dd_21,dd_22,dd_23,dd_24,dd_25,dd_26,dd_27, 
+  dd_28,dd_29,dd_2a,dd_2b,dd_2c,dd_2d,dd_2e,dd_2f, 
+  dd_30,dd_31,dd_32,dd_33,dd_34,dd_35,dd_36,dd_37, 
+  dd_38,dd_39,dd_3a,dd_3b,dd_3c,dd_3d,dd_3e,dd_3f, 
+  dd_40,dd_41,dd_42,dd_43,dd_44,dd_45,dd_46,dd_47, 
+  dd_48,dd_49,dd_4a,dd_4b,dd_4c,dd_4d,dd_4e,dd_4f, 
+  dd_50,dd_51,dd_52,dd_53,dd_54,dd_55,dd_56,dd_57, 
+  dd_58,dd_59,dd_5a,dd_5b,dd_5c,dd_5d,dd_5e,dd_5f, 
+  dd_60,dd_61,dd_62,dd_63,dd_64,dd_65,dd_66,dd_67, 
+  dd_68,dd_69,dd_6a,dd_6b,dd_6c,dd_6d,dd_6e,dd_6f, 
+  dd_70,dd_71,dd_72,dd_73,dd_74,dd_75,dd_76,dd_77, 
+  dd_78,dd_79,dd_7a,dd_7b,dd_7c,dd_7d,dd_7e,dd_7f, 
+  dd_80,dd_81,dd_82,dd_83,dd_84,dd_85,dd_86,dd_87, 
+  dd_88,dd_89,dd_8a,dd_8b,dd_8c,dd_8d,dd_8e,dd_8f, 
+  dd_90,dd_91,dd_92,dd_93,dd_94,dd_95,dd_96,dd_97, 
+  dd_98,dd_99,dd_9a,dd_9b,dd_9c,dd_9d,dd_9e,dd_9f, 
+  dd_a0,dd_a1,dd_a2,dd_a3,dd_a4,dd_a5,dd_a6,dd_a7, 
+  dd_a8,dd_a9,dd_aa,dd_ab,dd_ac,dd_ad,dd_ae,dd_af, 
+  dd_b0,dd_b1,dd_b2,dd_b3,dd_b4,dd_b5,dd_b6,dd_b7, 
+  dd_b8,dd_b9,dd_ba,dd_bb,dd_bc,dd_bd,dd_be,dd_bf, 
+  dd_c0,dd_c1,dd_c2,dd_c3,dd_c4,dd_c5,dd_c6,dd_c7, 
+  dd_c8,dd_c9,dd_ca,dd_cb,dd_cc,dd_cd,dd_ce,dd_cf, 
+  dd_d0,dd_d1,dd_d2,dd_d3,dd_d4,dd_d5,dd_d6,dd_d7, 
+  dd_d8,dd_d9,dd_da,dd_db,dd_dc,dd_dd,dd_de,dd_df, 
+  dd_e0,dd_e1,dd_e2,dd_e3,dd_e4,dd_e5,dd_e6,dd_e7, 
+  dd_e8,dd_e9,dd_ea,dd_eb,dd_ec,dd_ed,dd_ee,dd_ef, 
+  dd_f0,dd_f1,dd_f2,dd_f3,dd_f4,dd_f5,dd_f6,dd_f7, 
+  dd_f8,dd_f9,dd_fa,dd_fb,dd_fc,dd_fd,dd_fe,dd_ff  
+};
+
+
+// PROTOTYPES(Z80ed,ed);
+  void ed_00(void); void ed_01(void); void ed_02(void); void ed_03(void); 
+  void ed_04(void); void ed_05(void); void ed_06(void); void ed_07(void); 
+  void ed_08(void); void ed_09(void); void ed_0a(void); void ed_0b(void); 
+  void ed_0c(void); void ed_0d(void); void ed_0e(void); void ed_0f(void); 
+  void ed_10(void); void ed_11(void); void ed_12(void); void ed_13(void); 
+  void ed_14(void); void ed_15(void); void ed_16(void); void ed_17(void); 
+  void ed_18(void); void ed_19(void); void ed_1a(void); void ed_1b(void); 
+  void ed_1c(void); void ed_1d(void); void ed_1e(void); void ed_1f(void); 
+  void ed_20(void); void ed_21(void); void ed_22(void); void ed_23(void); 
+  void ed_24(void); void ed_25(void); void ed_26(void); void ed_27(void); 
+  void ed_28(void); void ed_29(void); void ed_2a(void); void ed_2b(void); 
+  void ed_2c(void); void ed_2d(void); void ed_2e(void); void ed_2f(void); 
+  void ed_30(void); void ed_31(void); void ed_32(void); void ed_33(void); 
+  void ed_34(void); void ed_35(void); void ed_36(void); void ed_37(void); 
+  void ed_38(void); void ed_39(void); void ed_3a(void); void ed_3b(void); 
+  void ed_3c(void); void ed_3d(void); void ed_3e(void); void ed_3f(void); 
+  void ed_40(void); void ed_41(void); void ed_42(void); void ed_43(void); 
+  void ed_44(void); void ed_45(void); void ed_46(void); void ed_47(void); 
+  void ed_48(void); void ed_49(void); void ed_4a(void); void ed_4b(void); 
+  void ed_4c(void); void ed_4d(void); void ed_4e(void); void ed_4f(void); 
+  void ed_50(void); void ed_51(void); void ed_52(void); void ed_53(void); 
+  void ed_54(void); void ed_55(void); void ed_56(void); void ed_57(void); 
+  void ed_58(void); void ed_59(void); void ed_5a(void); void ed_5b(void); 
+  void ed_5c(void); void ed_5d(void); void ed_5e(void); void ed_5f(void); 
+  void ed_60(void); void ed_61(void); void ed_62(void); void ed_63(void); 
+  void ed_64(void); void ed_65(void); void ed_66(void); void ed_67(void); 
+  void ed_68(void); void ed_69(void); void ed_6a(void); void ed_6b(void); 
+  void ed_6c(void); void ed_6d(void); void ed_6e(void); void ed_6f(void); 
+  void ed_70(void); void ed_71(void); void ed_72(void); void ed_73(void); 
+  void ed_74(void); void ed_75(void); void ed_76(void); void ed_77(void); 
+  void ed_78(void); void ed_79(void); void ed_7a(void); void ed_7b(void); 
+  void ed_7c(void); void ed_7d(void); void ed_7e(void); void ed_7f(void); 
+  void ed_80(void); void ed_81(void); void ed_82(void); void ed_83(void); 
+  void ed_84(void); void ed_85(void); void ed_86(void); void ed_87(void); 
+  void ed_88(void); void ed_89(void); void ed_8a(void); void ed_8b(void); 
+  void ed_8c(void); void ed_8d(void); void ed_8e(void); void ed_8f(void); 
+  void ed_90(void); void ed_91(void); void ed_92(void); void ed_93(void); 
+  void ed_94(void); void ed_95(void); void ed_96(void); void ed_97(void); 
+  void ed_98(void); void ed_99(void); void ed_9a(void); void ed_9b(void); 
+  void ed_9c(void); void ed_9d(void); void ed_9e(void); void ed_9f(void); 
+  void ed_a0(void); void ed_a1(void); void ed_a2(void); void ed_a3(void); 
+  void ed_a4(void); void ed_a5(void); void ed_a6(void); void ed_a7(void); 
+  void ed_a8(void); void ed_a9(void); void ed_aa(void); void ed_ab(void); 
+  void ed_ac(void); void ed_ad(void); void ed_ae(void); void ed_af(void); 
+  void ed_b0(void); void ed_b1(void); void ed_b2(void); void ed_b3(void); 
+  void ed_b4(void); void ed_b5(void); void ed_b6(void); void ed_b7(void); 
+  void ed_b8(void); void ed_b9(void); void ed_ba(void); void ed_bb(void); 
+  void ed_bc(void); void ed_bd(void); void ed_be(void); void ed_bf(void); 
+  void ed_c0(void); void ed_c1(void); void ed_c2(void); void ed_c3(void); 
+  void ed_c4(void); void ed_c5(void); void ed_c6(void); void ed_c7(void); 
+  void ed_c8(void); void ed_c9(void); void ed_ca(void); void ed_cb(void); 
+  void ed_cc(void); void ed_cd(void); void ed_ce(void); void ed_cf(void); 
+  void ed_d0(void); void ed_d1(void); void ed_d2(void); void ed_d3(void); 
+  void ed_d4(void); void ed_d5(void); void ed_d6(void); void ed_d7(void); 
+  void ed_d8(void); void ed_d9(void); void ed_da(void); void ed_db(void); 
+  void ed_dc(void); void ed_dd(void); void ed_de(void); void ed_df(void); 
+  void ed_e0(void); void ed_e1(void); void ed_e2(void); void ed_e3(void); 
+  void ed_e4(void); void ed_e5(void); void ed_e6(void); void ed_e7(void); 
+  void ed_e8(void); void ed_e9(void); void ed_ea(void); void ed_eb(void); 
+  void ed_ec(void); void ed_ed(void); void ed_ee(void); void ed_ef(void); 
+  void ed_f0(void); void ed_f1(void); void ed_f2(void); void ed_f3(void); 
+  void ed_f4(void); void ed_f5(void); void ed_f6(void); void ed_f7(void); 
+  void ed_f8(void); void ed_f9(void); void ed_fa(void); void ed_fb(void); 
+  void ed_fc(void); void ed_fd(void); void ed_fe(void); void ed_ff(void); 
+static const funcptr Z80ed[0x100] = {  
+  ed_00,ed_01,ed_02,ed_03,ed_04,ed_05,ed_06,ed_07, 
+  ed_08,ed_09,ed_0a,ed_0b,ed_0c,ed_0d,ed_0e,ed_0f, 
+  ed_10,ed_11,ed_12,ed_13,ed_14,ed_15,ed_16,ed_17, 
+  ed_18,ed_19,ed_1a,ed_1b,ed_1c,ed_1d,ed_1e,ed_1f, 
+  ed_20,ed_21,ed_22,ed_23,ed_24,ed_25,ed_26,ed_27, 
+  ed_28,ed_29,ed_2a,ed_2b,ed_2c,ed_2d,ed_2e,ed_2f, 
+  ed_30,ed_31,ed_32,ed_33,ed_34,ed_35,ed_36,ed_37, 
+  ed_38,ed_39,ed_3a,ed_3b,ed_3c,ed_3d,ed_3e,ed_3f, 
+  ed_40,ed_41,ed_42,ed_43,ed_44,ed_45,ed_46,ed_47, 
+  ed_48,ed_49,ed_4a,ed_4b,ed_4c,ed_4d,ed_4e,ed_4f, 
+  ed_50,ed_51,ed_52,ed_53,ed_54,ed_55,ed_56,ed_57, 
+  ed_58,ed_59,ed_5a,ed_5b,ed_5c,ed_5d,ed_5e,ed_5f, 
+  ed_60,ed_61,ed_62,ed_63,ed_64,ed_65,ed_66,ed_67, 
+  ed_68,ed_69,ed_6a,ed_6b,ed_6c,ed_6d,ed_6e,ed_6f, 
+  ed_70,ed_71,ed_72,ed_73,ed_74,ed_75,ed_76,ed_77, 
+  ed_78,ed_79,ed_7a,ed_7b,ed_7c,ed_7d,ed_7e,ed_7f, 
+  ed_80,ed_81,ed_82,ed_83,ed_84,ed_85,ed_86,ed_87, 
+  ed_88,ed_89,ed_8a,ed_8b,ed_8c,ed_8d,ed_8e,ed_8f, 
+  ed_90,ed_91,ed_92,ed_93,ed_94,ed_95,ed_96,ed_97, 
+  ed_98,ed_99,ed_9a,ed_9b,ed_9c,ed_9d,ed_9e,ed_9f, 
+  ed_a0,ed_a1,ed_a2,ed_a3,ed_a4,ed_a5,ed_a6,ed_a7, 
+  ed_a8,ed_a9,ed_aa,ed_ab,ed_ac,ed_ad,ed_ae,ed_af, 
+  ed_b0,ed_b1,ed_b2,ed_b3,ed_b4,ed_b5,ed_b6,ed_b7, 
+  ed_b8,ed_b9,ed_ba,ed_bb,ed_bc,ed_bd,ed_be,ed_bf, 
+  ed_c0,ed_c1,ed_c2,ed_c3,ed_c4,ed_c5,ed_c6,ed_c7, 
+  ed_c8,ed_c9,ed_ca,ed_cb,ed_cc,ed_cd,ed_ce,ed_cf, 
+  ed_d0,ed_d1,ed_d2,ed_d3,ed_d4,ed_d5,ed_d6,ed_d7, 
+  ed_d8,ed_d9,ed_da,ed_db,ed_dc,ed_dd,ed_de,ed_df, 
+  ed_e0,ed_e1,ed_e2,ed_e3,ed_e4,ed_e5,ed_e6,ed_e7, 
+  ed_e8,ed_e9,ed_ea,ed_eb,ed_ec,ed_ed,ed_ee,ed_ef, 
+  ed_f0,ed_f1,ed_f2,ed_f3,ed_f4,ed_f5,ed_f6,ed_f7, 
+  ed_f8,ed_f9,ed_fa,ed_fb,ed_fc,ed_fd,ed_fe,ed_ff  
+};
+
+// PROTOTYPES(Z80fd,fd);
+  void fd_00(void); void fd_01(void); void fd_02(void); void fd_03(void); 
+  void fd_04(void); void fd_05(void); void fd_06(void); void fd_07(void); 
+  void fd_08(void); void fd_09(void); void fd_0a(void); void fd_0b(void); 
+  void fd_0c(void); void fd_0d(void); void fd_0e(void); void fd_0f(void); 
+  void fd_10(void); void fd_11(void); void fd_12(void); void fd_13(void); 
+  void fd_14(void); void fd_15(void); void fd_16(void); void fd_17(void); 
+  void fd_18(void); void fd_19(void); void fd_1a(void); void fd_1b(void); 
+  void fd_1c(void); void fd_1d(void); void fd_1e(void); void fd_1f(void); 
+  void fd_20(void); void fd_21(void); void fd_22(void); void fd_23(void); 
+  void fd_24(void); void fd_25(void); void fd_26(void); void fd_27(void); 
+  void fd_28(void); void fd_29(void); void fd_2a(void); void fd_2b(void); 
+  void fd_2c(void); void fd_2d(void); void fd_2e(void); void fd_2f(void); 
+  void fd_30(void); void fd_31(void); void fd_32(void); void fd_33(void); 
+  void fd_34(void); void fd_35(void); void fd_36(void); void fd_37(void); 
+  void fd_38(void); void fd_39(void); void fd_3a(void); void fd_3b(void); 
+  void fd_3c(void); void fd_3d(void); void fd_3e(void); void fd_3f(void); 
+  void fd_40(void); void fd_41(void); void fd_42(void); void fd_43(void); 
+  void fd_44(void); void fd_45(void); void fd_46(void); void fd_47(void); 
+  void fd_48(void); void fd_49(void); void fd_4a(void); void fd_4b(void); 
+  void fd_4c(void); void fd_4d(void); void fd_4e(void); void fd_4f(void); 
+  void fd_50(void); void fd_51(void); void fd_52(void); void fd_53(void); 
+  void fd_54(void); void fd_55(void); void fd_56(void); void fd_57(void); 
+  void fd_58(void); void fd_59(void); void fd_5a(void); void fd_5b(void); 
+  void fd_5c(void); void fd_5d(void); void fd_5e(void); void fd_5f(void); 
+  void fd_60(void); void fd_61(void); void fd_62(void); void fd_63(void); 
+  void fd_64(void); void fd_65(void); void fd_66(void); void fd_67(void); 
+  void fd_68(void); void fd_69(void); void fd_6a(void); void fd_6b(void); 
+  void fd_6c(void); void fd_6d(void); void fd_6e(void); void fd_6f(void); 
+  void fd_70(void); void fd_71(void); void fd_72(void); void fd_73(void); 
+  void fd_74(void); void fd_75(void); void fd_76(void); void fd_77(void); 
+  void fd_78(void); void fd_79(void); void fd_7a(void); void fd_7b(void); 
+  void fd_7c(void); void fd_7d(void); void fd_7e(void); void fd_7f(void); 
+  void fd_80(void); void fd_81(void); void fd_82(void); void fd_83(void); 
+  void fd_84(void); void fd_85(void); void fd_86(void); void fd_87(void); 
+  void fd_88(void); void fd_89(void); void fd_8a(void); void fd_8b(void); 
+  void fd_8c(void); void fd_8d(void); void fd_8e(void); void fd_8f(void); 
+  void fd_90(void); void fd_91(void); void fd_92(void); void fd_93(void); 
+  void fd_94(void); void fd_95(void); void fd_96(void); void fd_97(void); 
+  void fd_98(void); void fd_99(void); void fd_9a(void); void fd_9b(void); 
+  void fd_9c(void); void fd_9d(void); void fd_9e(void); void fd_9f(void); 
+  void fd_a0(void); void fd_a1(void); void fd_a2(void); void fd_a3(void); 
+  void fd_a4(void); void fd_a5(void); void fd_a6(void); void fd_a7(void); 
+  void fd_a8(void); void fd_a9(void); void fd_aa(void); void fd_ab(void); 
+  void fd_ac(void); void fd_ad(void); void fd_ae(void); void fd_af(void); 
+  void fd_b0(void); void fd_b1(void); void fd_b2(void); void fd_b3(void); 
+  void fd_b4(void); void fd_b5(void); void fd_b6(void); void fd_b7(void); 
+  void fd_b8(void); void fd_b9(void); void fd_ba(void); void fd_bb(void); 
+  void fd_bc(void); void fd_bd(void); void fd_be(void); void fd_bf(void); 
+  void fd_c0(void); void fd_c1(void); void fd_c2(void); void fd_c3(void); 
+  void fd_c4(void); void fd_c5(void); void fd_c6(void); void fd_c7(void); 
+  void fd_c8(void); void fd_c9(void); void fd_ca(void); void fd_cb(void); 
+  void fd_cc(void); void fd_cd(void); void fd_ce(void); void fd_cf(void); 
+  void fd_d0(void); void fd_d1(void); void fd_d2(void); void fd_d3(void); 
+  void fd_d4(void); void fd_d5(void); void fd_d6(void); void fd_d7(void); 
+  void fd_d8(void); void fd_d9(void); void fd_da(void); void fd_db(void); 
+  void fd_dc(void); void fd_dd(void); void fd_de(void); void fd_df(void); 
+  void fd_e0(void); void fd_e1(void); void fd_e2(void); void fd_e3(void); 
+  void fd_e4(void); void fd_e5(void); void fd_e6(void); void fd_e7(void); 
+  void fd_e8(void); void fd_e9(void); void fd_ea(void); void fd_eb(void); 
+  void fd_ec(void); void fd_ed(void); void fd_ee(void); void fd_ef(void); 
+  void fd_f0(void); void fd_f1(void); void fd_f2(void); void fd_f3(void); 
+  void fd_f4(void); void fd_f5(void); void fd_f6(void); void fd_f7(void); 
+  void fd_f8(void); void fd_f9(void); void fd_fa(void); void fd_fb(void); 
+  void fd_fc(void); void fd_fd(void); void fd_fe(void); void fd_ff(void); 
+static const funcptr Z80fd[0x100] = {  
+  fd_00,fd_01,fd_02,fd_03,fd_04,fd_05,fd_06,fd_07, 
+  fd_08,fd_09,fd_0a,fd_0b,fd_0c,fd_0d,fd_0e,fd_0f, 
+  fd_10,fd_11,fd_12,fd_13,fd_14,fd_15,fd_16,fd_17, 
+  fd_18,fd_19,fd_1a,fd_1b,fd_1c,fd_1d,fd_1e,fd_1f, 
+  fd_20,fd_21,fd_22,fd_23,fd_24,fd_25,fd_26,fd_27, 
+  fd_28,fd_29,fd_2a,fd_2b,fd_2c,fd_2d,fd_2e,fd_2f, 
+  fd_30,fd_31,fd_32,fd_33,fd_34,fd_35,fd_36,fd_37, 
+  fd_38,fd_39,fd_3a,fd_3b,fd_3c,fd_3d,fd_3e,fd_3f, 
+  fd_40,fd_41,fd_42,fd_43,fd_44,fd_45,fd_46,fd_47, 
+  fd_48,fd_49,fd_4a,fd_4b,fd_4c,fd_4d,fd_4e,fd_4f, 
+  fd_50,fd_51,fd_52,fd_53,fd_54,fd_55,fd_56,fd_57, 
+  fd_58,fd_59,fd_5a,fd_5b,fd_5c,fd_5d,fd_5e,fd_5f, 
+  fd_60,fd_61,fd_62,fd_63,fd_64,fd_65,fd_66,fd_67, 
+  fd_68,fd_69,fd_6a,fd_6b,fd_6c,fd_6d,fd_6e,fd_6f, 
+  fd_70,fd_71,fd_72,fd_73,fd_74,fd_75,fd_76,fd_77, 
+  fd_78,fd_79,fd_7a,fd_7b,fd_7c,fd_7d,fd_7e,fd_7f, 
+  fd_80,fd_81,fd_82,fd_83,fd_84,fd_85,fd_86,fd_87, 
+  fd_88,fd_89,fd_8a,fd_8b,fd_8c,fd_8d,fd_8e,fd_8f, 
+  fd_90,fd_91,fd_92,fd_93,fd_94,fd_95,fd_96,fd_97, 
+  fd_98,fd_99,fd_9a,fd_9b,fd_9c,fd_9d,fd_9e,fd_9f, 
+  fd_a0,fd_a1,fd_a2,fd_a3,fd_a4,fd_a5,fd_a6,fd_a7, 
+  fd_a8,fd_a9,fd_aa,fd_ab,fd_ac,fd_ad,fd_ae,fd_af, 
+  fd_b0,fd_b1,fd_b2,fd_b3,fd_b4,fd_b5,fd_b6,fd_b7, 
+  fd_b8,fd_b9,fd_ba,fd_bb,fd_bc,fd_bd,fd_be,fd_bf, 
+  fd_c0,fd_c1,fd_c2,fd_c3,fd_c4,fd_c5,fd_c6,fd_c7, 
+  fd_c8,fd_c9,fd_ca,fd_cb,fd_cc,fd_cd,fd_ce,fd_cf, 
+  fd_d0,fd_d1,fd_d2,fd_d3,fd_d4,fd_d5,fd_d6,fd_d7, 
+  fd_d8,fd_d9,fd_da,fd_db,fd_dc,fd_dd,fd_de,fd_df, 
+  fd_e0,fd_e1,fd_e2,fd_e3,fd_e4,fd_e5,fd_e6,fd_e7, 
+  fd_e8,fd_e9,fd_ea,fd_eb,fd_ec,fd_ed,fd_ee,fd_ef, 
+  fd_f0,fd_f1,fd_f2,fd_f3,fd_f4,fd_f5,fd_f6,fd_f7, 
+  fd_f8,fd_f9,fd_fa,fd_fb,fd_fc,fd_fd,fd_fe,fd_ff  
+};
+
+
+// PROTOTYPES(Z80xycb,xycb);
+  void xycb_00(void); void xycb_01(void); void xycb_02(void); void xycb_03(void); 
+  void xycb_04(void); void xycb_05(void); void xycb_06(void); void xycb_07(void); 
+  void xycb_08(void); void xycb_09(void); void xycb_0a(void); void xycb_0b(void); 
+  void xycb_0c(void); void xycb_0d(void); void xycb_0e(void); void xycb_0f(void); 
+  void xycb_10(void); void xycb_11(void); void xycb_12(void); void xycb_13(void); 
+  void xycb_14(void); void xycb_15(void); void xycb_16(void); void xycb_17(void); 
+  void xycb_18(void); void xycb_19(void); void xycb_1a(void); void xycb_1b(void); 
+  void xycb_1c(void); void xycb_1d(void); void xycb_1e(void); void xycb_1f(void); 
+  void xycb_20(void); void xycb_21(void); void xycb_22(void); void xycb_23(void); 
+  void xycb_24(void); void xycb_25(void); void xycb_26(void); void xycb_27(void); 
+  void xycb_28(void); void xycb_29(void); void xycb_2a(void); void xycb_2b(void); 
+  void xycb_2c(void); void xycb_2d(void); void xycb_2e(void); void xycb_2f(void); 
+  void xycb_30(void); void xycb_31(void); void xycb_32(void); void xycb_33(void); 
+  void xycb_34(void); void xycb_35(void); void xycb_36(void); void xycb_37(void); 
+  void xycb_38(void); void xycb_39(void); void xycb_3a(void); void xycb_3b(void); 
+  void xycb_3c(void); void xycb_3d(void); void xycb_3e(void); void xycb_3f(void); 
+  void xycb_40(void); void xycb_41(void); void xycb_42(void); void xycb_43(void); 
+  void xycb_44(void); void xycb_45(void); void xycb_46(void); void xycb_47(void); 
+  void xycb_48(void); void xycb_49(void); void xycb_4a(void); void xycb_4b(void); 
+  void xycb_4c(void); void xycb_4d(void); void xycb_4e(void); void xycb_4f(void); 
+  void xycb_50(void); void xycb_51(void); void xycb_52(void); void xycb_53(void); 
+  void xycb_54(void); void xycb_55(void); void xycb_56(void); void xycb_57(void); 
+  void xycb_58(void); void xycb_59(void); void xycb_5a(void); void xycb_5b(void); 
+  void xycb_5c(void); void xycb_5d(void); void xycb_5e(void); void xycb_5f(void); 
+  void xycb_60(void); void xycb_61(void); void xycb_62(void); void xycb_63(void); 
+  void xycb_64(void); void xycb_65(void); void xycb_66(void); void xycb_67(void); 
+  void xycb_68(void); void xycb_69(void); void xycb_6a(void); void xycb_6b(void); 
+  void xycb_6c(void); void xycb_6d(void); void xycb_6e(void); void xycb_6f(void); 
+  void xycb_70(void); void xycb_71(void); void xycb_72(void); void xycb_73(void); 
+  void xycb_74(void); void xycb_75(void); void xycb_76(void); void xycb_77(void); 
+  void xycb_78(void); void xycb_79(void); void xycb_7a(void); void xycb_7b(void); 
+  void xycb_7c(void); void xycb_7d(void); void xycb_7e(void); void xycb_7f(void); 
+  void xycb_80(void); void xycb_81(void); void xycb_82(void); void xycb_83(void); 
+  void xycb_84(void); void xycb_85(void); void xycb_86(void); void xycb_87(void); 
+  void xycb_88(void); void xycb_89(void); void xycb_8a(void); void xycb_8b(void); 
+  void xycb_8c(void); void xycb_8d(void); void xycb_8e(void); void xycb_8f(void); 
+  void xycb_90(void); void xycb_91(void); void xycb_92(void); void xycb_93(void); 
+  void xycb_94(void); void xycb_95(void); void xycb_96(void); void xycb_97(void); 
+  void xycb_98(void); void xycb_99(void); void xycb_9a(void); void xycb_9b(void); 
+  void xycb_9c(void); void xycb_9d(void); void xycb_9e(void); void xycb_9f(void); 
+  void xycb_a0(void); void xycb_a1(void); void xycb_a2(void); void xycb_a3(void); 
+  void xycb_a4(void); void xycb_a5(void); void xycb_a6(void); void xycb_a7(void); 
+  void xycb_a8(void); void xycb_a9(void); void xycb_aa(void); void xycb_ab(void); 
+  void xycb_ac(void); void xycb_ad(void); void xycb_ae(void); void xycb_af(void); 
+  void xycb_b0(void); void xycb_b1(void); void xycb_b2(void); void xycb_b3(void); 
+  void xycb_b4(void); void xycb_b5(void); void xycb_b6(void); void xycb_b7(void); 
+  void xycb_b8(void); void xycb_b9(void); void xycb_ba(void); void xycb_bb(void); 
+  void xycb_bc(void); void xycb_bd(void); void xycb_be(void); void xycb_bf(void); 
+  void xycb_c0(void); void xycb_c1(void); void xycb_c2(void); void xycb_c3(void); 
+  void xycb_c4(void); void xycb_c5(void); void xycb_c6(void); void xycb_c7(void); 
+  void xycb_c8(void); void xycb_c9(void); void xycb_ca(void); void xycb_cb(void); 
+  void xycb_cc(void); void xycb_cd(void); void xycb_ce(void); void xycb_cf(void); 
+  void xycb_d0(void); void xycb_d1(void); void xycb_d2(void); void xycb_d3(void); 
+  void xycb_d4(void); void xycb_d5(void); void xycb_d6(void); void xycb_d7(void); 
+  void xycb_d8(void); void xycb_d9(void); void xycb_da(void); void xycb_db(void); 
+  void xycb_dc(void); void xycb_dd(void); void xycb_de(void); void xycb_df(void); 
+  void xycb_e0(void); void xycb_e1(void); void xycb_e2(void); void xycb_e3(void); 
+  void xycb_e4(void); void xycb_e5(void); void xycb_e6(void); void xycb_e7(void); 
+  void xycb_e8(void); void xycb_e9(void); void xycb_ea(void); void xycb_eb(void); 
+  void xycb_ec(void); void xycb_ed(void); void xycb_ee(void); void xycb_ef(void); 
+  void xycb_f0(void); void xycb_f1(void); void xycb_f2(void); void xycb_f3(void); 
+  void xycb_f4(void); void xycb_f5(void); void xycb_f6(void); void xycb_f7(void); 
+  void xycb_f8(void); void xycb_f9(void); void xycb_fa(void); void xycb_fb(void); 
+  void xycb_fc(void); void xycb_fd(void); void xycb_fe(void); void xycb_ff(void); 
+static const funcptr Z80xycb[0x100] = {  
+  xycb_00,xycb_01,xycb_02,xycb_03,xycb_04,xycb_05,xycb_06,xycb_07, 
+  xycb_08,xycb_09,xycb_0a,xycb_0b,xycb_0c,xycb_0d,xycb_0e,xycb_0f, 
+  xycb_10,xycb_11,xycb_12,xycb_13,xycb_14,xycb_15,xycb_16,xycb_17, 
+  xycb_18,xycb_19,xycb_1a,xycb_1b,xycb_1c,xycb_1d,xycb_1e,xycb_1f, 
+  xycb_20,xycb_21,xycb_22,xycb_23,xycb_24,xycb_25,xycb_26,xycb_27, 
+  xycb_28,xycb_29,xycb_2a,xycb_2b,xycb_2c,xycb_2d,xycb_2e,xycb_2f, 
+  xycb_30,xycb_31,xycb_32,xycb_33,xycb_34,xycb_35,xycb_36,xycb_37, 
+  xycb_38,xycb_39,xycb_3a,xycb_3b,xycb_3c,xycb_3d,xycb_3e,xycb_3f, 
+  xycb_40,xycb_41,xycb_42,xycb_43,xycb_44,xycb_45,xycb_46,xycb_47, 
+  xycb_48,xycb_49,xycb_4a,xycb_4b,xycb_4c,xycb_4d,xycb_4e,xycb_4f, 
+  xycb_50,xycb_51,xycb_52,xycb_53,xycb_54,xycb_55,xycb_56,xycb_57, 
+  xycb_58,xycb_59,xycb_5a,xycb_5b,xycb_5c,xycb_5d,xycb_5e,xycb_5f, 
+  xycb_60,xycb_61,xycb_62,xycb_63,xycb_64,xycb_65,xycb_66,xycb_67, 
+  xycb_68,xycb_69,xycb_6a,xycb_6b,xycb_6c,xycb_6d,xycb_6e,xycb_6f, 
+  xycb_70,xycb_71,xycb_72,xycb_73,xycb_74,xycb_75,xycb_76,xycb_77, 
+  xycb_78,xycb_79,xycb_7a,xycb_7b,xycb_7c,xycb_7d,xycb_7e,xycb_7f, 
+  xycb_80,xycb_81,xycb_82,xycb_83,xycb_84,xycb_85,xycb_86,xycb_87, 
+  xycb_88,xycb_89,xycb_8a,xycb_8b,xycb_8c,xycb_8d,xycb_8e,xycb_8f, 
+  xycb_90,xycb_91,xycb_92,xycb_93,xycb_94,xycb_95,xycb_96,xycb_97, 
+  xycb_98,xycb_99,xycb_9a,xycb_9b,xycb_9c,xycb_9d,xycb_9e,xycb_9f, 
+  xycb_a0,xycb_a1,xycb_a2,xycb_a3,xycb_a4,xycb_a5,xycb_a6,xycb_a7, 
+  xycb_a8,xycb_a9,xycb_aa,xycb_ab,xycb_ac,xycb_ad,xycb_ae,xycb_af, 
+  xycb_b0,xycb_b1,xycb_b2,xycb_b3,xycb_b4,xycb_b5,xycb_b6,xycb_b7, 
+  xycb_b8,xycb_b9,xycb_ba,xycb_bb,xycb_bc,xycb_bd,xycb_be,xycb_bf, 
+  xycb_c0,xycb_c1,xycb_c2,xycb_c3,xycb_c4,xycb_c5,xycb_c6,xycb_c7, 
+  xycb_c8,xycb_c9,xycb_ca,xycb_cb,xycb_cc,xycb_cd,xycb_ce,xycb_cf, 
+  xycb_d0,xycb_d1,xycb_d2,xycb_d3,xycb_d4,xycb_d5,xycb_d6,xycb_d7, 
+  xycb_d8,xycb_d9,xycb_da,xycb_db,xycb_dc,xycb_dd,xycb_de,xycb_df, 
+  xycb_e0,xycb_e1,xycb_e2,xycb_e3,xycb_e4,xycb_e5,xycb_e6,xycb_e7, 
+  xycb_e8,xycb_e9,xycb_ea,xycb_eb,xycb_ec,xycb_ed,xycb_ee,xycb_ef, 
+  xycb_f0,xycb_f1,xycb_f2,xycb_f3,xycb_f4,xycb_f5,xycb_f6,xycb_f7, 
+  xycb_f8,xycb_f9,xycb_fa,xycb_fb,xycb_fc,xycb_fd,xycb_fe,xycb_ff  
+};
 
 /****************************************************************************/
 /* Burn an odd amount of cycles, that is instructions taking something    */
 /* different from 4 T-states per opcode (and R increment)          */
 /****************************************************************************/
-INLINE void BURNODD(int cycles, int opcodes, int cyclesum)
+void BURNODD(int cycles, int opcodes, int cyclesum)
 {
   if( cycles > 0 )
   {
@@ -498,101 +986,23 @@ INLINE void BURNODD(int cycles, int opcodes, int cyclesum)
   (*Z80##prefix[op])();          \
 }
 
-#if BIG_SWITCH
-#define EXEC_INLINE(prefix,opcode)  \
-{                                   \
-  unsigned op = opcode;             \
-  CC(prefix,op);                    \
-  switch(op)                        \
-  {                                 \
-  case 0x00:prefix##_##00();break; case 0x01:prefix##_##01();break; case 0x02:prefix##_##02();break; case 0x03:prefix##_##03();break; \
-  case 0x04:prefix##_##04();break; case 0x05:prefix##_##05();break; case 0x06:prefix##_##06();break; case 0x07:prefix##_##07();break; \
-  case 0x08:prefix##_##08();break; case 0x09:prefix##_##09();break; case 0x0a:prefix##_##0a();break; case 0x0b:prefix##_##0b();break; \
-  case 0x0c:prefix##_##0c();break; case 0x0d:prefix##_##0d();break; case 0x0e:prefix##_##0e();break; case 0x0f:prefix##_##0f();break; \
-  case 0x10:prefix##_##10();break; case 0x11:prefix##_##11();break; case 0x12:prefix##_##12();break; case 0x13:prefix##_##13();break; \
-  case 0x14:prefix##_##14();break; case 0x15:prefix##_##15();break; case 0x16:prefix##_##16();break; case 0x17:prefix##_##17();break; \
-  case 0x18:prefix##_##18();break; case 0x19:prefix##_##19();break; case 0x1a:prefix##_##1a();break; case 0x1b:prefix##_##1b();break; \
-  case 0x1c:prefix##_##1c();break; case 0x1d:prefix##_##1d();break; case 0x1e:prefix##_##1e();break; case 0x1f:prefix##_##1f();break; \
-  case 0x20:prefix##_##20();break; case 0x21:prefix##_##21();break; case 0x22:prefix##_##22();break; case 0x23:prefix##_##23();break; \
-  case 0x24:prefix##_##24();break; case 0x25:prefix##_##25();break; case 0x26:prefix##_##26();break; case 0x27:prefix##_##27();break; \
-  case 0x28:prefix##_##28();break; case 0x29:prefix##_##29();break; case 0x2a:prefix##_##2a();break; case 0x2b:prefix##_##2b();break; \
-  case 0x2c:prefix##_##2c();break; case 0x2d:prefix##_##2d();break; case 0x2e:prefix##_##2e();break; case 0x2f:prefix##_##2f();break; \
-  case 0x30:prefix##_##30();break; case 0x31:prefix##_##31();break; case 0x32:prefix##_##32();break; case 0x33:prefix##_##33();break; \
-  case 0x34:prefix##_##34();break; case 0x35:prefix##_##35();break; case 0x36:prefix##_##36();break; case 0x37:prefix##_##37();break; \
-  case 0x38:prefix##_##38();break; case 0x39:prefix##_##39();break; case 0x3a:prefix##_##3a();break; case 0x3b:prefix##_##3b();break; \
-  case 0x3c:prefix##_##3c();break; case 0x3d:prefix##_##3d();break; case 0x3e:prefix##_##3e();break; case 0x3f:prefix##_##3f();break; \
-  case 0x40:prefix##_##40();break; case 0x41:prefix##_##41();break; case 0x42:prefix##_##42();break; case 0x43:prefix##_##43();break; \
-  case 0x44:prefix##_##44();break; case 0x45:prefix##_##45();break; case 0x46:prefix##_##46();break; case 0x47:prefix##_##47();break; \
-  case 0x48:prefix##_##48();break; case 0x49:prefix##_##49();break; case 0x4a:prefix##_##4a();break; case 0x4b:prefix##_##4b();break; \
-  case 0x4c:prefix##_##4c();break; case 0x4d:prefix##_##4d();break; case 0x4e:prefix##_##4e();break; case 0x4f:prefix##_##4f();break; \
-  case 0x50:prefix##_##50();break; case 0x51:prefix##_##51();break; case 0x52:prefix##_##52();break; case 0x53:prefix##_##53();break; \
-  case 0x54:prefix##_##54();break; case 0x55:prefix##_##55();break; case 0x56:prefix##_##56();break; case 0x57:prefix##_##57();break; \
-  case 0x58:prefix##_##58();break; case 0x59:prefix##_##59();break; case 0x5a:prefix##_##5a();break; case 0x5b:prefix##_##5b();break; \
-  case 0x5c:prefix##_##5c();break; case 0x5d:prefix##_##5d();break; case 0x5e:prefix##_##5e();break; case 0x5f:prefix##_##5f();break; \
-  case 0x60:prefix##_##60();break; case 0x61:prefix##_##61();break; case 0x62:prefix##_##62();break; case 0x63:prefix##_##63();break; \
-  case 0x64:prefix##_##64();break; case 0x65:prefix##_##65();break; case 0x66:prefix##_##66();break; case 0x67:prefix##_##67();break; \
-  case 0x68:prefix##_##68();break; case 0x69:prefix##_##69();break; case 0x6a:prefix##_##6a();break; case 0x6b:prefix##_##6b();break; \
-  case 0x6c:prefix##_##6c();break; case 0x6d:prefix##_##6d();break; case 0x6e:prefix##_##6e();break; case 0x6f:prefix##_##6f();break; \
-  case 0x70:prefix##_##70();break; case 0x71:prefix##_##71();break; case 0x72:prefix##_##72();break; case 0x73:prefix##_##73();break; \
-  case 0x74:prefix##_##74();break; case 0x75:prefix##_##75();break; case 0x76:prefix##_##76();break; case 0x77:prefix##_##77();break; \
-  case 0x78:prefix##_##78();break; case 0x79:prefix##_##79();break; case 0x7a:prefix##_##7a();break; case 0x7b:prefix##_##7b();break; \
-  case 0x7c:prefix##_##7c();break; case 0x7d:prefix##_##7d();break; case 0x7e:prefix##_##7e();break; case 0x7f:prefix##_##7f();break; \
-  case 0x80:prefix##_##80();break; case 0x81:prefix##_##81();break; case 0x82:prefix##_##82();break; case 0x83:prefix##_##83();break; \
-  case 0x84:prefix##_##84();break; case 0x85:prefix##_##85();break; case 0x86:prefix##_##86();break; case 0x87:prefix##_##87();break; \
-  case 0x88:prefix##_##88();break; case 0x89:prefix##_##89();break; case 0x8a:prefix##_##8a();break; case 0x8b:prefix##_##8b();break; \
-  case 0x8c:prefix##_##8c();break; case 0x8d:prefix##_##8d();break; case 0x8e:prefix##_##8e();break; case 0x8f:prefix##_##8f();break; \
-  case 0x90:prefix##_##90();break; case 0x91:prefix##_##91();break; case 0x92:prefix##_##92();break; case 0x93:prefix##_##93();break; \
-  case 0x94:prefix##_##94();break; case 0x95:prefix##_##95();break; case 0x96:prefix##_##96();break; case 0x97:prefix##_##97();break; \
-  case 0x98:prefix##_##98();break; case 0x99:prefix##_##99();break; case 0x9a:prefix##_##9a();break; case 0x9b:prefix##_##9b();break; \
-  case 0x9c:prefix##_##9c();break; case 0x9d:prefix##_##9d();break; case 0x9e:prefix##_##9e();break; case 0x9f:prefix##_##9f();break; \
-  case 0xa0:prefix##_##a0();break; case 0xa1:prefix##_##a1();break; case 0xa2:prefix##_##a2();break; case 0xa3:prefix##_##a3();break; \
-  case 0xa4:prefix##_##a4();break; case 0xa5:prefix##_##a5();break; case 0xa6:prefix##_##a6();break; case 0xa7:prefix##_##a7();break; \
-  case 0xa8:prefix##_##a8();break; case 0xa9:prefix##_##a9();break; case 0xaa:prefix##_##aa();break; case 0xab:prefix##_##ab();break; \
-  case 0xac:prefix##_##ac();break; case 0xad:prefix##_##ad();break; case 0xae:prefix##_##ae();break; case 0xaf:prefix##_##af();break; \
-  case 0xb0:prefix##_##b0();break; case 0xb1:prefix##_##b1();break; case 0xb2:prefix##_##b2();break; case 0xb3:prefix##_##b3();break; \
-  case 0xb4:prefix##_##b4();break; case 0xb5:prefix##_##b5();break; case 0xb6:prefix##_##b6();break; case 0xb7:prefix##_##b7();break; \
-  case 0xb8:prefix##_##b8();break; case 0xb9:prefix##_##b9();break; case 0xba:prefix##_##ba();break; case 0xbb:prefix##_##bb();break; \
-  case 0xbc:prefix##_##bc();break; case 0xbd:prefix##_##bd();break; case 0xbe:prefix##_##be();break; case 0xbf:prefix##_##bf();break; \
-  case 0xc0:prefix##_##c0();break; case 0xc1:prefix##_##c1();break; case 0xc2:prefix##_##c2();break; case 0xc3:prefix##_##c3();break; \
-  case 0xc4:prefix##_##c4();break; case 0xc5:prefix##_##c5();break; case 0xc6:prefix##_##c6();break; case 0xc7:prefix##_##c7();break; \
-  case 0xc8:prefix##_##c8();break; case 0xc9:prefix##_##c9();break; case 0xca:prefix##_##ca();break; case 0xcb:prefix##_##cb();break; \
-  case 0xcc:prefix##_##cc();break; case 0xcd:prefix##_##cd();break; case 0xce:prefix##_##ce();break; case 0xcf:prefix##_##cf();break; \
-  case 0xd0:prefix##_##d0();break; case 0xd1:prefix##_##d1();break; case 0xd2:prefix##_##d2();break; case 0xd3:prefix##_##d3();break; \
-  case 0xd4:prefix##_##d4();break; case 0xd5:prefix##_##d5();break; case 0xd6:prefix##_##d6();break; case 0xd7:prefix##_##d7();break; \
-  case 0xd8:prefix##_##d8();break; case 0xd9:prefix##_##d9();break; case 0xda:prefix##_##da();break; case 0xdb:prefix##_##db();break; \
-  case 0xdc:prefix##_##dc();break; case 0xdd:prefix##_##dd();break; case 0xde:prefix##_##de();break; case 0xdf:prefix##_##df();break; \
-  case 0xe0:prefix##_##e0();break; case 0xe1:prefix##_##e1();break; case 0xe2:prefix##_##e2();break; case 0xe3:prefix##_##e3();break; \
-  case 0xe4:prefix##_##e4();break; case 0xe5:prefix##_##e5();break; case 0xe6:prefix##_##e6();break; case 0xe7:prefix##_##e7();break; \
-  case 0xe8:prefix##_##e8();break; case 0xe9:prefix##_##e9();break; case 0xea:prefix##_##ea();break; case 0xeb:prefix##_##eb();break; \
-  case 0xec:prefix##_##ec();break; case 0xed:prefix##_##ed();break; case 0xee:prefix##_##ee();break; case 0xef:prefix##_##ef();break; \
-  case 0xf0:prefix##_##f0();break; case 0xf1:prefix##_##f1();break; case 0xf2:prefix##_##f2();break; case 0xf3:prefix##_##f3();break; \
-  case 0xf4:prefix##_##f4();break; case 0xf5:prefix##_##f5();break; case 0xf6:prefix##_##f6();break; case 0xf7:prefix##_##f7();break; \
-  case 0xf8:prefix##_##f8();break; case 0xf9:prefix##_##f9();break; case 0xfa:prefix##_##fa();break; case 0xfb:prefix##_##fb();break; \
-  case 0xfc:prefix##_##fc();break; case 0xfd:prefix##_##fd();break; case 0xfe:prefix##_##fe();break; case 0xff:prefix##_##ff();break; \
-  }                                                                                                                                   \
-}
-#else
-#define EXEC_INLINE EXEC
-#endif
-
-
 /***************************************************************
  * Enter HALT state; write 1 to fake port on first execution
  ***************************************************************/
-#define ENTER_HALT {                          \
-  PC--;                                       \
-  HALT = 1;                                   \
+void ENTER_HALT() {
+  PC--;
+  HALT = 1;
 }
 
 /***************************************************************
  * Leave HALT state; write 0 to fake port
  ***************************************************************/
-#define LEAVE_HALT {                          \
-  if( HALT )                                  \
-  {                                           \
-    HALT = 0;                                 \
-    PC++;                                     \
-  }                                           \
+void LEAVE_HALT() {
+  if( HALT )
+  {
+    HALT = 0;
+    PC++;
+  }
 }
 
 /***************************************************************
@@ -618,7 +1028,7 @@ INLINE void BURNODD(int cycles, int opcodes, int cyclesum)
 /***************************************************************
  * Read a word from given memory location
  ***************************************************************/
-INLINE void RM16( UINT32 addr, PAIR *r )
+void RM16( UINT32 addr, PAIR *r )
 {
   r->b.l = RM(addr);
   r->b.h = RM((addr+1)&0xffff);
@@ -627,7 +1037,7 @@ INLINE void RM16( UINT32 addr, PAIR *r )
 /***************************************************************
  * Write a word to given memory location
  ***************************************************************/
-INLINE void WM16( UINT32 addr, PAIR *r )
+void WM16( UINT32 addr, PAIR *r )
 {
   WM(addr,r->b.l);
   WM((addr+1)&0xffff,r->b.h);
@@ -638,7 +1048,7 @@ INLINE void WM16( UINT32 addr, PAIR *r )
  * reading opcodes. In case of system with memory mapped I/O,
  * this function can be used to greatly speed up emulation
  ***************************************************************/
-INLINE UINT8 ROP(void)
+UINT8 ROP(void)
 {
   unsigned pc = PCD;
   PC++;
@@ -651,14 +1061,14 @@ INLINE UINT8 ROP(void)
  * support systems that use different encoding mechanisms for
  * opcodes and opcode arguments
  ***************************************************************/
-INLINE UINT8 ARG(void)
+UINT8 ARG(void)
 {
   unsigned pc = PCD;
   PC++;
   return cpu_readop_arg(pc);
 }
 
-INLINE UINT32 ARG16(void)
+UINT32 ARG16(void)
 {
   unsigned pc = PCD;
   PC += 2;
@@ -669,8 +1079,19 @@ INLINE UINT32 ARG16(void)
  * Calculate the effective address EA of an opcode using
  * IX+offset resp. IY+offset addressing.
  ***************************************************************/
-#define EAX   do { EA = (UINT32)(UINT16)(IX + (INT8)ARG()); WZ = EA; } while (0)
-#define EAY   do { EA = (UINT32)(UINT16)(IY + (INT8)ARG()); WZ = EA; } while (0)
+void EAX() {
+    do { 
+        EA = (UINT32)(UINT16)(IX + (INT8)ARG());
+        WZ = EA;
+    } while (0);
+}
+
+void EAY() {
+    do {
+        EA = (UINT32)(UINT16)(IY + (INT8)ARG());
+        WZ = EA;
+    } while (0);
+}
 
 /***************************************************************
  * POP
@@ -685,9 +1106,9 @@ INLINE UINT32 ARG16(void)
 /***************************************************************
  * JP
  ***************************************************************/
-#define JP {                                    \
-  PCD = ARG16();                                \
-  WZ = PCD;                                     \
+void JP() {
+  PCD = ARG16();
+  WZ = PCD;
 }
 
 /***************************************************************
@@ -828,7 +1249,7 @@ INLINE UINT32 ARG16(void)
 /***************************************************************
  * INC  r8
  ***************************************************************/
-INLINE UINT8 INC(UINT8 value)
+UINT8 INC(UINT8 value)
 {
   UINT8 res = value + 1;
   F = (F & CF) | SZHV_inc[res];
@@ -838,7 +1259,7 @@ INLINE UINT8 INC(UINT8 value)
 /***************************************************************
  * DEC  r8
  ***************************************************************/
-INLINE UINT8 DEC(UINT8 value)
+UINT8 DEC(UINT8 value)
 {
   UINT8 res = value - 1;
   F = (F & CF) | SZHV_dec[res];
@@ -1093,7 +1514,7 @@ void EXX()
 /***************************************************************
  * RLC  r8
  ***************************************************************/
-INLINE UINT8 RLC(UINT8 value)
+UINT8 RLC(UINT8 value)
 {
   unsigned res = value;
   unsigned c = (res & 0x80) ? CF : 0;
@@ -1105,7 +1526,7 @@ INLINE UINT8 RLC(UINT8 value)
 /***************************************************************
  * RRC  r8
  ***************************************************************/
-INLINE UINT8 RRC(UINT8 value)
+UINT8 RRC(UINT8 value)
 {
   unsigned res = value;
   unsigned c = (res & 0x01) ? CF : 0;
@@ -1117,7 +1538,7 @@ INLINE UINT8 RRC(UINT8 value)
 /***************************************************************
  * RL  r8
  ***************************************************************/
-INLINE UINT8 RL(UINT8 value)
+UINT8 RL(UINT8 value)
 {
   unsigned res = value;
   unsigned c = (res & 0x80) ? CF : 0;
@@ -1129,7 +1550,7 @@ INLINE UINT8 RL(UINT8 value)
 /***************************************************************
  * RR  r8
  ***************************************************************/
-INLINE UINT8 RR(UINT8 value)
+UINT8 RR(UINT8 value)
 {
   unsigned res = value;
   unsigned c = (res & 0x01) ? CF : 0;
@@ -1141,7 +1562,7 @@ INLINE UINT8 RR(UINT8 value)
 /***************************************************************
  * SLA  r8
  ***************************************************************/
-INLINE UINT8 SLA(UINT8 value)
+UINT8 SLA(UINT8 value)
 {
   unsigned res = value;
   unsigned c = (res & 0x80) ? CF : 0;
@@ -1153,7 +1574,7 @@ INLINE UINT8 SLA(UINT8 value)
 /***************************************************************
  * SRA  r8
  ***************************************************************/
-INLINE UINT8 SRA(UINT8 value)
+UINT8 SRA(UINT8 value)
 {
   unsigned res = value;
   unsigned c = (res & 0x01) ? CF : 0;
@@ -1165,7 +1586,7 @@ INLINE UINT8 SRA(UINT8 value)
 /***************************************************************
  * SLL  r8
  ***************************************************************/
-INLINE UINT8 SLL(UINT8 value)
+UINT8 SLL(UINT8 value)
 {
   unsigned res = value;
   unsigned c = (res & 0x80) ? CF : 0;
@@ -1177,7 +1598,7 @@ INLINE UINT8 SLL(UINT8 value)
 /***************************************************************
  * SRL  r8
  ***************************************************************/
-INLINE UINT8 SRL(UINT8 value)
+UINT8 SRL(UINT8 value)
 {
   unsigned res = value;
   unsigned c = (res & 0x01) ? CF : 0;
@@ -1208,7 +1629,7 @@ INLINE UINT8 SRL(UINT8 value)
 /***************************************************************
  * RES  bit,r8
  ***************************************************************/
-INLINE UINT8 RES(UINT8 bit, UINT8 value)
+UINT8 RES(UINT8 bit, UINT8 value)
 {
   return value & ~(1<<bit);
 }
@@ -1216,7 +1637,7 @@ INLINE UINT8 RES(UINT8 bit, UINT8 value)
 /***************************************************************
  * SET  bit,r8
  ***************************************************************/
-INLINE UINT8 SET(UINT8 bit, UINT8 value)
+UINT8 SET(UINT8 bit, UINT8 value)
 {
   return value | (1<<bit);
 }
@@ -1456,588 +1877,588 @@ void EI() {
  * opcodes with CB prefix
  * rotate, shift and bit operations
  **********************************************************/
-INLINE void cb_00(void) { B = RLC(B);                      } /* RLC  B           */
-INLINE void cb_01(void) { C = RLC(C);                      } /* RLC  C           */
-INLINE void cb_02(void) { D = RLC(D);                      } /* RLC  D           */
-INLINE void cb_03(void) { E = RLC(E);                      } /* RLC  E           */
-INLINE void cb_04(void) { H = RLC(H);                      } /* RLC  H           */
-INLINE void cb_05(void) { L = RLC(L);                      } /* RLC  L           */
-INLINE void cb_06(void) { WM( HL, RLC(RM(HL)) );           } /* RLC  (HL)        */
-INLINE void cb_07(void) { A = RLC(A);                      } /* RLC  A           */
+void cb_00(void) { B = RLC(B);                      } /* RLC  B           */
+void cb_01(void) { C = RLC(C);                      } /* RLC  C           */
+void cb_02(void) { D = RLC(D);                      } /* RLC  D           */
+void cb_03(void) { E = RLC(E);                      } /* RLC  E           */
+void cb_04(void) { H = RLC(H);                      } /* RLC  H           */
+void cb_05(void) { L = RLC(L);                      } /* RLC  L           */
+void cb_06(void) { WM( HL, RLC(RM(HL)) );           } /* RLC  (HL)        */
+void cb_07(void) { A = RLC(A);                      } /* RLC  A           */
 
-INLINE void cb_08(void) { B = RRC(B);                      } /* RRC  B           */
-INLINE void cb_09(void) { C = RRC(C);                      } /* RRC  C           */
-INLINE void cb_0a(void) { D = RRC(D);                      } /* RRC  D           */
-INLINE void cb_0b(void) { E = RRC(E);                      } /* RRC  E           */
-INLINE void cb_0c(void) { H = RRC(H);                      } /* RRC  H           */
-INLINE void cb_0d(void) { L = RRC(L);                      } /* RRC  L           */
-INLINE void cb_0e(void) { WM( HL, RRC(RM(HL)) );           } /* RRC  (HL)        */
-INLINE void cb_0f(void) { A = RRC(A);                      } /* RRC  A           */
+void cb_08(void) { B = RRC(B);                      } /* RRC  B           */
+void cb_09(void) { C = RRC(C);                      } /* RRC  C           */
+void cb_0a(void) { D = RRC(D);                      } /* RRC  D           */
+void cb_0b(void) { E = RRC(E);                      } /* RRC  E           */
+void cb_0c(void) { H = RRC(H);                      } /* RRC  H           */
+void cb_0d(void) { L = RRC(L);                      } /* RRC  L           */
+void cb_0e(void) { WM( HL, RRC(RM(HL)) );           } /* RRC  (HL)        */
+void cb_0f(void) { A = RRC(A);                      } /* RRC  A           */
 
-INLINE void cb_10(void) { B = RL(B);                       } /* RL   B           */
-INLINE void cb_11(void) { C = RL(C);                       } /* RL   C           */
-INLINE void cb_12(void) { D = RL(D);                       } /* RL   D           */
-INLINE void cb_13(void) { E = RL(E);                       } /* RL   E           */
-INLINE void cb_14(void) { H = RL(H);                       } /* RL   H           */
-INLINE void cb_15(void) { L = RL(L);                       } /* RL   L           */
-INLINE void cb_16(void) { WM( HL, RL(RM(HL)) );            } /* RL   (HL)        */
-INLINE void cb_17(void) { A = RL(A);                       } /* RL   A           */
+void cb_10(void) { B = RL(B);                       } /* RL   B           */
+void cb_11(void) { C = RL(C);                       } /* RL   C           */
+void cb_12(void) { D = RL(D);                       } /* RL   D           */
+void cb_13(void) { E = RL(E);                       } /* RL   E           */
+void cb_14(void) { H = RL(H);                       } /* RL   H           */
+void cb_15(void) { L = RL(L);                       } /* RL   L           */
+void cb_16(void) { WM( HL, RL(RM(HL)) );            } /* RL   (HL)        */
+void cb_17(void) { A = RL(A);                       } /* RL   A           */
 
-INLINE void cb_18(void) { B = RR(B);                       } /* RR   B           */
-INLINE void cb_19(void) { C = RR(C);                       } /* RR   C           */
-INLINE void cb_1a(void) { D = RR(D);                       } /* RR   D           */
-INLINE void cb_1b(void) { E = RR(E);                       } /* RR   E           */
-INLINE void cb_1c(void) { H = RR(H);                       } /* RR   H           */
-INLINE void cb_1d(void) { L = RR(L);                       } /* RR   L           */
-INLINE void cb_1e(void) { WM( HL, RR(RM(HL)) );            } /* RR   (HL)        */
-INLINE void cb_1f(void) { A = RR(A);                       } /* RR   A           */
+void cb_18(void) { B = RR(B);                       } /* RR   B           */
+void cb_19(void) { C = RR(C);                       } /* RR   C           */
+void cb_1a(void) { D = RR(D);                       } /* RR   D           */
+void cb_1b(void) { E = RR(E);                       } /* RR   E           */
+void cb_1c(void) { H = RR(H);                       } /* RR   H           */
+void cb_1d(void) { L = RR(L);                       } /* RR   L           */
+void cb_1e(void) { WM( HL, RR(RM(HL)) );            } /* RR   (HL)        */
+void cb_1f(void) { A = RR(A);                       } /* RR   A           */
 
-INLINE void cb_20(void) { B = SLA(B);                      } /* SLA  B           */
-INLINE void cb_21(void) { C = SLA(C);                      } /* SLA  C           */
-INLINE void cb_22(void) { D = SLA(D);                      } /* SLA  D           */
-INLINE void cb_23(void) { E = SLA(E);                      } /* SLA  E           */
-INLINE void cb_24(void) { H = SLA(H);                      } /* SLA  H           */
-INLINE void cb_25(void) { L = SLA(L);                      } /* SLA  L           */
-INLINE void cb_26(void) { WM( HL, SLA(RM(HL)) );           } /* SLA  (HL)        */
-INLINE void cb_27(void) { A = SLA(A);                      } /* SLA  A           */
+void cb_20(void) { B = SLA(B);                      } /* SLA  B           */
+void cb_21(void) { C = SLA(C);                      } /* SLA  C           */
+void cb_22(void) { D = SLA(D);                      } /* SLA  D           */
+void cb_23(void) { E = SLA(E);                      } /* SLA  E           */
+void cb_24(void) { H = SLA(H);                      } /* SLA  H           */
+void cb_25(void) { L = SLA(L);                      } /* SLA  L           */
+void cb_26(void) { WM( HL, SLA(RM(HL)) );           } /* SLA  (HL)        */
+void cb_27(void) { A = SLA(A);                      } /* SLA  A           */
 
-INLINE void cb_28(void) { B = SRA(B);                      } /* SRA  B           */
-INLINE void cb_29(void) { C = SRA(C);                      } /* SRA  C           */
-INLINE void cb_2a(void) { D = SRA(D);                      } /* SRA  D           */
-INLINE void cb_2b(void) { E = SRA(E);                      } /* SRA  E           */
-INLINE void cb_2c(void) { H = SRA(H);                      } /* SRA  H           */
-INLINE void cb_2d(void) { L = SRA(L);                      } /* SRA  L           */
-INLINE void cb_2e(void) { WM( HL, SRA(RM(HL)) );           } /* SRA  (HL)        */
-INLINE void cb_2f(void) { A = SRA(A);                      } /* SRA  A           */
+void cb_28(void) { B = SRA(B);                      } /* SRA  B           */
+void cb_29(void) { C = SRA(C);                      } /* SRA  C           */
+void cb_2a(void) { D = SRA(D);                      } /* SRA  D           */
+void cb_2b(void) { E = SRA(E);                      } /* SRA  E           */
+void cb_2c(void) { H = SRA(H);                      } /* SRA  H           */
+void cb_2d(void) { L = SRA(L);                      } /* SRA  L           */
+void cb_2e(void) { WM( HL, SRA(RM(HL)) );           } /* SRA  (HL)        */
+void cb_2f(void) { A = SRA(A);                      } /* SRA  A           */
 
-INLINE void cb_30(void) { B = SLL(B);                      } /* SLL  B           */
-INLINE void cb_31(void) { C = SLL(C);                      } /* SLL  C           */
-INLINE void cb_32(void) { D = SLL(D);                      } /* SLL  D           */
-INLINE void cb_33(void) { E = SLL(E);                      } /* SLL  E           */
-INLINE void cb_34(void) { H = SLL(H);                      } /* SLL  H           */
-INLINE void cb_35(void) { L = SLL(L);                      } /* SLL  L           */
-INLINE void cb_36(void) { WM( HL, SLL(RM(HL)) );           } /* SLL  (HL)        */
-INLINE void cb_37(void) { A = SLL(A);                      } /* SLL  A           */
+void cb_30(void) { B = SLL(B);                      } /* SLL  B           */
+void cb_31(void) { C = SLL(C);                      } /* SLL  C           */
+void cb_32(void) { D = SLL(D);                      } /* SLL  D           */
+void cb_33(void) { E = SLL(E);                      } /* SLL  E           */
+void cb_34(void) { H = SLL(H);                      } /* SLL  H           */
+void cb_35(void) { L = SLL(L);                      } /* SLL  L           */
+void cb_36(void) { WM( HL, SLL(RM(HL)) );           } /* SLL  (HL)        */
+void cb_37(void) { A = SLL(A);                      } /* SLL  A           */
 
-INLINE void cb_38(void) { B = SRL(B);                      } /* SRL  B           */
-INLINE void cb_39(void) { C = SRL(C);                      } /* SRL  C           */
-INLINE void cb_3a(void) { D = SRL(D);                      } /* SRL  D           */
-INLINE void cb_3b(void) { E = SRL(E);                      } /* SRL  E           */
-INLINE void cb_3c(void) { H = SRL(H);                      } /* SRL  H           */
-INLINE void cb_3d(void) { L = SRL(L);                      } /* SRL  L           */
-INLINE void cb_3e(void) { WM( HL, SRL(RM(HL)) );           } /* SRL  (HL)        */
-INLINE void cb_3f(void) { A = SRL(A);                      } /* SRL  A           */
+void cb_38(void) { B = SRL(B);                      } /* SRL  B           */
+void cb_39(void) { C = SRL(C);                      } /* SRL  C           */
+void cb_3a(void) { D = SRL(D);                      } /* SRL  D           */
+void cb_3b(void) { E = SRL(E);                      } /* SRL  E           */
+void cb_3c(void) { H = SRL(H);                      } /* SRL  H           */
+void cb_3d(void) { L = SRL(L);                      } /* SRL  L           */
+void cb_3e(void) { WM( HL, SRL(RM(HL)) );           } /* SRL  (HL)        */
+void cb_3f(void) { A = SRL(A);                      } /* SRL  A           */
 
-INLINE void cb_40(void) { BIT(0,B);                        } /* BIT  0,B         */
-INLINE void cb_41(void) { BIT(0,C);                        } /* BIT  0,C         */
-INLINE void cb_42(void) { BIT(0,D);                        } /* BIT  0,D         */
-INLINE void cb_43(void) { BIT(0,E);                        } /* BIT  0,E         */
-INLINE void cb_44(void) { BIT(0,H);                        } /* BIT  0,H         */
-INLINE void cb_45(void) { BIT(0,L);                        } /* BIT  0,L         */
-INLINE void cb_46(void) { BIT_HL(0,RM(HL));                } /* BIT  0,(HL)      */
-INLINE void cb_47(void) { BIT(0,A);                        } /* BIT  0,A         */
+void cb_40(void) { BIT(0,B);                        } /* BIT  0,B         */
+void cb_41(void) { BIT(0,C);                        } /* BIT  0,C         */
+void cb_42(void) { BIT(0,D);                        } /* BIT  0,D         */
+void cb_43(void) { BIT(0,E);                        } /* BIT  0,E         */
+void cb_44(void) { BIT(0,H);                        } /* BIT  0,H         */
+void cb_45(void) { BIT(0,L);                        } /* BIT  0,L         */
+void cb_46(void) { BIT_HL(0,RM(HL));                } /* BIT  0,(HL)      */
+void cb_47(void) { BIT(0,A);                        } /* BIT  0,A         */
 
-INLINE void cb_48(void) { BIT(1,B);                        } /* BIT  1,B         */
-INLINE void cb_49(void) { BIT(1,C);                        } /* BIT  1,C         */
-INLINE void cb_4a(void) { BIT(1,D);                        } /* BIT  1,D         */
-INLINE void cb_4b(void) { BIT(1,E);                        } /* BIT  1,E         */
-INLINE void cb_4c(void) { BIT(1,H);                        } /* BIT  1,H         */
-INLINE void cb_4d(void) { BIT(1,L);                        } /* BIT  1,L         */
-INLINE void cb_4e(void) { BIT_HL(1,RM(HL));                } /* BIT  1,(HL)      */
-INLINE void cb_4f(void) { BIT(1,A);                        } /* BIT  1,A         */
+void cb_48(void) { BIT(1,B);                        } /* BIT  1,B         */
+void cb_49(void) { BIT(1,C);                        } /* BIT  1,C         */
+void cb_4a(void) { BIT(1,D);                        } /* BIT  1,D         */
+void cb_4b(void) { BIT(1,E);                        } /* BIT  1,E         */
+void cb_4c(void) { BIT(1,H);                        } /* BIT  1,H         */
+void cb_4d(void) { BIT(1,L);                        } /* BIT  1,L         */
+void cb_4e(void) { BIT_HL(1,RM(HL));                } /* BIT  1,(HL)      */
+void cb_4f(void) { BIT(1,A);                        } /* BIT  1,A         */
 
-INLINE void cb_50(void) { BIT(2,B);                        } /* BIT  2,B         */
-INLINE void cb_51(void) { BIT(2,C);                        } /* BIT  2,C         */
-INLINE void cb_52(void) { BIT(2,D);                        } /* BIT  2,D         */
-INLINE void cb_53(void) { BIT(2,E);                        } /* BIT  2,E         */
-INLINE void cb_54(void) { BIT(2,H);                        } /* BIT  2,H         */
-INLINE void cb_55(void) { BIT(2,L);                        } /* BIT  2,L         */
-INLINE void cb_56(void) { BIT_HL(2,RM(HL));                } /* BIT  2,(HL)      */
-INLINE void cb_57(void) { BIT(2,A);                        } /* BIT  2,A         */
+void cb_50(void) { BIT(2,B);                        } /* BIT  2,B         */
+void cb_51(void) { BIT(2,C);                        } /* BIT  2,C         */
+void cb_52(void) { BIT(2,D);                        } /* BIT  2,D         */
+void cb_53(void) { BIT(2,E);                        } /* BIT  2,E         */
+void cb_54(void) { BIT(2,H);                        } /* BIT  2,H         */
+void cb_55(void) { BIT(2,L);                        } /* BIT  2,L         */
+void cb_56(void) { BIT_HL(2,RM(HL));                } /* BIT  2,(HL)      */
+void cb_57(void) { BIT(2,A);                        } /* BIT  2,A         */
 
-INLINE void cb_58(void) { BIT(3,B);                        } /* BIT  3,B         */
-INLINE void cb_59(void) { BIT(3,C);                        } /* BIT  3,C         */
-INLINE void cb_5a(void) { BIT(3,D);                        } /* BIT  3,D         */
-INLINE void cb_5b(void) { BIT(3,E);                        } /* BIT  3,E         */
-INLINE void cb_5c(void) { BIT(3,H);                        } /* BIT  3,H         */
-INLINE void cb_5d(void) { BIT(3,L);                        } /* BIT  3,L         */
-INLINE void cb_5e(void) { BIT_HL(3,RM(HL));                } /* BIT  3,(HL)      */
-INLINE void cb_5f(void) { BIT(3,A);                        } /* BIT  3,A         */
+void cb_58(void) { BIT(3,B);                        } /* BIT  3,B         */
+void cb_59(void) { BIT(3,C);                        } /* BIT  3,C         */
+void cb_5a(void) { BIT(3,D);                        } /* BIT  3,D         */
+void cb_5b(void) { BIT(3,E);                        } /* BIT  3,E         */
+void cb_5c(void) { BIT(3,H);                        } /* BIT  3,H         */
+void cb_5d(void) { BIT(3,L);                        } /* BIT  3,L         */
+void cb_5e(void) { BIT_HL(3,RM(HL));                } /* BIT  3,(HL)      */
+void cb_5f(void) { BIT(3,A);                        } /* BIT  3,A         */
 
-INLINE void cb_60(void) { BIT(4,B);                        } /* BIT  4,B         */
-INLINE void cb_61(void) { BIT(4,C);                        } /* BIT  4,C         */
-INLINE void cb_62(void) { BIT(4,D);                        } /* BIT  4,D         */
-INLINE void cb_63(void) { BIT(4,E);                        } /* BIT  4,E         */
-INLINE void cb_64(void) { BIT(4,H);                        } /* BIT  4,H         */
-INLINE void cb_65(void) { BIT(4,L);                        } /* BIT  4,L         */
-INLINE void cb_66(void) { BIT_HL(4,RM(HL));                } /* BIT  4,(HL)      */
-INLINE void cb_67(void) { BIT(4,A);                        } /* BIT  4,A         */
+void cb_60(void) { BIT(4,B);                        } /* BIT  4,B         */
+void cb_61(void) { BIT(4,C);                        } /* BIT  4,C         */
+void cb_62(void) { BIT(4,D);                        } /* BIT  4,D         */
+void cb_63(void) { BIT(4,E);                        } /* BIT  4,E         */
+void cb_64(void) { BIT(4,H);                        } /* BIT  4,H         */
+void cb_65(void) { BIT(4,L);                        } /* BIT  4,L         */
+void cb_66(void) { BIT_HL(4,RM(HL));                } /* BIT  4,(HL)      */
+void cb_67(void) { BIT(4,A);                        } /* BIT  4,A         */
 
-INLINE void cb_68(void) { BIT(5,B);                        } /* BIT  5,B         */
-INLINE void cb_69(void) { BIT(5,C);                        } /* BIT  5,C         */
-INLINE void cb_6a(void) { BIT(5,D);                        } /* BIT  5,D         */
-INLINE void cb_6b(void) { BIT(5,E);                        } /* BIT  5,E         */
-INLINE void cb_6c(void) { BIT(5,H);                        } /* BIT  5,H         */
-INLINE void cb_6d(void) { BIT(5,L);                        } /* BIT  5,L         */
-INLINE void cb_6e(void) { BIT_HL(5,RM(HL));                } /* BIT  5,(HL)      */
-INLINE void cb_6f(void) { BIT(5,A);                        } /* BIT  5,A         */
+void cb_68(void) { BIT(5,B);                        } /* BIT  5,B         */
+void cb_69(void) { BIT(5,C);                        } /* BIT  5,C         */
+void cb_6a(void) { BIT(5,D);                        } /* BIT  5,D         */
+void cb_6b(void) { BIT(5,E);                        } /* BIT  5,E         */
+void cb_6c(void) { BIT(5,H);                        } /* BIT  5,H         */
+void cb_6d(void) { BIT(5,L);                        } /* BIT  5,L         */
+void cb_6e(void) { BIT_HL(5,RM(HL));                } /* BIT  5,(HL)      */
+void cb_6f(void) { BIT(5,A);                        } /* BIT  5,A         */
 
-INLINE void cb_70(void) { BIT(6,B);                        } /* BIT  6,B         */
-INLINE void cb_71(void) { BIT(6,C);                        } /* BIT  6,C         */
-INLINE void cb_72(void) { BIT(6,D);                        } /* BIT  6,D         */
-INLINE void cb_73(void) { BIT(6,E);                        } /* BIT  6,E         */
-INLINE void cb_74(void) { BIT(6,H);                        } /* BIT  6,H         */
-INLINE void cb_75(void) { BIT(6,L);                        } /* BIT  6,L         */
-INLINE void cb_76(void) { BIT_HL(6,RM(HL));                } /* BIT  6,(HL)      */
-INLINE void cb_77(void) { BIT(6,A);                        } /* BIT  6,A         */
+void cb_70(void) { BIT(6,B);                        } /* BIT  6,B         */
+void cb_71(void) { BIT(6,C);                        } /* BIT  6,C         */
+void cb_72(void) { BIT(6,D);                        } /* BIT  6,D         */
+void cb_73(void) { BIT(6,E);                        } /* BIT  6,E         */
+void cb_74(void) { BIT(6,H);                        } /* BIT  6,H         */
+void cb_75(void) { BIT(6,L);                        } /* BIT  6,L         */
+void cb_76(void) { BIT_HL(6,RM(HL));                } /* BIT  6,(HL)      */
+void cb_77(void) { BIT(6,A);                        } /* BIT  6,A         */
 
-INLINE void cb_78(void) { BIT(7,B);                        } /* BIT  7,B         */
-INLINE void cb_79(void) { BIT(7,C);                        } /* BIT  7,C         */
-INLINE void cb_7a(void) { BIT(7,D);                        } /* BIT  7,D         */
-INLINE void cb_7b(void) { BIT(7,E);                        } /* BIT  7,E         */
-INLINE void cb_7c(void) { BIT(7,H);                        } /* BIT  7,H         */
-INLINE void cb_7d(void) { BIT(7,L);                        } /* BIT  7,L         */
-INLINE void cb_7e(void) { BIT_HL(7,RM(HL));                } /* BIT  7,(HL)      */
-INLINE void cb_7f(void) { BIT(7,A);                        } /* BIT  7,A         */
+void cb_78(void) { BIT(7,B);                        } /* BIT  7,B         */
+void cb_79(void) { BIT(7,C);                        } /* BIT  7,C         */
+void cb_7a(void) { BIT(7,D);                        } /* BIT  7,D         */
+void cb_7b(void) { BIT(7,E);                        } /* BIT  7,E         */
+void cb_7c(void) { BIT(7,H);                        } /* BIT  7,H         */
+void cb_7d(void) { BIT(7,L);                        } /* BIT  7,L         */
+void cb_7e(void) { BIT_HL(7,RM(HL));                } /* BIT  7,(HL)      */
+void cb_7f(void) { BIT(7,A);                        } /* BIT  7,A         */
 
-INLINE void cb_80(void) { B = RES(0,B);                    } /* RES  0,B         */
-INLINE void cb_81(void) { C = RES(0,C);                    } /* RES  0,C         */
-INLINE void cb_82(void) { D = RES(0,D);                    } /* RES  0,D         */
-INLINE void cb_83(void) { E = RES(0,E);                    } /* RES  0,E         */
-INLINE void cb_84(void) { H = RES(0,H);                    } /* RES  0,H         */
-INLINE void cb_85(void) { L = RES(0,L);                    } /* RES  0,L         */
-INLINE void cb_86(void) { WM( HL, RES(0,RM(HL)) );         } /* RES  0,(HL)      */
-INLINE void cb_87(void) { A = RES(0,A);                    } /* RES  0,A         */
+void cb_80(void) { B = RES(0,B);                    } /* RES  0,B         */
+void cb_81(void) { C = RES(0,C);                    } /* RES  0,C         */
+void cb_82(void) { D = RES(0,D);                    } /* RES  0,D         */
+void cb_83(void) { E = RES(0,E);                    } /* RES  0,E         */
+void cb_84(void) { H = RES(0,H);                    } /* RES  0,H         */
+void cb_85(void) { L = RES(0,L);                    } /* RES  0,L         */
+void cb_86(void) { WM( HL, RES(0,RM(HL)) );         } /* RES  0,(HL)      */
+void cb_87(void) { A = RES(0,A);                    } /* RES  0,A         */
 
-INLINE void cb_88(void) { B = RES(1,B);                    } /* RES  1,B         */
-INLINE void cb_89(void) { C = RES(1,C);                    } /* RES  1,C         */
-INLINE void cb_8a(void) { D = RES(1,D);                    } /* RES  1,D         */
-INLINE void cb_8b(void) { E = RES(1,E);                    } /* RES  1,E         */
-INLINE void cb_8c(void) { H = RES(1,H);                    } /* RES  1,H         */
-INLINE void cb_8d(void) { L = RES(1,L);                    } /* RES  1,L         */
-INLINE void cb_8e(void) { WM( HL, RES(1,RM(HL)) );         } /* RES  1,(HL)      */
-INLINE void cb_8f(void) { A = RES(1,A);                    } /* RES  1,A         */
+void cb_88(void) { B = RES(1,B);                    } /* RES  1,B         */
+void cb_89(void) { C = RES(1,C);                    } /* RES  1,C         */
+void cb_8a(void) { D = RES(1,D);                    } /* RES  1,D         */
+void cb_8b(void) { E = RES(1,E);                    } /* RES  1,E         */
+void cb_8c(void) { H = RES(1,H);                    } /* RES  1,H         */
+void cb_8d(void) { L = RES(1,L);                    } /* RES  1,L         */
+void cb_8e(void) { WM( HL, RES(1,RM(HL)) );         } /* RES  1,(HL)      */
+void cb_8f(void) { A = RES(1,A);                    } /* RES  1,A         */
 
-INLINE void cb_90(void) { B = RES(2,B);                    } /* RES  2,B         */
-INLINE void cb_91(void) { C = RES(2,C);                    } /* RES  2,C         */
-INLINE void cb_92(void) { D = RES(2,D);                    } /* RES  2,D         */
-INLINE void cb_93(void) { E = RES(2,E);                    } /* RES  2,E         */
-INLINE void cb_94(void) { H = RES(2,H);                    } /* RES  2,H         */
-INLINE void cb_95(void) { L = RES(2,L);                    } /* RES  2,L         */
-INLINE void cb_96(void) { WM( HL, RES(2,RM(HL)) );         } /* RES  2,(HL)      */
-INLINE void cb_97(void) { A = RES(2,A);                    } /* RES  2,A         */
+void cb_90(void) { B = RES(2,B);                    } /* RES  2,B         */
+void cb_91(void) { C = RES(2,C);                    } /* RES  2,C         */
+void cb_92(void) { D = RES(2,D);                    } /* RES  2,D         */
+void cb_93(void) { E = RES(2,E);                    } /* RES  2,E         */
+void cb_94(void) { H = RES(2,H);                    } /* RES  2,H         */
+void cb_95(void) { L = RES(2,L);                    } /* RES  2,L         */
+void cb_96(void) { WM( HL, RES(2,RM(HL)) );         } /* RES  2,(HL)      */
+void cb_97(void) { A = RES(2,A);                    } /* RES  2,A         */
 
-INLINE void cb_98(void) { B = RES(3,B);                    } /* RES  3,B         */
-INLINE void cb_99(void) { C = RES(3,C);                    } /* RES  3,C         */
-INLINE void cb_9a(void) { D = RES(3,D);                    } /* RES  3,D         */
-INLINE void cb_9b(void) { E = RES(3,E);                    } /* RES  3,E         */
-INLINE void cb_9c(void) { H = RES(3,H);                    } /* RES  3,H         */
-INLINE void cb_9d(void) { L = RES(3,L);                    } /* RES  3,L         */
-INLINE void cb_9e(void) { WM( HL, RES(3,RM(HL)) );         } /* RES  3,(HL)      */
-INLINE void cb_9f(void) { A = RES(3,A);                    } /* RES  3,A         */
+void cb_98(void) { B = RES(3,B);                    } /* RES  3,B         */
+void cb_99(void) { C = RES(3,C);                    } /* RES  3,C         */
+void cb_9a(void) { D = RES(3,D);                    } /* RES  3,D         */
+void cb_9b(void) { E = RES(3,E);                    } /* RES  3,E         */
+void cb_9c(void) { H = RES(3,H);                    } /* RES  3,H         */
+void cb_9d(void) { L = RES(3,L);                    } /* RES  3,L         */
+void cb_9e(void) { WM( HL, RES(3,RM(HL)) );         } /* RES  3,(HL)      */
+void cb_9f(void) { A = RES(3,A);                    } /* RES  3,A         */
 
-INLINE void cb_a0(void) { B = RES(4,B);                    } /* RES  4,B         */
-INLINE void cb_a1(void) { C = RES(4,C);                    } /* RES  4,C         */
-INLINE void cb_a2(void) { D = RES(4,D);                    } /* RES  4,D         */
-INLINE void cb_a3(void) { E = RES(4,E);                    } /* RES  4,E         */
-INLINE void cb_a4(void) { H = RES(4,H);                    } /* RES  4,H         */
-INLINE void cb_a5(void) { L = RES(4,L);                    } /* RES  4,L         */
-INLINE void cb_a6(void) { WM( HL, RES(4,RM(HL)) );         } /* RES  4,(HL)      */
-INLINE void cb_a7(void) { A = RES(4,A);                    } /* RES  4,A         */
+void cb_a0(void) { B = RES(4,B);                    } /* RES  4,B         */
+void cb_a1(void) { C = RES(4,C);                    } /* RES  4,C         */
+void cb_a2(void) { D = RES(4,D);                    } /* RES  4,D         */
+void cb_a3(void) { E = RES(4,E);                    } /* RES  4,E         */
+void cb_a4(void) { H = RES(4,H);                    } /* RES  4,H         */
+void cb_a5(void) { L = RES(4,L);                    } /* RES  4,L         */
+void cb_a6(void) { WM( HL, RES(4,RM(HL)) );         } /* RES  4,(HL)      */
+void cb_a7(void) { A = RES(4,A);                    } /* RES  4,A         */
 
-INLINE void cb_a8(void) { B = RES(5,B);                    } /* RES  5,B         */
-INLINE void cb_a9(void) { C = RES(5,C);                    } /* RES  5,C         */
-INLINE void cb_aa(void) { D = RES(5,D);                    } /* RES  5,D         */
-INLINE void cb_ab(void) { E = RES(5,E);                    } /* RES  5,E         */
-INLINE void cb_ac(void) { H = RES(5,H);                    } /* RES  5,H         */
-INLINE void cb_ad(void) { L = RES(5,L);                    } /* RES  5,L         */
-INLINE void cb_ae(void) { WM( HL, RES(5,RM(HL)) );         } /* RES  5,(HL)      */
-INLINE void cb_af(void) { A = RES(5,A);                    } /* RES  5,A         */
+void cb_a8(void) { B = RES(5,B);                    } /* RES  5,B         */
+void cb_a9(void) { C = RES(5,C);                    } /* RES  5,C         */
+void cb_aa(void) { D = RES(5,D);                    } /* RES  5,D         */
+void cb_ab(void) { E = RES(5,E);                    } /* RES  5,E         */
+void cb_ac(void) { H = RES(5,H);                    } /* RES  5,H         */
+void cb_ad(void) { L = RES(5,L);                    } /* RES  5,L         */
+void cb_ae(void) { WM( HL, RES(5,RM(HL)) );         } /* RES  5,(HL)      */
+void cb_af(void) { A = RES(5,A);                    } /* RES  5,A         */
 
-INLINE void cb_b0(void) { B = RES(6,B);                    } /* RES  6,B         */
-INLINE void cb_b1(void) { C = RES(6,C);                    } /* RES  6,C         */
-INLINE void cb_b2(void) { D = RES(6,D);                    } /* RES  6,D         */
-INLINE void cb_b3(void) { E = RES(6,E);                    } /* RES  6,E         */
-INLINE void cb_b4(void) { H = RES(6,H);                    } /* RES  6,H         */
-INLINE void cb_b5(void) { L = RES(6,L);                    } /* RES  6,L         */
-INLINE void cb_b6(void) { WM( HL, RES(6,RM(HL)) );         } /* RES  6,(HL)      */
-INLINE void cb_b7(void) { A = RES(6,A);                    } /* RES  6,A         */
+void cb_b0(void) { B = RES(6,B);                    } /* RES  6,B         */
+void cb_b1(void) { C = RES(6,C);                    } /* RES  6,C         */
+void cb_b2(void) { D = RES(6,D);                    } /* RES  6,D         */
+void cb_b3(void) { E = RES(6,E);                    } /* RES  6,E         */
+void cb_b4(void) { H = RES(6,H);                    } /* RES  6,H         */
+void cb_b5(void) { L = RES(6,L);                    } /* RES  6,L         */
+void cb_b6(void) { WM( HL, RES(6,RM(HL)) );         } /* RES  6,(HL)      */
+void cb_b7(void) { A = RES(6,A);                    } /* RES  6,A         */
 
-INLINE void cb_b8(void) { B = RES(7,B);                    } /* RES  7,B         */
-INLINE void cb_b9(void) { C = RES(7,C);                    } /* RES  7,C         */
-INLINE void cb_ba(void) { D = RES(7,D);                    } /* RES  7,D         */
-INLINE void cb_bb(void) { E = RES(7,E);                    } /* RES  7,E         */
-INLINE void cb_bc(void) { H = RES(7,H);                    } /* RES  7,H         */
-INLINE void cb_bd(void) { L = RES(7,L);                    } /* RES  7,L         */
-INLINE void cb_be(void) { WM( HL, RES(7,RM(HL)) );         } /* RES  7,(HL)      */
-INLINE void cb_bf(void) { A = RES(7,A);                    } /* RES  7,A         */
+void cb_b8(void) { B = RES(7,B);                    } /* RES  7,B         */
+void cb_b9(void) { C = RES(7,C);                    } /* RES  7,C         */
+void cb_ba(void) { D = RES(7,D);                    } /* RES  7,D         */
+void cb_bb(void) { E = RES(7,E);                    } /* RES  7,E         */
+void cb_bc(void) { H = RES(7,H);                    } /* RES  7,H         */
+void cb_bd(void) { L = RES(7,L);                    } /* RES  7,L         */
+void cb_be(void) { WM( HL, RES(7,RM(HL)) );         } /* RES  7,(HL)      */
+void cb_bf(void) { A = RES(7,A);                    } /* RES  7,A         */
 
-INLINE void cb_c0(void) { B = SET(0,B);                    } /* SET  0,B         */
-INLINE void cb_c1(void) { C = SET(0,C);                    } /* SET  0,C         */
-INLINE void cb_c2(void) { D = SET(0,D);                    } /* SET  0,D         */
-INLINE void cb_c3(void) { E = SET(0,E);                    } /* SET  0,E         */
-INLINE void cb_c4(void) { H = SET(0,H);                    } /* SET  0,H         */
-INLINE void cb_c5(void) { L = SET(0,L);                    } /* SET  0,L         */
-INLINE void cb_c6(void) { WM( HL, SET(0,RM(HL)) );         } /* SET  0,(HL)      */
-INLINE void cb_c7(void) { A = SET(0,A);                    } /* SET  0,A         */
+void cb_c0(void) { B = SET(0,B);                    } /* SET  0,B         */
+void cb_c1(void) { C = SET(0,C);                    } /* SET  0,C         */
+void cb_c2(void) { D = SET(0,D);                    } /* SET  0,D         */
+void cb_c3(void) { E = SET(0,E);                    } /* SET  0,E         */
+void cb_c4(void) { H = SET(0,H);                    } /* SET  0,H         */
+void cb_c5(void) { L = SET(0,L);                    } /* SET  0,L         */
+void cb_c6(void) { WM( HL, SET(0,RM(HL)) );         } /* SET  0,(HL)      */
+void cb_c7(void) { A = SET(0,A);                    } /* SET  0,A         */
 
-INLINE void cb_c8(void) { B = SET(1,B);                    } /* SET  1,B         */
-INLINE void cb_c9(void) { C = SET(1,C);                    } /* SET  1,C         */
-INLINE void cb_ca(void) { D = SET(1,D);                    } /* SET  1,D         */
-INLINE void cb_cb(void) { E = SET(1,E);                    } /* SET  1,E         */
-INLINE void cb_cc(void) { H = SET(1,H);                    } /* SET  1,H         */
-INLINE void cb_cd(void) { L = SET(1,L);                    } /* SET  1,L         */
-INLINE void cb_ce(void) { WM( HL, SET(1,RM(HL)) );         } /* SET  1,(HL)      */
-INLINE void cb_cf(void) { A = SET(1,A);                    } /* SET  1,A         */
+void cb_c8(void) { B = SET(1,B);                    } /* SET  1,B         */
+void cb_c9(void) { C = SET(1,C);                    } /* SET  1,C         */
+void cb_ca(void) { D = SET(1,D);                    } /* SET  1,D         */
+void cb_cb(void) { E = SET(1,E);                    } /* SET  1,E         */
+void cb_cc(void) { H = SET(1,H);                    } /* SET  1,H         */
+void cb_cd(void) { L = SET(1,L);                    } /* SET  1,L         */
+void cb_ce(void) { WM( HL, SET(1,RM(HL)) );         } /* SET  1,(HL)      */
+void cb_cf(void) { A = SET(1,A);                    } /* SET  1,A         */
 
-INLINE void cb_d0(void) { B = SET(2,B);                    } /* SET  2,B         */
-INLINE void cb_d1(void) { C = SET(2,C);                    } /* SET  2,C         */
-INLINE void cb_d2(void) { D = SET(2,D);                    } /* SET  2,D         */
-INLINE void cb_d3(void) { E = SET(2,E);                    } /* SET  2,E         */
-INLINE void cb_d4(void) { H = SET(2,H);                    } /* SET  2,H         */
-INLINE void cb_d5(void) { L = SET(2,L);                    } /* SET  2,L         */
-INLINE void cb_d6(void) { WM( HL, SET(2,RM(HL)) );         } /* SET  2,(HL)      */
-INLINE void cb_d7(void) { A = SET(2,A);                    } /* SET  2,A         */
+void cb_d0(void) { B = SET(2,B);                    } /* SET  2,B         */
+void cb_d1(void) { C = SET(2,C);                    } /* SET  2,C         */
+void cb_d2(void) { D = SET(2,D);                    } /* SET  2,D         */
+void cb_d3(void) { E = SET(2,E);                    } /* SET  2,E         */
+void cb_d4(void) { H = SET(2,H);                    } /* SET  2,H         */
+void cb_d5(void) { L = SET(2,L);                    } /* SET  2,L         */
+void cb_d6(void) { WM( HL, SET(2,RM(HL)) );         } /* SET  2,(HL)      */
+void cb_d7(void) { A = SET(2,A);                    } /* SET  2,A         */
 
-INLINE void cb_d8(void) { B = SET(3,B);                    } /* SET  3,B         */
-INLINE void cb_d9(void) { C = SET(3,C);                    } /* SET  3,C         */
-INLINE void cb_da(void) { D = SET(3,D);                    } /* SET  3,D         */
-INLINE void cb_db(void) { E = SET(3,E);                    } /* SET  3,E         */
-INLINE void cb_dc(void) { H = SET(3,H);                    } /* SET  3,H         */
-INLINE void cb_dd(void) { L = SET(3,L);                    } /* SET  3,L         */
-INLINE void cb_de(void) { WM( HL, SET(3,RM(HL)) );         } /* SET  3,(HL)      */
-INLINE void cb_df(void) { A = SET(3,A);                    } /* SET  3,A         */
+void cb_d8(void) { B = SET(3,B);                    } /* SET  3,B         */
+void cb_d9(void) { C = SET(3,C);                    } /* SET  3,C         */
+void cb_da(void) { D = SET(3,D);                    } /* SET  3,D         */
+void cb_db(void) { E = SET(3,E);                    } /* SET  3,E         */
+void cb_dc(void) { H = SET(3,H);                    } /* SET  3,H         */
+void cb_dd(void) { L = SET(3,L);                    } /* SET  3,L         */
+void cb_de(void) { WM( HL, SET(3,RM(HL)) );         } /* SET  3,(HL)      */
+void cb_df(void) { A = SET(3,A);                    } /* SET  3,A         */
 
-INLINE void cb_e0(void) { B = SET(4,B);                    } /* SET  4,B         */
-INLINE void cb_e1(void) { C = SET(4,C);                    } /* SET  4,C         */
-INLINE void cb_e2(void) { D = SET(4,D);                    } /* SET  4,D         */
-INLINE void cb_e3(void) { E = SET(4,E);                    } /* SET  4,E         */
-INLINE void cb_e4(void) { H = SET(4,H);                    } /* SET  4,H         */
-INLINE void cb_e5(void) { L = SET(4,L);                    } /* SET  4,L         */
-INLINE void cb_e6(void) { WM( HL, SET(4,RM(HL)) );         } /* SET  4,(HL)      */
-INLINE void cb_e7(void) { A = SET(4,A);                    } /* SET  4,A         */
+void cb_e0(void) { B = SET(4,B);                    } /* SET  4,B         */
+void cb_e1(void) { C = SET(4,C);                    } /* SET  4,C         */
+void cb_e2(void) { D = SET(4,D);                    } /* SET  4,D         */
+void cb_e3(void) { E = SET(4,E);                    } /* SET  4,E         */
+void cb_e4(void) { H = SET(4,H);                    } /* SET  4,H         */
+void cb_e5(void) { L = SET(4,L);                    } /* SET  4,L         */
+void cb_e6(void) { WM( HL, SET(4,RM(HL)) );         } /* SET  4,(HL)      */
+void cb_e7(void) { A = SET(4,A);                    } /* SET  4,A         */
 
-INLINE void cb_e8(void) { B = SET(5,B);                    } /* SET  5,B         */
-INLINE void cb_e9(void) { C = SET(5,C);                    } /* SET  5,C         */
-INLINE void cb_ea(void) { D = SET(5,D);                    } /* SET  5,D         */
-INLINE void cb_eb(void) { E = SET(5,E);                    } /* SET  5,E         */
-INLINE void cb_ec(void) { H = SET(5,H);                    } /* SET  5,H         */
-INLINE void cb_ed(void) { L = SET(5,L);                    } /* SET  5,L         */
-INLINE void cb_ee(void) { WM( HL, SET(5,RM(HL)) );         } /* SET  5,(HL)      */
-INLINE void cb_ef(void) { A = SET(5,A);                    } /* SET  5,A         */
+void cb_e8(void) { B = SET(5,B);                    } /* SET  5,B         */
+void cb_e9(void) { C = SET(5,C);                    } /* SET  5,C         */
+void cb_ea(void) { D = SET(5,D);                    } /* SET  5,D         */
+void cb_eb(void) { E = SET(5,E);                    } /* SET  5,E         */
+void cb_ec(void) { H = SET(5,H);                    } /* SET  5,H         */
+void cb_ed(void) { L = SET(5,L);                    } /* SET  5,L         */
+void cb_ee(void) { WM( HL, SET(5,RM(HL)) );         } /* SET  5,(HL)      */
+void cb_ef(void) { A = SET(5,A);                    } /* SET  5,A         */
 
-INLINE void cb_f0(void) { B = SET(6,B);                    } /* SET  6,B         */
-INLINE void cb_f1(void) { C = SET(6,C);                    } /* SET  6,C         */
-INLINE void cb_f2(void) { D = SET(6,D);                    } /* SET  6,D         */
-INLINE void cb_f3(void) { E = SET(6,E);                    } /* SET  6,E         */
-INLINE void cb_f4(void) { H = SET(6,H);                    } /* SET  6,H         */
-INLINE void cb_f5(void) { L = SET(6,L);                    } /* SET  6,L         */
-INLINE void cb_f6(void) { WM( HL, SET(6,RM(HL)) );         } /* SET  6,(HL)      */
-INLINE void cb_f7(void) { A = SET(6,A);                    } /* SET  6,A         */
+void cb_f0(void) { B = SET(6,B);                    } /* SET  6,B         */
+void cb_f1(void) { C = SET(6,C);                    } /* SET  6,C         */
+void cb_f2(void) { D = SET(6,D);                    } /* SET  6,D         */
+void cb_f3(void) { E = SET(6,E);                    } /* SET  6,E         */
+void cb_f4(void) { H = SET(6,H);                    } /* SET  6,H         */
+void cb_f5(void) { L = SET(6,L);                    } /* SET  6,L         */
+void cb_f6(void) { WM( HL, SET(6,RM(HL)) );         } /* SET  6,(HL)      */
+void cb_f7(void) { A = SET(6,A);                    } /* SET  6,A         */
 
-INLINE void cb_f8(void) { B = SET(7,B);                    } /* SET  7,B         */
-INLINE void cb_f9(void) { C = SET(7,C);                    } /* SET  7,C         */
-INLINE void cb_fa(void) { D = SET(7,D);                    } /* SET  7,D         */
-INLINE void cb_fb(void) { E = SET(7,E);                    } /* SET  7,E         */
-INLINE void cb_fc(void) { H = SET(7,H);                    } /* SET  7,H         */
-INLINE void cb_fd(void) { L = SET(7,L);                    } /* SET  7,L         */
-INLINE void cb_fe(void) { WM( HL, SET(7,RM(HL)) );         } /* SET  7,(HL)      */
-INLINE void cb_ff(void) { A = SET(7,A);                    } /* SET  7,A         */
+void cb_f8(void) { B = SET(7,B);                    } /* SET  7,B         */
+void cb_f9(void) { C = SET(7,C);                    } /* SET  7,C         */
+void cb_fa(void) { D = SET(7,D);                    } /* SET  7,D         */
+void cb_fb(void) { E = SET(7,E);                    } /* SET  7,E         */
+void cb_fc(void) { H = SET(7,H);                    } /* SET  7,H         */
+void cb_fd(void) { L = SET(7,L);                    } /* SET  7,L         */
+void cb_fe(void) { WM( HL, SET(7,RM(HL)) );         } /* SET  7,(HL)      */
+void cb_ff(void) { A = SET(7,A);                    } /* SET  7,A         */
 
 
 /**********************************************************
 * opcodes with DD/FD CB prefix
 * rotate, shift and bit operations with (IX+o)
 **********************************************************/
-INLINE void xycb_00(void) { B = RLC( RM(EA) ); WM( EA,B );            } /* RLC  B=(XY+o)    */
-INLINE void xycb_01(void) { C = RLC( RM(EA) ); WM( EA,C );            } /* RLC  C=(XY+o)    */
-INLINE void xycb_02(void) { D = RLC( RM(EA) ); WM( EA,D );            } /* RLC  D=(XY+o)    */
-INLINE void xycb_03(void) { E = RLC( RM(EA) ); WM( EA,E );            } /* RLC  E=(XY+o)    */
-INLINE void xycb_04(void) { H = RLC( RM(EA) ); WM( EA,H );            } /* RLC  H=(XY+o)    */
-INLINE void xycb_05(void) { L = RLC( RM(EA) ); WM( EA,L );            } /* RLC  L=(XY+o)    */
-INLINE void xycb_06(void) { WM( EA, RLC( RM(EA) ) );                  } /* RLC  (XY+o)      */
-INLINE void xycb_07(void) { A = RLC( RM(EA) ); WM( EA,A );            } /* RLC  A=(XY+o)    */
+void xycb_00(void) { B = RLC( RM(EA) ); WM( EA,B );            } /* RLC  B=(XY+o)    */
+void xycb_01(void) { C = RLC( RM(EA) ); WM( EA,C );            } /* RLC  C=(XY+o)    */
+void xycb_02(void) { D = RLC( RM(EA) ); WM( EA,D );            } /* RLC  D=(XY+o)    */
+void xycb_03(void) { E = RLC( RM(EA) ); WM( EA,E );            } /* RLC  E=(XY+o)    */
+void xycb_04(void) { H = RLC( RM(EA) ); WM( EA,H );            } /* RLC  H=(XY+o)    */
+void xycb_05(void) { L = RLC( RM(EA) ); WM( EA,L );            } /* RLC  L=(XY+o)    */
+void xycb_06(void) { WM( EA, RLC( RM(EA) ) );                  } /* RLC  (XY+o)      */
+void xycb_07(void) { A = RLC( RM(EA) ); WM( EA,A );            } /* RLC  A=(XY+o)    */
 
-INLINE void xycb_08(void) { B = RRC( RM(EA) ); WM( EA,B );            } /* RRC  B=(XY+o)    */
-INLINE void xycb_09(void) { C = RRC( RM(EA) ); WM( EA,C );            } /* RRC  C=(XY+o)    */
-INLINE void xycb_0a(void) { D = RRC( RM(EA) ); WM( EA,D );            } /* RRC  D=(XY+o)    */
-INLINE void xycb_0b(void) { E = RRC( RM(EA) ); WM( EA,E );            } /* RRC  E=(XY+o)    */
-INLINE void xycb_0c(void) { H = RRC( RM(EA) ); WM( EA,H );            } /* RRC  H=(XY+o)    */
-INLINE void xycb_0d(void) { L = RRC( RM(EA) ); WM( EA,L );            } /* RRC  L=(XY+o)    */
-INLINE void xycb_0e(void) { WM( EA,RRC( RM(EA) ) );                   } /* RRC  (XY+o)      */
-INLINE void xycb_0f(void) { A = RRC( RM(EA) ); WM( EA,A );            } /* RRC  A=(XY+o)    */
+void xycb_08(void) { B = RRC( RM(EA) ); WM( EA,B );            } /* RRC  B=(XY+o)    */
+void xycb_09(void) { C = RRC( RM(EA) ); WM( EA,C );            } /* RRC  C=(XY+o)    */
+void xycb_0a(void) { D = RRC( RM(EA) ); WM( EA,D );            } /* RRC  D=(XY+o)    */
+void xycb_0b(void) { E = RRC( RM(EA) ); WM( EA,E );            } /* RRC  E=(XY+o)    */
+void xycb_0c(void) { H = RRC( RM(EA) ); WM( EA,H );            } /* RRC  H=(XY+o)    */
+void xycb_0d(void) { L = RRC( RM(EA) ); WM( EA,L );            } /* RRC  L=(XY+o)    */
+void xycb_0e(void) { WM( EA,RRC( RM(EA) ) );                   } /* RRC  (XY+o)      */
+void xycb_0f(void) { A = RRC( RM(EA) ); WM( EA,A );            } /* RRC  A=(XY+o)    */
 
-INLINE void xycb_10(void) { B = RL( RM(EA) ); WM( EA,B );             } /* RL   B=(XY+o)    */
-INLINE void xycb_11(void) { C = RL( RM(EA) ); WM( EA,C );             } /* RL   C=(XY+o)    */
-INLINE void xycb_12(void) { D = RL( RM(EA) ); WM( EA,D );             } /* RL   D=(XY+o)    */
-INLINE void xycb_13(void) { E = RL( RM(EA) ); WM( EA,E );             } /* RL   E=(XY+o)    */
-INLINE void xycb_14(void) { H = RL( RM(EA) ); WM( EA,H );             } /* RL   H=(XY+o)    */
-INLINE void xycb_15(void) { L = RL( RM(EA) ); WM( EA,L );             } /* RL   L=(XY+o)    */
-INLINE void xycb_16(void) { WM( EA,RL( RM(EA) ) );                    } /* RL   (XY+o)      */
-INLINE void xycb_17(void) { A = RL( RM(EA) ); WM( EA,A );             } /* RL   A=(XY+o)    */
+void xycb_10(void) { B = RL( RM(EA) ); WM( EA,B );             } /* RL   B=(XY+o)    */
+void xycb_11(void) { C = RL( RM(EA) ); WM( EA,C );             } /* RL   C=(XY+o)    */
+void xycb_12(void) { D = RL( RM(EA) ); WM( EA,D );             } /* RL   D=(XY+o)    */
+void xycb_13(void) { E = RL( RM(EA) ); WM( EA,E );             } /* RL   E=(XY+o)    */
+void xycb_14(void) { H = RL( RM(EA) ); WM( EA,H );             } /* RL   H=(XY+o)    */
+void xycb_15(void) { L = RL( RM(EA) ); WM( EA,L );             } /* RL   L=(XY+o)    */
+void xycb_16(void) { WM( EA,RL( RM(EA) ) );                    } /* RL   (XY+o)      */
+void xycb_17(void) { A = RL( RM(EA) ); WM( EA,A );             } /* RL   A=(XY+o)    */
 
-INLINE void xycb_18(void) { B = RR( RM(EA) ); WM( EA,B );             } /* RR   B=(XY+o)    */
-INLINE void xycb_19(void) { C = RR( RM(EA) ); WM( EA,C );             } /* RR   C=(XY+o)    */
-INLINE void xycb_1a(void) { D = RR( RM(EA) ); WM( EA,D );             } /* RR   D=(XY+o)    */
-INLINE void xycb_1b(void) { E = RR( RM(EA) ); WM( EA,E );             } /* RR   E=(XY+o)    */
-INLINE void xycb_1c(void) { H = RR( RM(EA) ); WM( EA,H );             } /* RR   H=(XY+o)    */
-INLINE void xycb_1d(void) { L = RR( RM(EA) ); WM( EA,L );             } /* RR   L=(XY+o)    */
-INLINE void xycb_1e(void) { WM( EA,RR( RM(EA) ) );                    } /* RR   (XY+o)      */
-INLINE void xycb_1f(void) { A = RR( RM(EA) ); WM( EA,A );             } /* RR   A=(XY+o)    */
+void xycb_18(void) { B = RR( RM(EA) ); WM( EA,B );             } /* RR   B=(XY+o)    */
+void xycb_19(void) { C = RR( RM(EA) ); WM( EA,C );             } /* RR   C=(XY+o)    */
+void xycb_1a(void) { D = RR( RM(EA) ); WM( EA,D );             } /* RR   D=(XY+o)    */
+void xycb_1b(void) { E = RR( RM(EA) ); WM( EA,E );             } /* RR   E=(XY+o)    */
+void xycb_1c(void) { H = RR( RM(EA) ); WM( EA,H );             } /* RR   H=(XY+o)    */
+void xycb_1d(void) { L = RR( RM(EA) ); WM( EA,L );             } /* RR   L=(XY+o)    */
+void xycb_1e(void) { WM( EA,RR( RM(EA) ) );                    } /* RR   (XY+o)      */
+void xycb_1f(void) { A = RR( RM(EA) ); WM( EA,A );             } /* RR   A=(XY+o)    */
 
-INLINE void xycb_20(void) { B = SLA( RM(EA) ); WM( EA,B );            } /* SLA  B=(XY+o)    */
-INLINE void xycb_21(void) { C = SLA( RM(EA) ); WM( EA,C );            } /* SLA  C=(XY+o)    */
-INLINE void xycb_22(void) { D = SLA( RM(EA) ); WM( EA,D );            } /* SLA  D=(XY+o)    */
-INLINE void xycb_23(void) { E = SLA( RM(EA) ); WM( EA,E );            } /* SLA  E=(XY+o)    */
-INLINE void xycb_24(void) { H = SLA( RM(EA) ); WM( EA,H );            } /* SLA  H=(XY+o)    */
-INLINE void xycb_25(void) { L = SLA( RM(EA) ); WM( EA,L );            } /* SLA  L=(XY+o)    */
-INLINE void xycb_26(void) { WM( EA,SLA( RM(EA) ) );                   } /* SLA  (XY+o)      */
-INLINE void xycb_27(void) { A = SLA( RM(EA) ); WM( EA,A );            } /* SLA  A=(XY+o)    */
+void xycb_20(void) { B = SLA( RM(EA) ); WM( EA,B );            } /* SLA  B=(XY+o)    */
+void xycb_21(void) { C = SLA( RM(EA) ); WM( EA,C );            } /* SLA  C=(XY+o)    */
+void xycb_22(void) { D = SLA( RM(EA) ); WM( EA,D );            } /* SLA  D=(XY+o)    */
+void xycb_23(void) { E = SLA( RM(EA) ); WM( EA,E );            } /* SLA  E=(XY+o)    */
+void xycb_24(void) { H = SLA( RM(EA) ); WM( EA,H );            } /* SLA  H=(XY+o)    */
+void xycb_25(void) { L = SLA( RM(EA) ); WM( EA,L );            } /* SLA  L=(XY+o)    */
+void xycb_26(void) { WM( EA,SLA( RM(EA) ) );                   } /* SLA  (XY+o)      */
+void xycb_27(void) { A = SLA( RM(EA) ); WM( EA,A );            } /* SLA  A=(XY+o)    */
 
-INLINE void xycb_28(void) { B = SRA( RM(EA) ); WM( EA,B );            } /* SRA  B=(XY+o)    */
-INLINE void xycb_29(void) { C = SRA( RM(EA) ); WM( EA,C );            } /* SRA  C=(XY+o)    */
-INLINE void xycb_2a(void) { D = SRA( RM(EA) ); WM( EA,D );            } /* SRA  D=(XY+o)    */
-INLINE void xycb_2b(void) { E = SRA( RM(EA) ); WM( EA,E );            } /* SRA  E=(XY+o)    */
-INLINE void xycb_2c(void) { H = SRA( RM(EA) ); WM( EA,H );            } /* SRA  H=(XY+o)    */
-INLINE void xycb_2d(void) { L = SRA( RM(EA) ); WM( EA,L );            } /* SRA  L=(XY+o)    */
-INLINE void xycb_2e(void) { WM( EA,SRA( RM(EA) ) );                   } /* SRA  (XY+o)      */
-INLINE void xycb_2f(void) { A = SRA( RM(EA) ); WM( EA,A );            } /* SRA  A=(XY+o)    */
+void xycb_28(void) { B = SRA( RM(EA) ); WM( EA,B );            } /* SRA  B=(XY+o)    */
+void xycb_29(void) { C = SRA( RM(EA) ); WM( EA,C );            } /* SRA  C=(XY+o)    */
+void xycb_2a(void) { D = SRA( RM(EA) ); WM( EA,D );            } /* SRA  D=(XY+o)    */
+void xycb_2b(void) { E = SRA( RM(EA) ); WM( EA,E );            } /* SRA  E=(XY+o)    */
+void xycb_2c(void) { H = SRA( RM(EA) ); WM( EA,H );            } /* SRA  H=(XY+o)    */
+void xycb_2d(void) { L = SRA( RM(EA) ); WM( EA,L );            } /* SRA  L=(XY+o)    */
+void xycb_2e(void) { WM( EA,SRA( RM(EA) ) );                   } /* SRA  (XY+o)      */
+void xycb_2f(void) { A = SRA( RM(EA) ); WM( EA,A );            } /* SRA  A=(XY+o)    */
 
-INLINE void xycb_30(void) { B = SLL( RM(EA) ); WM( EA,B );            } /* SLL  B=(XY+o)    */
-INLINE void xycb_31(void) { C = SLL( RM(EA) ); WM( EA,C );            } /* SLL  C=(XY+o)    */
-INLINE void xycb_32(void) { D = SLL( RM(EA) ); WM( EA,D );            } /* SLL  D=(XY+o)    */
-INLINE void xycb_33(void) { E = SLL( RM(EA) ); WM( EA,E );            } /* SLL  E=(XY+o)    */
-INLINE void xycb_34(void) { H = SLL( RM(EA) ); WM( EA,H );            } /* SLL  H=(XY+o)    */
-INLINE void xycb_35(void) { L = SLL( RM(EA) ); WM( EA,L );            } /* SLL  L=(XY+o)    */
-INLINE void xycb_36(void) { WM( EA,SLL( RM(EA) ) );                   } /* SLL  (XY+o)      */
-INLINE void xycb_37(void) { A = SLL( RM(EA) ); WM( EA,A );            } /* SLL  A=(XY+o)    */
+void xycb_30(void) { B = SLL( RM(EA) ); WM( EA,B );            } /* SLL  B=(XY+o)    */
+void xycb_31(void) { C = SLL( RM(EA) ); WM( EA,C );            } /* SLL  C=(XY+o)    */
+void xycb_32(void) { D = SLL( RM(EA) ); WM( EA,D );            } /* SLL  D=(XY+o)    */
+void xycb_33(void) { E = SLL( RM(EA) ); WM( EA,E );            } /* SLL  E=(XY+o)    */
+void xycb_34(void) { H = SLL( RM(EA) ); WM( EA,H );            } /* SLL  H=(XY+o)    */
+void xycb_35(void) { L = SLL( RM(EA) ); WM( EA,L );            } /* SLL  L=(XY+o)    */
+void xycb_36(void) { WM( EA,SLL( RM(EA) ) );                   } /* SLL  (XY+o)      */
+void xycb_37(void) { A = SLL( RM(EA) ); WM( EA,A );            } /* SLL  A=(XY+o)    */
 
-INLINE void xycb_38(void) { B = SRL( RM(EA) ); WM( EA,B );            } /* SRL  B=(XY+o)    */
-INLINE void xycb_39(void) { C = SRL( RM(EA) ); WM( EA,C );            } /* SRL  C=(XY+o)    */
-INLINE void xycb_3a(void) { D = SRL( RM(EA) ); WM( EA,D );            } /* SRL  D=(XY+o)    */
-INLINE void xycb_3b(void) { E = SRL( RM(EA) ); WM( EA,E );            } /* SRL  E=(XY+o)    */
-INLINE void xycb_3c(void) { H = SRL( RM(EA) ); WM( EA,H );            } /* SRL  H=(XY+o)    */
-INLINE void xycb_3d(void) { L = SRL( RM(EA) ); WM( EA,L );            } /* SRL  L=(XY+o)    */
-INLINE void xycb_3e(void) { WM( EA,SRL( RM(EA) ) );                   } /* SRL  (XY+o)      */
-INLINE void xycb_3f(void) { A = SRL( RM(EA) ); WM( EA,A );            } /* SRL  A=(XY+o)    */
+void xycb_38(void) { B = SRL( RM(EA) ); WM( EA,B );            } /* SRL  B=(XY+o)    */
+void xycb_39(void) { C = SRL( RM(EA) ); WM( EA,C );            } /* SRL  C=(XY+o)    */
+void xycb_3a(void) { D = SRL( RM(EA) ); WM( EA,D );            } /* SRL  D=(XY+o)    */
+void xycb_3b(void) { E = SRL( RM(EA) ); WM( EA,E );            } /* SRL  E=(XY+o)    */
+void xycb_3c(void) { H = SRL( RM(EA) ); WM( EA,H );            } /* SRL  H=(XY+o)    */
+void xycb_3d(void) { L = SRL( RM(EA) ); WM( EA,L );            } /* SRL  L=(XY+o)    */
+void xycb_3e(void) { WM( EA,SRL( RM(EA) ) );                   } /* SRL  (XY+o)      */
+void xycb_3f(void) { A = SRL( RM(EA) ); WM( EA,A );            } /* SRL  A=(XY+o)    */
 
-INLINE void xycb_40(void) { xycb_46();                                } /* BIT  0,(XY+o)    */
-INLINE void xycb_41(void) { xycb_46();                                } /* BIT  0,(XY+o)    */
-INLINE void xycb_42(void) { xycb_46();                                } /* BIT  0,(XY+o)    */
-INLINE void xycb_43(void) { xycb_46();                                } /* BIT  0,(XY+o)    */
-INLINE void xycb_44(void) { xycb_46();                                } /* BIT  0,(XY+o)    */
-INLINE void xycb_45(void) { xycb_46();                                } /* BIT  0,(XY+o)    */
-INLINE void xycb_46(void) { BIT_XY(0,RM(EA));                         } /* BIT  0,(XY+o)    */
-INLINE void xycb_47(void) { xycb_46();                                } /* BIT  0,(XY+o)    */
+void xycb_40(void) { xycb_46();                                } /* BIT  0,(XY+o)    */
+void xycb_41(void) { xycb_46();                                } /* BIT  0,(XY+o)    */
+void xycb_42(void) { xycb_46();                                } /* BIT  0,(XY+o)    */
+void xycb_43(void) { xycb_46();                                } /* BIT  0,(XY+o)    */
+void xycb_44(void) { xycb_46();                                } /* BIT  0,(XY+o)    */
+void xycb_45(void) { xycb_46();                                } /* BIT  0,(XY+o)    */
+void xycb_46(void) { BIT_XY(0,RM(EA));                         } /* BIT  0,(XY+o)    */
+void xycb_47(void) { xycb_46();                                } /* BIT  0,(XY+o)    */
 
-INLINE void xycb_48(void) { xycb_4e();                                } /* BIT  1,(XY+o)    */
-INLINE void xycb_49(void) { xycb_4e();                                } /* BIT  1,(XY+o)    */
-INLINE void xycb_4a(void) { xycb_4e();                                } /* BIT  1,(XY+o)    */
-INLINE void xycb_4b(void) { xycb_4e();                                } /* BIT  1,(XY+o)    */
-INLINE void xycb_4c(void) { xycb_4e();                                } /* BIT  1,(XY+o)    */
-INLINE void xycb_4d(void) { xycb_4e();                                } /* BIT  1,(XY+o)    */
-INLINE void xycb_4e(void) { BIT_XY(1,RM(EA));                         } /* BIT  1,(XY+o)    */
-INLINE void xycb_4f(void) { xycb_4e();                                } /* BIT  1,(XY+o)    */
+void xycb_48(void) { xycb_4e();                                } /* BIT  1,(XY+o)    */
+void xycb_49(void) { xycb_4e();                                } /* BIT  1,(XY+o)    */
+void xycb_4a(void) { xycb_4e();                                } /* BIT  1,(XY+o)    */
+void xycb_4b(void) { xycb_4e();                                } /* BIT  1,(XY+o)    */
+void xycb_4c(void) { xycb_4e();                                } /* BIT  1,(XY+o)    */
+void xycb_4d(void) { xycb_4e();                                } /* BIT  1,(XY+o)    */
+void xycb_4e(void) { BIT_XY(1,RM(EA));                         } /* BIT  1,(XY+o)    */
+void xycb_4f(void) { xycb_4e();                                } /* BIT  1,(XY+o)    */
 
-INLINE void xycb_50(void) { xycb_56();                                } /* BIT  2,(XY+o)    */
-INLINE void xycb_51(void) { xycb_56();                                } /* BIT  2,(XY+o)    */
-INLINE void xycb_52(void) { xycb_56();                                } /* BIT  2,(XY+o)    */
-INLINE void xycb_53(void) { xycb_56();                                } /* BIT  2,(XY+o)    */
-INLINE void xycb_54(void) { xycb_56();                                } /* BIT  2,(XY+o)    */
-INLINE void xycb_55(void) { xycb_56();                                } /* BIT  2,(XY+o)    */
-INLINE void xycb_56(void) { BIT_XY(2,RM(EA));                         } /* BIT  2,(XY+o)    */
-INLINE void xycb_57(void) { xycb_56();                                } /* BIT  2,(XY+o)    */
+void xycb_50(void) { xycb_56();                                } /* BIT  2,(XY+o)    */
+void xycb_51(void) { xycb_56();                                } /* BIT  2,(XY+o)    */
+void xycb_52(void) { xycb_56();                                } /* BIT  2,(XY+o)    */
+void xycb_53(void) { xycb_56();                                } /* BIT  2,(XY+o)    */
+void xycb_54(void) { xycb_56();                                } /* BIT  2,(XY+o)    */
+void xycb_55(void) { xycb_56();                                } /* BIT  2,(XY+o)    */
+void xycb_56(void) { BIT_XY(2,RM(EA));                         } /* BIT  2,(XY+o)    */
+void xycb_57(void) { xycb_56();                                } /* BIT  2,(XY+o)    */
 
-INLINE void xycb_58(void) { xycb_5e();                                } /* BIT  3,(XY+o)    */
-INLINE void xycb_59(void) { xycb_5e();                                } /* BIT  3,(XY+o)    */
-INLINE void xycb_5a(void) { xycb_5e();                                } /* BIT  3,(XY+o)    */
-INLINE void xycb_5b(void) { xycb_5e();                                } /* BIT  3,(XY+o)    */
-INLINE void xycb_5c(void) { xycb_5e();                                } /* BIT  3,(XY+o)    */
-INLINE void xycb_5d(void) { xycb_5e();                                } /* BIT  3,(XY+o)    */
-INLINE void xycb_5e(void) { BIT_XY(3,RM(EA));                         } /* BIT  3,(XY+o)    */
-INLINE void xycb_5f(void) { xycb_5e();                                } /* BIT  3,(XY+o)    */
+void xycb_58(void) { xycb_5e();                                } /* BIT  3,(XY+o)    */
+void xycb_59(void) { xycb_5e();                                } /* BIT  3,(XY+o)    */
+void xycb_5a(void) { xycb_5e();                                } /* BIT  3,(XY+o)    */
+void xycb_5b(void) { xycb_5e();                                } /* BIT  3,(XY+o)    */
+void xycb_5c(void) { xycb_5e();                                } /* BIT  3,(XY+o)    */
+void xycb_5d(void) { xycb_5e();                                } /* BIT  3,(XY+o)    */
+void xycb_5e(void) { BIT_XY(3,RM(EA));                         } /* BIT  3,(XY+o)    */
+void xycb_5f(void) { xycb_5e();                                } /* BIT  3,(XY+o)    */
 
-INLINE void xycb_60(void) { xycb_66();                                } /* BIT  4,(XY+o)    */
-INLINE void xycb_61(void) { xycb_66();                                } /* BIT  4,(XY+o)    */
-INLINE void xycb_62(void) { xycb_66();                                } /* BIT  4,(XY+o)    */
-INLINE void xycb_63(void) { xycb_66();                                } /* BIT  4,(XY+o)    */
-INLINE void xycb_64(void) { xycb_66();                                } /* BIT  4,(XY+o)    */
-INLINE void xycb_65(void) { xycb_66();                                } /* BIT  4,(XY+o)    */
-INLINE void xycb_66(void) { BIT_XY(4,RM(EA));                         } /* BIT  4,(XY+o)    */
-INLINE void xycb_67(void) { xycb_66();                                } /* BIT  4,(XY+o)    */
+void xycb_60(void) { xycb_66();                                } /* BIT  4,(XY+o)    */
+void xycb_61(void) { xycb_66();                                } /* BIT  4,(XY+o)    */
+void xycb_62(void) { xycb_66();                                } /* BIT  4,(XY+o)    */
+void xycb_63(void) { xycb_66();                                } /* BIT  4,(XY+o)    */
+void xycb_64(void) { xycb_66();                                } /* BIT  4,(XY+o)    */
+void xycb_65(void) { xycb_66();                                } /* BIT  4,(XY+o)    */
+void xycb_66(void) { BIT_XY(4,RM(EA));                         } /* BIT  4,(XY+o)    */
+void xycb_67(void) { xycb_66();                                } /* BIT  4,(XY+o)    */
 
-INLINE void xycb_68(void) { xycb_6e();                                } /* BIT  5,(XY+o)    */
-INLINE void xycb_69(void) { xycb_6e();                                } /* BIT  5,(XY+o)    */
-INLINE void xycb_6a(void) { xycb_6e();                                } /* BIT  5,(XY+o)    */
-INLINE void xycb_6b(void) { xycb_6e();                                } /* BIT  5,(XY+o)    */
-INLINE void xycb_6c(void) { xycb_6e();                                } /* BIT  5,(XY+o)    */
-INLINE void xycb_6d(void) { xycb_6e();                                } /* BIT  5,(XY+o)    */
-INLINE void xycb_6e(void) { BIT_XY(5,RM(EA));                         } /* BIT  5,(XY+o)    */
-INLINE void xycb_6f(void) { xycb_6e();                                } /* BIT  5,(XY+o)    */
+void xycb_68(void) { xycb_6e();                                } /* BIT  5,(XY+o)    */
+void xycb_69(void) { xycb_6e();                                } /* BIT  5,(XY+o)    */
+void xycb_6a(void) { xycb_6e();                                } /* BIT  5,(XY+o)    */
+void xycb_6b(void) { xycb_6e();                                } /* BIT  5,(XY+o)    */
+void xycb_6c(void) { xycb_6e();                                } /* BIT  5,(XY+o)    */
+void xycb_6d(void) { xycb_6e();                                } /* BIT  5,(XY+o)    */
+void xycb_6e(void) { BIT_XY(5,RM(EA));                         } /* BIT  5,(XY+o)    */
+void xycb_6f(void) { xycb_6e();                                } /* BIT  5,(XY+o)    */
 
-INLINE void xycb_70(void) { xycb_76();                                } /* BIT  6,(XY+o)    */
-INLINE void xycb_71(void) { xycb_76();                                } /* BIT  6,(XY+o)    */
-INLINE void xycb_72(void) { xycb_76();                                } /* BIT  6,(XY+o)    */
-INLINE void xycb_73(void) { xycb_76();                                } /* BIT  6,(XY+o)    */
-INLINE void xycb_74(void) { xycb_76();                                } /* BIT  6,(XY+o)    */
-INLINE void xycb_75(void) { xycb_76();                                } /* BIT  6,(XY+o)    */
-INLINE void xycb_76(void) { BIT_XY(6,RM(EA));                         } /* BIT  6,(XY+o)    */
-INLINE void xycb_77(void) { xycb_76();                                } /* BIT  6,(XY+o)    */
+void xycb_70(void) { xycb_76();                                } /* BIT  6,(XY+o)    */
+void xycb_71(void) { xycb_76();                                } /* BIT  6,(XY+o)    */
+void xycb_72(void) { xycb_76();                                } /* BIT  6,(XY+o)    */
+void xycb_73(void) { xycb_76();                                } /* BIT  6,(XY+o)    */
+void xycb_74(void) { xycb_76();                                } /* BIT  6,(XY+o)    */
+void xycb_75(void) { xycb_76();                                } /* BIT  6,(XY+o)    */
+void xycb_76(void) { BIT_XY(6,RM(EA));                         } /* BIT  6,(XY+o)    */
+void xycb_77(void) { xycb_76();                                } /* BIT  6,(XY+o)    */
 
-INLINE void xycb_78(void) { xycb_7e();                                } /* BIT  7,(XY+o)    */
-INLINE void xycb_79(void) { xycb_7e();                                } /* BIT  7,(XY+o)    */
-INLINE void xycb_7a(void) { xycb_7e();                                } /* BIT  7,(XY+o)    */
-INLINE void xycb_7b(void) { xycb_7e();                                } /* BIT  7,(XY+o)    */
-INLINE void xycb_7c(void) { xycb_7e();                                } /* BIT  7,(XY+o)    */
-INLINE void xycb_7d(void) { xycb_7e();                                } /* BIT  7,(XY+o)    */
-INLINE void xycb_7e(void) { BIT_XY(7,RM(EA));                         } /* BIT  7,(XY+o)    */
-INLINE void xycb_7f(void) { xycb_7e();                                } /* BIT  7,(XY+o)    */
+void xycb_78(void) { xycb_7e();                                } /* BIT  7,(XY+o)    */
+void xycb_79(void) { xycb_7e();                                } /* BIT  7,(XY+o)    */
+void xycb_7a(void) { xycb_7e();                                } /* BIT  7,(XY+o)    */
+void xycb_7b(void) { xycb_7e();                                } /* BIT  7,(XY+o)    */
+void xycb_7c(void) { xycb_7e();                                } /* BIT  7,(XY+o)    */
+void xycb_7d(void) { xycb_7e();                                } /* BIT  7,(XY+o)    */
+void xycb_7e(void) { BIT_XY(7,RM(EA));                         } /* BIT  7,(XY+o)    */
+void xycb_7f(void) { xycb_7e();                                } /* BIT  7,(XY+o)    */
 
-INLINE void xycb_80(void) { B = RES(0, RM(EA) ); WM( EA,B );          } /* RES  0,B=(XY+o)  */
-INLINE void xycb_81(void) { C = RES(0, RM(EA) ); WM( EA,C );          } /* RES  0,C=(XY+o)  */
-INLINE void xycb_82(void) { D = RES(0, RM(EA) ); WM( EA,D );          } /* RES  0,D=(XY+o)  */
-INLINE void xycb_83(void) { E = RES(0, RM(EA) ); WM( EA,E );          } /* RES  0,E=(XY+o)  */
-INLINE void xycb_84(void) { H = RES(0, RM(EA) ); WM( EA,H );          } /* RES  0,H=(XY+o)  */
-INLINE void xycb_85(void) { L = RES(0, RM(EA) ); WM( EA,L );          } /* RES  0,L=(XY+o)  */
-INLINE void xycb_86(void) { WM( EA, RES(0,RM(EA)) );                  } /* RES  0,(XY+o)    */
-INLINE void xycb_87(void) { A = RES(0, RM(EA) ); WM( EA,A );          } /* RES  0,A=(XY+o)  */
+void xycb_80(void) { B = RES(0, RM(EA) ); WM( EA,B );          } /* RES  0,B=(XY+o)  */
+void xycb_81(void) { C = RES(0, RM(EA) ); WM( EA,C );          } /* RES  0,C=(XY+o)  */
+void xycb_82(void) { D = RES(0, RM(EA) ); WM( EA,D );          } /* RES  0,D=(XY+o)  */
+void xycb_83(void) { E = RES(0, RM(EA) ); WM( EA,E );          } /* RES  0,E=(XY+o)  */
+void xycb_84(void) { H = RES(0, RM(EA) ); WM( EA,H );          } /* RES  0,H=(XY+o)  */
+void xycb_85(void) { L = RES(0, RM(EA) ); WM( EA,L );          } /* RES  0,L=(XY+o)  */
+void xycb_86(void) { WM( EA, RES(0,RM(EA)) );                  } /* RES  0,(XY+o)    */
+void xycb_87(void) { A = RES(0, RM(EA) ); WM( EA,A );          } /* RES  0,A=(XY+o)  */
 
-INLINE void xycb_88(void) { B = RES(1, RM(EA) ); WM( EA,B );          } /* RES  1,B=(XY+o)  */
-INLINE void xycb_89(void) { C = RES(1, RM(EA) ); WM( EA,C );          } /* RES  1,C=(XY+o)  */
-INLINE void xycb_8a(void) { D = RES(1, RM(EA) ); WM( EA,D );          } /* RES  1,D=(XY+o)  */
-INLINE void xycb_8b(void) { E = RES(1, RM(EA) ); WM( EA,E );          } /* RES  1,E=(XY+o)  */
-INLINE void xycb_8c(void) { H = RES(1, RM(EA) ); WM( EA,H );          } /* RES  1,H=(XY+o)  */
-INLINE void xycb_8d(void) { L = RES(1, RM(EA) ); WM( EA,L );          } /* RES  1,L=(XY+o)  */
-INLINE void xycb_8e(void) { WM( EA, RES(1,RM(EA)) );                  } /* RES  1,(XY+o)    */
-INLINE void xycb_8f(void) { A = RES(1, RM(EA) ); WM( EA,A );          } /* RES  1,A=(XY+o)  */
+void xycb_88(void) { B = RES(1, RM(EA) ); WM( EA,B );          } /* RES  1,B=(XY+o)  */
+void xycb_89(void) { C = RES(1, RM(EA) ); WM( EA,C );          } /* RES  1,C=(XY+o)  */
+void xycb_8a(void) { D = RES(1, RM(EA) ); WM( EA,D );          } /* RES  1,D=(XY+o)  */
+void xycb_8b(void) { E = RES(1, RM(EA) ); WM( EA,E );          } /* RES  1,E=(XY+o)  */
+void xycb_8c(void) { H = RES(1, RM(EA) ); WM( EA,H );          } /* RES  1,H=(XY+o)  */
+void xycb_8d(void) { L = RES(1, RM(EA) ); WM( EA,L );          } /* RES  1,L=(XY+o)  */
+void xycb_8e(void) { WM( EA, RES(1,RM(EA)) );                  } /* RES  1,(XY+o)    */
+void xycb_8f(void) { A = RES(1, RM(EA) ); WM( EA,A );          } /* RES  1,A=(XY+o)  */
 
-INLINE void xycb_90(void) { B = RES(2, RM(EA) ); WM( EA,B );          } /* RES  2,B=(XY+o)  */
-INLINE void xycb_91(void) { C = RES(2, RM(EA) ); WM( EA,C );          } /* RES  2,C=(XY+o)  */
-INLINE void xycb_92(void) { D = RES(2, RM(EA) ); WM( EA,D );          } /* RES  2,D=(XY+o)  */
-INLINE void xycb_93(void) { E = RES(2, RM(EA) ); WM( EA,E );          } /* RES  2,E=(XY+o)  */
-INLINE void xycb_94(void) { H = RES(2, RM(EA) ); WM( EA,H );          } /* RES  2,H=(XY+o)  */
-INLINE void xycb_95(void) { L = RES(2, RM(EA) ); WM( EA,L );          } /* RES  2,L=(XY+o)  */
-INLINE void xycb_96(void) { WM( EA, RES(2,RM(EA)) );                  } /* RES  2,(XY+o)    */
-INLINE void xycb_97(void) { A = RES(2, RM(EA) ); WM( EA,A );          } /* RES  2,A=(XY+o)  */
+void xycb_90(void) { B = RES(2, RM(EA) ); WM( EA,B );          } /* RES  2,B=(XY+o)  */
+void xycb_91(void) { C = RES(2, RM(EA) ); WM( EA,C );          } /* RES  2,C=(XY+o)  */
+void xycb_92(void) { D = RES(2, RM(EA) ); WM( EA,D );          } /* RES  2,D=(XY+o)  */
+void xycb_93(void) { E = RES(2, RM(EA) ); WM( EA,E );          } /* RES  2,E=(XY+o)  */
+void xycb_94(void) { H = RES(2, RM(EA) ); WM( EA,H );          } /* RES  2,H=(XY+o)  */
+void xycb_95(void) { L = RES(2, RM(EA) ); WM( EA,L );          } /* RES  2,L=(XY+o)  */
+void xycb_96(void) { WM( EA, RES(2,RM(EA)) );                  } /* RES  2,(XY+o)    */
+void xycb_97(void) { A = RES(2, RM(EA) ); WM( EA,A );          } /* RES  2,A=(XY+o)  */
 
-INLINE void xycb_98(void) { B = RES(3, RM(EA) ); WM( EA,B );          } /* RES  3,B=(XY+o)  */
-INLINE void xycb_99(void) { C = RES(3, RM(EA) ); WM( EA,C );          } /* RES  3,C=(XY+o)  */
-INLINE void xycb_9a(void) { D = RES(3, RM(EA) ); WM( EA,D );          } /* RES  3,D=(XY+o)  */
-INLINE void xycb_9b(void) { E = RES(3, RM(EA) ); WM( EA,E );          } /* RES  3,E=(XY+o)  */
-INLINE void xycb_9c(void) { H = RES(3, RM(EA) ); WM( EA,H );          } /* RES  3,H=(XY+o)  */
-INLINE void xycb_9d(void) { L = RES(3, RM(EA) ); WM( EA,L );          } /* RES  3,L=(XY+o)  */
-INLINE void xycb_9e(void) { WM( EA, RES(3,RM(EA)) );                  } /* RES  3,(XY+o)    */
-INLINE void xycb_9f(void) { A = RES(3, RM(EA) ); WM( EA,A );          } /* RES  3,A=(XY+o)  */
+void xycb_98(void) { B = RES(3, RM(EA) ); WM( EA,B );          } /* RES  3,B=(XY+o)  */
+void xycb_99(void) { C = RES(3, RM(EA) ); WM( EA,C );          } /* RES  3,C=(XY+o)  */
+void xycb_9a(void) { D = RES(3, RM(EA) ); WM( EA,D );          } /* RES  3,D=(XY+o)  */
+void xycb_9b(void) { E = RES(3, RM(EA) ); WM( EA,E );          } /* RES  3,E=(XY+o)  */
+void xycb_9c(void) { H = RES(3, RM(EA) ); WM( EA,H );          } /* RES  3,H=(XY+o)  */
+void xycb_9d(void) { L = RES(3, RM(EA) ); WM( EA,L );          } /* RES  3,L=(XY+o)  */
+void xycb_9e(void) { WM( EA, RES(3,RM(EA)) );                  } /* RES  3,(XY+o)    */
+void xycb_9f(void) { A = RES(3, RM(EA) ); WM( EA,A );          } /* RES  3,A=(XY+o)  */
 
-INLINE void xycb_a0(void) { B = RES(4, RM(EA) ); WM( EA,B );          } /* RES  4,B=(XY+o)  */
-INLINE void xycb_a1(void) { C = RES(4, RM(EA) ); WM( EA,C );          } /* RES  4,C=(XY+o)  */
-INLINE void xycb_a2(void) { D = RES(4, RM(EA) ); WM( EA,D );          } /* RES  4,D=(XY+o)  */
-INLINE void xycb_a3(void) { E = RES(4, RM(EA) ); WM( EA,E );          } /* RES  4,E=(XY+o)  */
-INLINE void xycb_a4(void) { H = RES(4, RM(EA) ); WM( EA,H );          } /* RES  4,H=(XY+o)  */
-INLINE void xycb_a5(void) { L = RES(4, RM(EA) ); WM( EA,L );          } /* RES  4,L=(XY+o)  */
-INLINE void xycb_a6(void) { WM( EA, RES(4,RM(EA)) );                  } /* RES  4,(XY+o)    */
-INLINE void xycb_a7(void) { A = RES(4, RM(EA) ); WM( EA,A );          } /* RES  4,A=(XY+o)  */
+void xycb_a0(void) { B = RES(4, RM(EA) ); WM( EA,B );          } /* RES  4,B=(XY+o)  */
+void xycb_a1(void) { C = RES(4, RM(EA) ); WM( EA,C );          } /* RES  4,C=(XY+o)  */
+void xycb_a2(void) { D = RES(4, RM(EA) ); WM( EA,D );          } /* RES  4,D=(XY+o)  */
+void xycb_a3(void) { E = RES(4, RM(EA) ); WM( EA,E );          } /* RES  4,E=(XY+o)  */
+void xycb_a4(void) { H = RES(4, RM(EA) ); WM( EA,H );          } /* RES  4,H=(XY+o)  */
+void xycb_a5(void) { L = RES(4, RM(EA) ); WM( EA,L );          } /* RES  4,L=(XY+o)  */
+void xycb_a6(void) { WM( EA, RES(4,RM(EA)) );                  } /* RES  4,(XY+o)    */
+void xycb_a7(void) { A = RES(4, RM(EA) ); WM( EA,A );          } /* RES  4,A=(XY+o)  */
 
-INLINE void xycb_a8(void) { B = RES(5, RM(EA) ); WM( EA,B );          } /* RES  5,B=(XY+o)  */
-INLINE void xycb_a9(void) { C = RES(5, RM(EA) ); WM( EA,C );          } /* RES  5,C=(XY+o)  */
-INLINE void xycb_aa(void) { D = RES(5, RM(EA) ); WM( EA,D );          } /* RES  5,D=(XY+o)  */
-INLINE void xycb_ab(void) { E = RES(5, RM(EA) ); WM( EA,E );          } /* RES  5,E=(XY+o)  */
-INLINE void xycb_ac(void) { H = RES(5, RM(EA) ); WM( EA,H );          } /* RES  5,H=(XY+o)  */
-INLINE void xycb_ad(void) { L = RES(5, RM(EA) ); WM( EA,L );          } /* RES  5,L=(XY+o)  */
-INLINE void xycb_ae(void) { WM( EA, RES(5,RM(EA)) );                  } /* RES  5,(XY+o)    */
-INLINE void xycb_af(void) { A = RES(5, RM(EA) ); WM( EA,A );          } /* RES  5,A=(XY+o)  */
+void xycb_a8(void) { B = RES(5, RM(EA) ); WM( EA,B );          } /* RES  5,B=(XY+o)  */
+void xycb_a9(void) { C = RES(5, RM(EA) ); WM( EA,C );          } /* RES  5,C=(XY+o)  */
+void xycb_aa(void) { D = RES(5, RM(EA) ); WM( EA,D );          } /* RES  5,D=(XY+o)  */
+void xycb_ab(void) { E = RES(5, RM(EA) ); WM( EA,E );          } /* RES  5,E=(XY+o)  */
+void xycb_ac(void) { H = RES(5, RM(EA) ); WM( EA,H );          } /* RES  5,H=(XY+o)  */
+void xycb_ad(void) { L = RES(5, RM(EA) ); WM( EA,L );          } /* RES  5,L=(XY+o)  */
+void xycb_ae(void) { WM( EA, RES(5,RM(EA)) );                  } /* RES  5,(XY+o)    */
+void xycb_af(void) { A = RES(5, RM(EA) ); WM( EA,A );          } /* RES  5,A=(XY+o)  */
 
-INLINE void xycb_b0(void) { B = RES(6, RM(EA) ); WM( EA,B );          } /* RES  6,B=(XY+o)  */
-INLINE void xycb_b1(void) { C = RES(6, RM(EA) ); WM( EA,C );          } /* RES  6,C=(XY+o)  */
-INLINE void xycb_b2(void) { D = RES(6, RM(EA) ); WM( EA,D );          } /* RES  6,D=(XY+o)  */
-INLINE void xycb_b3(void) { E = RES(6, RM(EA) ); WM( EA,E );          } /* RES  6,E=(XY+o)  */
-INLINE void xycb_b4(void) { H = RES(6, RM(EA) ); WM( EA,H );          } /* RES  6,H=(XY+o)  */
-INLINE void xycb_b5(void) { L = RES(6, RM(EA) ); WM( EA,L );          } /* RES  6,L=(XY+o)  */
-INLINE void xycb_b6(void) { WM( EA, RES(6,RM(EA)) );                  } /* RES  6,(XY+o)    */
-INLINE void xycb_b7(void) { A = RES(6, RM(EA) ); WM( EA,A );          } /* RES  6,A=(XY+o)  */
+void xycb_b0(void) { B = RES(6, RM(EA) ); WM( EA,B );          } /* RES  6,B=(XY+o)  */
+void xycb_b1(void) { C = RES(6, RM(EA) ); WM( EA,C );          } /* RES  6,C=(XY+o)  */
+void xycb_b2(void) { D = RES(6, RM(EA) ); WM( EA,D );          } /* RES  6,D=(XY+o)  */
+void xycb_b3(void) { E = RES(6, RM(EA) ); WM( EA,E );          } /* RES  6,E=(XY+o)  */
+void xycb_b4(void) { H = RES(6, RM(EA) ); WM( EA,H );          } /* RES  6,H=(XY+o)  */
+void xycb_b5(void) { L = RES(6, RM(EA) ); WM( EA,L );          } /* RES  6,L=(XY+o)  */
+void xycb_b6(void) { WM( EA, RES(6,RM(EA)) );                  } /* RES  6,(XY+o)    */
+void xycb_b7(void) { A = RES(6, RM(EA) ); WM( EA,A );          } /* RES  6,A=(XY+o)  */
 
-INLINE void xycb_b8(void) { B = RES(7, RM(EA) ); WM( EA,B );          } /* RES  7,B=(XY+o)  */
-INLINE void xycb_b9(void) { C = RES(7, RM(EA) ); WM( EA,C );          } /* RES  7,C=(XY+o)  */
-INLINE void xycb_ba(void) { D = RES(7, RM(EA) ); WM( EA,D );          } /* RES  7,D=(XY+o)  */
-INLINE void xycb_bb(void) { E = RES(7, RM(EA) ); WM( EA,E );          } /* RES  7,E=(XY+o)  */
-INLINE void xycb_bc(void) { H = RES(7, RM(EA) ); WM( EA,H );          } /* RES  7,H=(XY+o)  */
-INLINE void xycb_bd(void) { L = RES(7, RM(EA) ); WM( EA,L );          } /* RES  7,L=(XY+o)  */
-INLINE void xycb_be(void) { WM( EA, RES(7,RM(EA)) );                  } /* RES  7,(XY+o)    */
-INLINE void xycb_bf(void) { A = RES(7, RM(EA) ); WM( EA,A );          } /* RES  7,A=(XY+o)  */
+void xycb_b8(void) { B = RES(7, RM(EA) ); WM( EA,B );          } /* RES  7,B=(XY+o)  */
+void xycb_b9(void) { C = RES(7, RM(EA) ); WM( EA,C );          } /* RES  7,C=(XY+o)  */
+void xycb_ba(void) { D = RES(7, RM(EA) ); WM( EA,D );          } /* RES  7,D=(XY+o)  */
+void xycb_bb(void) { E = RES(7, RM(EA) ); WM( EA,E );          } /* RES  7,E=(XY+o)  */
+void xycb_bc(void) { H = RES(7, RM(EA) ); WM( EA,H );          } /* RES  7,H=(XY+o)  */
+void xycb_bd(void) { L = RES(7, RM(EA) ); WM( EA,L );          } /* RES  7,L=(XY+o)  */
+void xycb_be(void) { WM( EA, RES(7,RM(EA)) );                  } /* RES  7,(XY+o)    */
+void xycb_bf(void) { A = RES(7, RM(EA) ); WM( EA,A );          } /* RES  7,A=(XY+o)  */
 
-INLINE void xycb_c0(void) { B = SET(0, RM(EA) ); WM( EA,B );          } /* SET  0,B=(XY+o)  */
-INLINE void xycb_c1(void) { C = SET(0, RM(EA) ); WM( EA,C );          } /* SET  0,C=(XY+o)  */
-INLINE void xycb_c2(void) { D = SET(0, RM(EA) ); WM( EA,D );          } /* SET  0,D=(XY+o)  */
-INLINE void xycb_c3(void) { E = SET(0, RM(EA) ); WM( EA,E );          } /* SET  0,E=(XY+o)  */
-INLINE void xycb_c4(void) { H = SET(0, RM(EA) ); WM( EA,H );          } /* SET  0,H=(XY+o)  */
-INLINE void xycb_c5(void) { L = SET(0, RM(EA) ); WM( EA,L );          } /* SET  0,L=(XY+o)  */
-INLINE void xycb_c6(void) { WM( EA, SET(0,RM(EA)) );                  } /* SET  0,(XY+o)    */
-INLINE void xycb_c7(void) { A = SET(0, RM(EA) ); WM( EA,A );          } /* SET  0,A=(XY+o)  */
+void xycb_c0(void) { B = SET(0, RM(EA) ); WM( EA,B );          } /* SET  0,B=(XY+o)  */
+void xycb_c1(void) { C = SET(0, RM(EA) ); WM( EA,C );          } /* SET  0,C=(XY+o)  */
+void xycb_c2(void) { D = SET(0, RM(EA) ); WM( EA,D );          } /* SET  0,D=(XY+o)  */
+void xycb_c3(void) { E = SET(0, RM(EA) ); WM( EA,E );          } /* SET  0,E=(XY+o)  */
+void xycb_c4(void) { H = SET(0, RM(EA) ); WM( EA,H );          } /* SET  0,H=(XY+o)  */
+void xycb_c5(void) { L = SET(0, RM(EA) ); WM( EA,L );          } /* SET  0,L=(XY+o)  */
+void xycb_c6(void) { WM( EA, SET(0,RM(EA)) );                  } /* SET  0,(XY+o)    */
+void xycb_c7(void) { A = SET(0, RM(EA) ); WM( EA,A );          } /* SET  0,A=(XY+o)  */
 
-INLINE void xycb_c8(void) { B = SET(1, RM(EA) ); WM( EA,B );          } /* SET  1,B=(XY+o)  */
-INLINE void xycb_c9(void) { C = SET(1, RM(EA) ); WM( EA,C );          } /* SET  1,C=(XY+o)  */
-INLINE void xycb_ca(void) { D = SET(1, RM(EA) ); WM( EA,D );          } /* SET  1,D=(XY+o)  */
-INLINE void xycb_cb(void) { E = SET(1, RM(EA) ); WM( EA,E );          } /* SET  1,E=(XY+o)  */
-INLINE void xycb_cc(void) { H = SET(1, RM(EA) ); WM( EA,H );          } /* SET  1,H=(XY+o)  */
-INLINE void xycb_cd(void) { L = SET(1, RM(EA) ); WM( EA,L );          } /* SET  1,L=(XY+o)  */
-INLINE void xycb_ce(void) { WM( EA, SET(1,RM(EA)) );                  } /* SET  1,(XY+o)    */
-INLINE void xycb_cf(void) { A = SET(1, RM(EA) ); WM( EA,A );          } /* SET  1,A=(XY+o)  */
+void xycb_c8(void) { B = SET(1, RM(EA) ); WM( EA,B );          } /* SET  1,B=(XY+o)  */
+void xycb_c9(void) { C = SET(1, RM(EA) ); WM( EA,C );          } /* SET  1,C=(XY+o)  */
+void xycb_ca(void) { D = SET(1, RM(EA) ); WM( EA,D );          } /* SET  1,D=(XY+o)  */
+void xycb_cb(void) { E = SET(1, RM(EA) ); WM( EA,E );          } /* SET  1,E=(XY+o)  */
+void xycb_cc(void) { H = SET(1, RM(EA) ); WM( EA,H );          } /* SET  1,H=(XY+o)  */
+void xycb_cd(void) { L = SET(1, RM(EA) ); WM( EA,L );          } /* SET  1,L=(XY+o)  */
+void xycb_ce(void) { WM( EA, SET(1,RM(EA)) );                  } /* SET  1,(XY+o)    */
+void xycb_cf(void) { A = SET(1, RM(EA) ); WM( EA,A );          } /* SET  1,A=(XY+o)  */
 
-INLINE void xycb_d0(void) { B = SET(2, RM(EA) ); WM( EA,B );          } /* SET  2,B=(XY+o)  */
-INLINE void xycb_d1(void) { C = SET(2, RM(EA) ); WM( EA,C );          } /* SET  2,C=(XY+o)  */
-INLINE void xycb_d2(void) { D = SET(2, RM(EA) ); WM( EA,D );          } /* SET  2,D=(XY+o)  */
-INLINE void xycb_d3(void) { E = SET(2, RM(EA) ); WM( EA,E );          } /* SET  2,E=(XY+o)  */
-INLINE void xycb_d4(void) { H = SET(2, RM(EA) ); WM( EA,H );          } /* SET  2,H=(XY+o)  */
-INLINE void xycb_d5(void) { L = SET(2, RM(EA) ); WM( EA,L );          } /* SET  2,L=(XY+o)  */
-INLINE void xycb_d6(void) { WM( EA, SET(2,RM(EA)) );                  } /* SET  2,(XY+o)    */
-INLINE void xycb_d7(void) { A = SET(2, RM(EA) ); WM( EA,A );          } /* SET  2,A=(XY+o)  */
+void xycb_d0(void) { B = SET(2, RM(EA) ); WM( EA,B );          } /* SET  2,B=(XY+o)  */
+void xycb_d1(void) { C = SET(2, RM(EA) ); WM( EA,C );          } /* SET  2,C=(XY+o)  */
+void xycb_d2(void) { D = SET(2, RM(EA) ); WM( EA,D );          } /* SET  2,D=(XY+o)  */
+void xycb_d3(void) { E = SET(2, RM(EA) ); WM( EA,E );          } /* SET  2,E=(XY+o)  */
+void xycb_d4(void) { H = SET(2, RM(EA) ); WM( EA,H );          } /* SET  2,H=(XY+o)  */
+void xycb_d5(void) { L = SET(2, RM(EA) ); WM( EA,L );          } /* SET  2,L=(XY+o)  */
+void xycb_d6(void) { WM( EA, SET(2,RM(EA)) );                  } /* SET  2,(XY+o)    */
+void xycb_d7(void) { A = SET(2, RM(EA) ); WM( EA,A );          } /* SET  2,A=(XY+o)  */
 
-INLINE void xycb_d8(void) { B = SET(3, RM(EA) ); WM( EA,B );          } /* SET  3,B=(XY+o)  */
-INLINE void xycb_d9(void) { C = SET(3, RM(EA) ); WM( EA,C );          } /* SET  3,C=(XY+o)  */
-INLINE void xycb_da(void) { D = SET(3, RM(EA) ); WM( EA,D );          } /* SET  3,D=(XY+o)  */
-INLINE void xycb_db(void) { E = SET(3, RM(EA) ); WM( EA,E );          } /* SET  3,E=(XY+o)  */
-INLINE void xycb_dc(void) { H = SET(3, RM(EA) ); WM( EA,H );          } /* SET  3,H=(XY+o)  */
-INLINE void xycb_dd(void) { L = SET(3, RM(EA) ); WM( EA,L );          } /* SET  3,L=(XY+o)  */
-INLINE void xycb_de(void) { WM( EA, SET(3,RM(EA)) );                  } /* SET  3,(XY+o)    */
-INLINE void xycb_df(void) { A = SET(3, RM(EA) ); WM( EA,A );          } /* SET  3,A=(XY+o)  */
+void xycb_d8(void) { B = SET(3, RM(EA) ); WM( EA,B );          } /* SET  3,B=(XY+o)  */
+void xycb_d9(void) { C = SET(3, RM(EA) ); WM( EA,C );          } /* SET  3,C=(XY+o)  */
+void xycb_da(void) { D = SET(3, RM(EA) ); WM( EA,D );          } /* SET  3,D=(XY+o)  */
+void xycb_db(void) { E = SET(3, RM(EA) ); WM( EA,E );          } /* SET  3,E=(XY+o)  */
+void xycb_dc(void) { H = SET(3, RM(EA) ); WM( EA,H );          } /* SET  3,H=(XY+o)  */
+void xycb_dd(void) { L = SET(3, RM(EA) ); WM( EA,L );          } /* SET  3,L=(XY+o)  */
+void xycb_de(void) { WM( EA, SET(3,RM(EA)) );                  } /* SET  3,(XY+o)    */
+void xycb_df(void) { A = SET(3, RM(EA) ); WM( EA,A );          } /* SET  3,A=(XY+o)  */
 
-INLINE void xycb_e0(void) { B = SET(4, RM(EA) ); WM( EA,B );          } /* SET  4,B=(XY+o)  */
-INLINE void xycb_e1(void) { C = SET(4, RM(EA) ); WM( EA,C );          } /* SET  4,C=(XY+o)  */
-INLINE void xycb_e2(void) { D = SET(4, RM(EA) ); WM( EA,D );          } /* SET  4,D=(XY+o)  */
-INLINE void xycb_e3(void) { E = SET(4, RM(EA) ); WM( EA,E );          } /* SET  4,E=(XY+o)  */
-INLINE void xycb_e4(void) { H = SET(4, RM(EA) ); WM( EA,H );          } /* SET  4,H=(XY+o)  */
-INLINE void xycb_e5(void) { L = SET(4, RM(EA) ); WM( EA,L );          } /* SET  4,L=(XY+o)  */
-INLINE void xycb_e6(void) { WM( EA, SET(4,RM(EA)) );                  } /* SET  4,(XY+o)    */
-INLINE void xycb_e7(void) { A = SET(4, RM(EA) ); WM( EA,A );          } /* SET  4,A=(XY+o)  */
+void xycb_e0(void) { B = SET(4, RM(EA) ); WM( EA,B );          } /* SET  4,B=(XY+o)  */
+void xycb_e1(void) { C = SET(4, RM(EA) ); WM( EA,C );          } /* SET  4,C=(XY+o)  */
+void xycb_e2(void) { D = SET(4, RM(EA) ); WM( EA,D );          } /* SET  4,D=(XY+o)  */
+void xycb_e3(void) { E = SET(4, RM(EA) ); WM( EA,E );          } /* SET  4,E=(XY+o)  */
+void xycb_e4(void) { H = SET(4, RM(EA) ); WM( EA,H );          } /* SET  4,H=(XY+o)  */
+void xycb_e5(void) { L = SET(4, RM(EA) ); WM( EA,L );          } /* SET  4,L=(XY+o)  */
+void xycb_e6(void) { WM( EA, SET(4,RM(EA)) );                  } /* SET  4,(XY+o)    */
+void xycb_e7(void) { A = SET(4, RM(EA) ); WM( EA,A );          } /* SET  4,A=(XY+o)  */
 
-INLINE void xycb_e8(void) { B = SET(5, RM(EA) ); WM( EA,B );          } /* SET  5,B=(XY+o)  */
-INLINE void xycb_e9(void) { C = SET(5, RM(EA) ); WM( EA,C );          } /* SET  5,C=(XY+o)  */
-INLINE void xycb_ea(void) { D = SET(5, RM(EA) ); WM( EA,D );          } /* SET  5,D=(XY+o)  */
-INLINE void xycb_eb(void) { E = SET(5, RM(EA) ); WM( EA,E );          } /* SET  5,E=(XY+o)  */
-INLINE void xycb_ec(void) { H = SET(5, RM(EA) ); WM( EA,H );          } /* SET  5,H=(XY+o)  */
-INLINE void xycb_ed(void) { L = SET(5, RM(EA) ); WM( EA,L );          } /* SET  5,L=(XY+o)  */
-INLINE void xycb_ee(void) { WM( EA, SET(5,RM(EA)) );                  } /* SET  5,(XY+o)    */
-INLINE void xycb_ef(void) { A = SET(5, RM(EA) ); WM( EA,A );          } /* SET  5,A=(XY+o)  */
+void xycb_e8(void) { B = SET(5, RM(EA) ); WM( EA,B );          } /* SET  5,B=(XY+o)  */
+void xycb_e9(void) { C = SET(5, RM(EA) ); WM( EA,C );          } /* SET  5,C=(XY+o)  */
+void xycb_ea(void) { D = SET(5, RM(EA) ); WM( EA,D );          } /* SET  5,D=(XY+o)  */
+void xycb_eb(void) { E = SET(5, RM(EA) ); WM( EA,E );          } /* SET  5,E=(XY+o)  */
+void xycb_ec(void) { H = SET(5, RM(EA) ); WM( EA,H );          } /* SET  5,H=(XY+o)  */
+void xycb_ed(void) { L = SET(5, RM(EA) ); WM( EA,L );          } /* SET  5,L=(XY+o)  */
+void xycb_ee(void) { WM( EA, SET(5,RM(EA)) );                  } /* SET  5,(XY+o)    */
+void xycb_ef(void) { A = SET(5, RM(EA) ); WM( EA,A );          } /* SET  5,A=(XY+o)  */
 
-INLINE void xycb_f0(void) { B = SET(6, RM(EA) ); WM( EA,B );          } /* SET  6,B=(XY+o)  */
-INLINE void xycb_f1(void) { C = SET(6, RM(EA) ); WM( EA,C );          } /* SET  6,C=(XY+o)  */
-INLINE void xycb_f2(void) { D = SET(6, RM(EA) ); WM( EA,D );          } /* SET  6,D=(XY+o)  */
-INLINE void xycb_f3(void) { E = SET(6, RM(EA) ); WM( EA,E );          } /* SET  6,E=(XY+o)  */
-INLINE void xycb_f4(void) { H = SET(6, RM(EA) ); WM( EA,H );          } /* SET  6,H=(XY+o)  */
-INLINE void xycb_f5(void) { L = SET(6, RM(EA) ); WM( EA,L );          } /* SET  6,L=(XY+o)  */
-INLINE void xycb_f6(void) { WM( EA, SET(6,RM(EA)) );                  } /* SET  6,(XY+o)    */
-INLINE void xycb_f7(void) { A = SET(6, RM(EA) ); WM( EA,A );          } /* SET  6,A=(XY+o)  */
+void xycb_f0(void) { B = SET(6, RM(EA) ); WM( EA,B );          } /* SET  6,B=(XY+o)  */
+void xycb_f1(void) { C = SET(6, RM(EA) ); WM( EA,C );          } /* SET  6,C=(XY+o)  */
+void xycb_f2(void) { D = SET(6, RM(EA) ); WM( EA,D );          } /* SET  6,D=(XY+o)  */
+void xycb_f3(void) { E = SET(6, RM(EA) ); WM( EA,E );          } /* SET  6,E=(XY+o)  */
+void xycb_f4(void) { H = SET(6, RM(EA) ); WM( EA,H );          } /* SET  6,H=(XY+o)  */
+void xycb_f5(void) { L = SET(6, RM(EA) ); WM( EA,L );          } /* SET  6,L=(XY+o)  */
+void xycb_f6(void) { WM( EA, SET(6,RM(EA)) );                  } /* SET  6,(XY+o)    */
+void xycb_f7(void) { A = SET(6, RM(EA) ); WM( EA,A );          } /* SET  6,A=(XY+o)  */
 
-INLINE void xycb_f8(void) { B = SET(7, RM(EA) ); WM( EA,B );          } /* SET  7,B=(XY+o)  */
-INLINE void xycb_f9(void) { C = SET(7, RM(EA) ); WM( EA,C );          } /* SET  7,C=(XY+o)  */
-INLINE void xycb_fa(void) { D = SET(7, RM(EA) ); WM( EA,D );          } /* SET  7,D=(XY+o)  */
-INLINE void xycb_fb(void) { E = SET(7, RM(EA) ); WM( EA,E );          } /* SET  7,E=(XY+o)  */
-INLINE void xycb_fc(void) { H = SET(7, RM(EA) ); WM( EA,H );          } /* SET  7,H=(XY+o)  */
-INLINE void xycb_fd(void) { L = SET(7, RM(EA) ); WM( EA,L );          } /* SET  7,L=(XY+o)  */
-INLINE void xycb_fe(void) { WM( EA, SET(7,RM(EA)) );                  } /* SET  7,(XY+o)    */
-INLINE void xycb_ff(void) { A = SET(7, RM(EA) ); WM( EA,A );          } /* SET  7,A=(XY+o)  */
+void xycb_f8(void) { B = SET(7, RM(EA) ); WM( EA,B );          } /* SET  7,B=(XY+o)  */
+void xycb_f9(void) { C = SET(7, RM(EA) ); WM( EA,C );          } /* SET  7,C=(XY+o)  */
+void xycb_fa(void) { D = SET(7, RM(EA) ); WM( EA,D );          } /* SET  7,D=(XY+o)  */
+void xycb_fb(void) { E = SET(7, RM(EA) ); WM( EA,E );          } /* SET  7,E=(XY+o)  */
+void xycb_fc(void) { H = SET(7, RM(EA) ); WM( EA,H );          } /* SET  7,H=(XY+o)  */
+void xycb_fd(void) { L = SET(7, RM(EA) ); WM( EA,L );          } /* SET  7,L=(XY+o)  */
+void xycb_fe(void) { WM( EA, SET(7,RM(EA)) );                  } /* SET  7,(XY+o)    */
+void xycb_ff(void) { A = SET(7, RM(EA) ); WM( EA,A );          } /* SET  7,A=(XY+o)  */
 
-INLINE void illegal_1(void) {
+void illegal_1(void) {
 #if VERBOSE
   logerror("Z80 #%d ill. opcode $%02x $%02x\n",
       cpu_getactivecpu(), cpu_readop((PCD-1)&0xffff), cpu_readop(PCD));
@@ -2046,586 +2467,586 @@ INLINE void illegal_1(void) {
 /**********************************************************
  * IX register related opcodes (DD prefix)
  **********************************************************/
-INLINE void dd_00(void) { illegal_1(); op_00();                             } /* DB   DD       */
-INLINE void dd_01(void) { illegal_1(); op_01();                             } /* DB   DD       */
-INLINE void dd_02(void) { illegal_1(); op_02();                             } /* DB   DD       */
-INLINE void dd_03(void) { illegal_1(); op_03();                             } /* DB   DD       */
-INLINE void dd_04(void) { illegal_1(); op_04();                             } /* DB   DD       */
-INLINE void dd_05(void) { illegal_1(); op_05();                             } /* DB   DD       */
-INLINE void dd_06(void) { illegal_1(); op_06();                             } /* DB   DD       */
-INLINE void dd_07(void) { illegal_1(); op_07();                             } /* DB   DD       */
+void dd_00(void) { illegal_1(); op_00();                             } /* DB   DD       */
+void dd_01(void) { illegal_1(); op_01();                             } /* DB   DD       */
+void dd_02(void) { illegal_1(); op_02();                             } /* DB   DD       */
+void dd_03(void) { illegal_1(); op_03();                             } /* DB   DD       */
+void dd_04(void) { illegal_1(); op_04();                             } /* DB   DD       */
+void dd_05(void) { illegal_1(); op_05();                             } /* DB   DD       */
+void dd_06(void) { illegal_1(); op_06();                             } /* DB   DD       */
+void dd_07(void) { illegal_1(); op_07();                             } /* DB   DD       */
 
-INLINE void dd_08(void) { illegal_1(); op_08();                             } /* DB   DD       */
-INLINE void dd_09(void) { ADD16(ix,bc);                                     } /* ADD  IX,BC    */
-INLINE void dd_0a(void) { illegal_1(); op_0a();                             } /* DB   DD       */
-INLINE void dd_0b(void) { illegal_1(); op_0b();                             } /* DB   DD       */
-INLINE void dd_0c(void) { illegal_1(); op_0c();                             } /* DB   DD       */
-INLINE void dd_0d(void) { illegal_1(); op_0d();                             } /* DB   DD       */
-INLINE void dd_0e(void) { illegal_1(); op_0e();                             } /* DB   DD       */
-INLINE void dd_0f(void) { illegal_1(); op_0f();                             } /* DB   DD       */
+void dd_08(void) { illegal_1(); op_08();                             } /* DB   DD       */
+void dd_09(void) { ADD16(ix,bc);                                     } /* ADD  IX,BC    */
+void dd_0a(void) { illegal_1(); op_0a();                             } /* DB   DD       */
+void dd_0b(void) { illegal_1(); op_0b();                             } /* DB   DD       */
+void dd_0c(void) { illegal_1(); op_0c();                             } /* DB   DD       */
+void dd_0d(void) { illegal_1(); op_0d();                             } /* DB   DD       */
+void dd_0e(void) { illegal_1(); op_0e();                             } /* DB   DD       */
+void dd_0f(void) { illegal_1(); op_0f();                             } /* DB   DD       */
 
-INLINE void dd_10(void) { illegal_1(); op_10();                             } /* DB   DD       */
-INLINE void dd_11(void) { illegal_1(); op_11();                             } /* DB   DD       */
-INLINE void dd_12(void) { illegal_1(); op_12();                             } /* DB   DD       */
-INLINE void dd_13(void) { illegal_1(); op_13();                             } /* DB   DD       */
-INLINE void dd_14(void) { illegal_1(); op_14();                             } /* DB   DD       */
-INLINE void dd_15(void) { illegal_1(); op_15();                             } /* DB   DD       */
-INLINE void dd_16(void) { illegal_1(); op_16();                             } /* DB   DD       */
-INLINE void dd_17(void) { illegal_1(); op_17();                             } /* DB   DD       */
+void dd_10(void) { illegal_1(); op_10();                             } /* DB   DD       */
+void dd_11(void) { illegal_1(); op_11();                             } /* DB   DD       */
+void dd_12(void) { illegal_1(); op_12();                             } /* DB   DD       */
+void dd_13(void) { illegal_1(); op_13();                             } /* DB   DD       */
+void dd_14(void) { illegal_1(); op_14();                             } /* DB   DD       */
+void dd_15(void) { illegal_1(); op_15();                             } /* DB   DD       */
+void dd_16(void) { illegal_1(); op_16();                             } /* DB   DD       */
+void dd_17(void) { illegal_1(); op_17();                             } /* DB   DD       */
 
-INLINE void dd_18(void) { illegal_1(); op_18();                             } /* DB   DD       */
-INLINE void dd_19(void) { ADD16(ix,de);                                     } /* ADD  IX,DE    */
-INLINE void dd_1a(void) { illegal_1(); op_1a();                             } /* DB   DD       */
-INLINE void dd_1b(void) { illegal_1(); op_1b();                             } /* DB   DD       */
-INLINE void dd_1c(void) { illegal_1(); op_1c();                             } /* DB   DD       */
-INLINE void dd_1d(void) { illegal_1(); op_1d();                             } /* DB   DD       */
-INLINE void dd_1e(void) { illegal_1(); op_1e();                             } /* DB   DD       */
-INLINE void dd_1f(void) { illegal_1(); op_1f();                             } /* DB   DD       */
+void dd_18(void) { illegal_1(); op_18();                             } /* DB   DD       */
+void dd_19(void) { ADD16(ix,de);                                     } /* ADD  IX,DE    */
+void dd_1a(void) { illegal_1(); op_1a();                             } /* DB   DD       */
+void dd_1b(void) { illegal_1(); op_1b();                             } /* DB   DD       */
+void dd_1c(void) { illegal_1(); op_1c();                             } /* DB   DD       */
+void dd_1d(void) { illegal_1(); op_1d();                             } /* DB   DD       */
+void dd_1e(void) { illegal_1(); op_1e();                             } /* DB   DD       */
+void dd_1f(void) { illegal_1(); op_1f();                             } /* DB   DD       */
 
-INLINE void dd_20(void) { illegal_1(); op_20();                             } /* DB   DD       */
-INLINE void dd_21(void) { IX = ARG16();                                     } /* LD   IX,w     */
-INLINE void dd_22(void) { EA = ARG16(); WM16( EA, &Z80.ix ); WZ = EA+1;     } /* LD   (w),IX   */
-INLINE void dd_23(void) { IX++;                                             } /* INC  IX       */
-INLINE void dd_24(void) { HX = INC(HX);                                     } /* INC  HX       */
-INLINE void dd_25(void) { HX = DEC(HX);                                     } /* DEC  HX       */
-INLINE void dd_26(void) { HX = ARG();                                       } /* LD   HX,n     */
-INLINE void dd_27(void) { illegal_1(); op_27();                             } /* DB   DD       */
+void dd_20(void) { illegal_1(); op_20();                             } /* DB   DD       */
+void dd_21(void) { IX = ARG16();                                     } /* LD   IX,w     */
+void dd_22(void) { EA = ARG16(); WM16( EA, &Z80.ix ); WZ = EA+1;     } /* LD   (w),IX   */
+void dd_23(void) { IX++;                                             } /* INC  IX       */
+void dd_24(void) { HX = INC(HX);                                     } /* INC  HX       */
+void dd_25(void) { HX = DEC(HX);                                     } /* DEC  HX       */
+void dd_26(void) { HX = ARG();                                       } /* LD   HX,n     */
+void dd_27(void) { illegal_1(); op_27();                             } /* DB   DD       */
 
-INLINE void dd_28(void) { illegal_1(); op_28();                             } /* DB   DD       */
-INLINE void dd_29(void) { ADD16(ix,ix);                                     } /* ADD  IX,IX    */
-INLINE void dd_2a(void) { EA = ARG16(); RM16( EA, &Z80.ix ); WZ = EA+1;     } /* LD   IX,(w)   */
-INLINE void dd_2b(void) { IX--;                                             } /* DEC  IX       */
-INLINE void dd_2c(void) { LX = INC(LX);                                     } /* INC  LX       */
-INLINE void dd_2d(void) { LX = DEC(LX);                                     } /* DEC  LX       */
-INLINE void dd_2e(void) { LX = ARG();                                       } /* LD   LX,n     */
-INLINE void dd_2f(void) { illegal_1(); op_2f();                             } /* DB   DD       */
+void dd_28(void) { illegal_1(); op_28();                             } /* DB   DD       */
+void dd_29(void) { ADD16(ix,ix);                                     } /* ADD  IX,IX    */
+void dd_2a(void) { EA = ARG16(); RM16( EA, &Z80.ix ); WZ = EA+1;     } /* LD   IX,(w)   */
+void dd_2b(void) { IX--;                                             } /* DEC  IX       */
+void dd_2c(void) { LX = INC(LX);                                     } /* INC  LX       */
+void dd_2d(void) { LX = DEC(LX);                                     } /* DEC  LX       */
+void dd_2e(void) { LX = ARG();                                       } /* LD   LX,n     */
+void dd_2f(void) { illegal_1(); op_2f();                             } /* DB   DD       */
 
-INLINE void dd_30(void) { illegal_1(); op_30();                             } /* DB   DD       */
-INLINE void dd_31(void) { illegal_1(); op_31();                             } /* DB   DD       */
-INLINE void dd_32(void) { illegal_1(); op_32();                             } /* DB   DD       */
-INLINE void dd_33(void) { illegal_1(); op_33();                             } /* DB   DD       */
-INLINE void dd_34(void) { EAX; WM( EA, INC(RM(EA)) );                       } /* INC  (IX+o)   */
-INLINE void dd_35(void) { EAX; WM( EA, DEC(RM(EA)) );                       } /* DEC  (IX+o)   */
-INLINE void dd_36(void) { EAX; WM( EA, ARG() );                             } /* LD   (IX+o),n */
-INLINE void dd_37(void) { illegal_1(); op_37();                             } /* DB   DD       */
+void dd_30(void) { illegal_1(); op_30();                             } /* DB   DD       */
+void dd_31(void) { illegal_1(); op_31();                             } /* DB   DD       */
+void dd_32(void) { illegal_1(); op_32();                             } /* DB   DD       */
+void dd_33(void) { illegal_1(); op_33();                             } /* DB   DD       */
+void dd_34(void) { EAX(); WM( EA, INC(RM(EA)) );                       } /* INC  (IX+o)   */
+void dd_35(void) { EAX(); WM( EA, DEC(RM(EA)) );                       } /* DEC  (IX+o)   */
+void dd_36(void) { EAX(); WM( EA, ARG() );                             } /* LD   (IX+o),n */
+void dd_37(void) { illegal_1(); op_37();                             } /* DB   DD       */
 
-INLINE void dd_38(void) { illegal_1(); op_38();                             } /* DB   DD       */
-INLINE void dd_39(void) { ADD16(ix,sp);                                     } /* ADD  IX,SP    */
-INLINE void dd_3a(void) { illegal_1(); op_3a();                             } /* DB   DD       */
-INLINE void dd_3b(void) { illegal_1(); op_3b();                             } /* DB   DD       */
-INLINE void dd_3c(void) { illegal_1(); op_3c();                             } /* DB   DD       */
-INLINE void dd_3d(void) { illegal_1(); op_3d();                             } /* DB   DD       */
-INLINE void dd_3e(void) { illegal_1(); op_3e();                             } /* DB   DD       */
-INLINE void dd_3f(void) { illegal_1(); op_3f();                             } /* DB   DD       */
+void dd_38(void) { illegal_1(); op_38();                             } /* DB   DD       */
+void dd_39(void) { ADD16(ix,sp);                                     } /* ADD  IX,SP    */
+void dd_3a(void) { illegal_1(); op_3a();                             } /* DB   DD       */
+void dd_3b(void) { illegal_1(); op_3b();                             } /* DB   DD       */
+void dd_3c(void) { illegal_1(); op_3c();                             } /* DB   DD       */
+void dd_3d(void) { illegal_1(); op_3d();                             } /* DB   DD       */
+void dd_3e(void) { illegal_1(); op_3e();                             } /* DB   DD       */
+void dd_3f(void) { illegal_1(); op_3f();                             } /* DB   DD       */
 
-INLINE void dd_40(void) { illegal_1(); op_40();                             } /* DB   DD       */
-INLINE void dd_41(void) { illegal_1(); op_41();                             } /* DB   DD       */
-INLINE void dd_42(void) { illegal_1(); op_42();                             } /* DB   DD       */
-INLINE void dd_43(void) { illegal_1(); op_43();                             } /* DB   DD       */
-INLINE void dd_44(void) { B = HX;                                           } /* LD   B,HX     */
-INLINE void dd_45(void) { B = LX;                                           } /* LD   B,LX     */
-INLINE void dd_46(void) { EAX; B = RM(EA);                                  } /* LD   B,(IX+o) */
-INLINE void dd_47(void) { illegal_1(); op_47();                             } /* DB   DD       */
+void dd_40(void) { illegal_1(); op_40();                             } /* DB   DD       */
+void dd_41(void) { illegal_1(); op_41();                             } /* DB   DD       */
+void dd_42(void) { illegal_1(); op_42();                             } /* DB   DD       */
+void dd_43(void) { illegal_1(); op_43();                             } /* DB   DD       */
+void dd_44(void) { B = HX;                                           } /* LD   B,HX     */
+void dd_45(void) { B = LX;                                           } /* LD   B,LX     */
+void dd_46(void) { EAX(); B = RM(EA);                                  } /* LD   B,(IX+o) */
+void dd_47(void) { illegal_1(); op_47();                             } /* DB   DD       */
 
-INLINE void dd_48(void) { illegal_1(); op_48();                             } /* DB   DD       */
-INLINE void dd_49(void) { illegal_1(); op_49();                             } /* DB   DD       */
-INLINE void dd_4a(void) { illegal_1(); op_4a();                             } /* DB   DD       */
-INLINE void dd_4b(void) { illegal_1(); op_4b();                             } /* DB   DD       */
-INLINE void dd_4c(void) { C = HX;                                           } /* LD   C,HX     */
-INLINE void dd_4d(void) { C = LX;                                           } /* LD   C,LX     */
-INLINE void dd_4e(void) { EAX; C = RM(EA);                                  } /* LD   C,(IX+o) */
-INLINE void dd_4f(void) { illegal_1(); op_4f();                             } /* DB   DD       */
+void dd_48(void) { illegal_1(); op_48();                             } /* DB   DD       */
+void dd_49(void) { illegal_1(); op_49();                             } /* DB   DD       */
+void dd_4a(void) { illegal_1(); op_4a();                             } /* DB   DD       */
+void dd_4b(void) { illegal_1(); op_4b();                             } /* DB   DD       */
+void dd_4c(void) { C = HX;                                           } /* LD   C,HX     */
+void dd_4d(void) { C = LX;                                           } /* LD   C,LX     */
+void dd_4e(void) { EAX(); C = RM(EA);                                  } /* LD   C,(IX+o) */
+void dd_4f(void) { illegal_1(); op_4f();                             } /* DB   DD       */
 
-INLINE void dd_50(void) { illegal_1(); op_50();                             } /* DB   DD       */
-INLINE void dd_51(void) { illegal_1(); op_51();                             } /* DB   DD       */
-INLINE void dd_52(void) { illegal_1(); op_52();                             } /* DB   DD       */
-INLINE void dd_53(void) { illegal_1(); op_53();                             } /* DB   DD       */
-INLINE void dd_54(void) { D = HX;                                           } /* LD   D,HX     */
-INLINE void dd_55(void) { D = LX;                                           } /* LD   D,LX     */
-INLINE void dd_56(void) { EAX; D = RM(EA);                                  } /* LD   D,(IX+o) */
-INLINE void dd_57(void) { illegal_1(); op_57();                             } /* DB   DD       */
+void dd_50(void) { illegal_1(); op_50();                             } /* DB   DD       */
+void dd_51(void) { illegal_1(); op_51();                             } /* DB   DD       */
+void dd_52(void) { illegal_1(); op_52();                             } /* DB   DD       */
+void dd_53(void) { illegal_1(); op_53();                             } /* DB   DD       */
+void dd_54(void) { D = HX;                                           } /* LD   D,HX     */
+void dd_55(void) { D = LX;                                           } /* LD   D,LX     */
+void dd_56(void) { EAX(); D = RM(EA);                                  } /* LD   D,(IX+o) */
+void dd_57(void) { illegal_1(); op_57();                             } /* DB   DD       */
 
-INLINE void dd_58(void) { illegal_1(); op_58();                             } /* DB   DD       */
-INLINE void dd_59(void) { illegal_1(); op_59();                             } /* DB   DD       */
-INLINE void dd_5a(void) { illegal_1(); op_5a();                             } /* DB   DD       */
-INLINE void dd_5b(void) { illegal_1(); op_5b();                             } /* DB   DD       */
-INLINE void dd_5c(void) { E = HX;                                           } /* LD   E,HX     */
-INLINE void dd_5d(void) { E = LX;                                           } /* LD   E,LX     */
-INLINE void dd_5e(void) { EAX; E = RM(EA);                                  } /* LD   E,(IX+o) */
-INLINE void dd_5f(void) { illegal_1(); op_5f();                             } /* DB   DD       */
+void dd_58(void) { illegal_1(); op_58();                             } /* DB   DD       */
+void dd_59(void) { illegal_1(); op_59();                             } /* DB   DD       */
+void dd_5a(void) { illegal_1(); op_5a();                             } /* DB   DD       */
+void dd_5b(void) { illegal_1(); op_5b();                             } /* DB   DD       */
+void dd_5c(void) { E = HX;                                           } /* LD   E,HX     */
+void dd_5d(void) { E = LX;                                           } /* LD   E,LX     */
+void dd_5e(void) { EAX(); E = RM(EA);                                  } /* LD   E,(IX+o) */
+void dd_5f(void) { illegal_1(); op_5f();                             } /* DB   DD       */
 
-INLINE void dd_60(void) { HX = B;                                           } /* LD   HX,B     */
-INLINE void dd_61(void) { HX = C;                                           } /* LD   HX,C     */
-INLINE void dd_62(void) { HX = D;                                           } /* LD   HX,D     */
-INLINE void dd_63(void) { HX = E;                                           } /* LD   HX,E     */
-INLINE void dd_64(void) {                                                   } /* LD   HX,HX    */
-INLINE void dd_65(void) { HX = LX;                                          } /* LD   HX,LX    */
-INLINE void dd_66(void) { EAX; H = RM(EA);                                  } /* LD   H,(IX+o) */
-INLINE void dd_67(void) { HX = A;                                           } /* LD   HX,A     */
+void dd_60(void) { HX = B;                                           } /* LD   HX,B     */
+void dd_61(void) { HX = C;                                           } /* LD   HX,C     */
+void dd_62(void) { HX = D;                                           } /* LD   HX,D     */
+void dd_63(void) { HX = E;                                           } /* LD   HX,E     */
+void dd_64(void) {                                                   } /* LD   HX,HX    */
+void dd_65(void) { HX = LX;                                          } /* LD   HX,LX    */
+void dd_66(void) { EAX(); H = RM(EA);                                  } /* LD   H,(IX+o) */
+void dd_67(void) { HX = A;                                           } /* LD   HX,A     */
 
-INLINE void dd_68(void) { LX = B;                                           } /* LD   LX,B     */
-INLINE void dd_69(void) { LX = C;                                           } /* LD   LX,C     */
-INLINE void dd_6a(void) { LX = D;                                           } /* LD   LX,D     */
-INLINE void dd_6b(void) { LX = E;                                           } /* LD   LX,E     */
-INLINE void dd_6c(void) { LX = HX;                                          } /* LD   LX,HX    */
-INLINE void dd_6d(void) {                                                   } /* LD   LX,LX    */
-INLINE void dd_6e(void) { EAX; L = RM(EA);                                  } /* LD   L,(IX+o) */
-INLINE void dd_6f(void) { LX = A;                                           } /* LD   LX,A     */
+void dd_68(void) { LX = B;                                           } /* LD   LX,B     */
+void dd_69(void) { LX = C;                                           } /* LD   LX,C     */
+void dd_6a(void) { LX = D;                                           } /* LD   LX,D     */
+void dd_6b(void) { LX = E;                                           } /* LD   LX,E     */
+void dd_6c(void) { LX = HX;                                          } /* LD   LX,HX    */
+void dd_6d(void) {                                                   } /* LD   LX,LX    */
+void dd_6e(void) { EAX(); L = RM(EA);                                  } /* LD   L,(IX+o) */
+void dd_6f(void) { LX = A;                                           } /* LD   LX,A     */
 
-INLINE void dd_70(void) { EAX; WM( EA, B );                                 } /* LD   (IX+o),B */
-INLINE void dd_71(void) { EAX; WM( EA, C );                                 } /* LD   (IX+o),C */
-INLINE void dd_72(void) { EAX; WM( EA, D );                                 } /* LD   (IX+o),D */
-INLINE void dd_73(void) { EAX; WM( EA, E );                                 } /* LD   (IX+o),E */
-INLINE void dd_74(void) { EAX; WM( EA, H );                                 } /* LD   (IX+o),H */
-INLINE void dd_75(void) { EAX; WM( EA, L );                                 } /* LD   (IX+o),L */
-INLINE void dd_76(void) { illegal_1(); op_76();                             } /* DB   DD       */
-INLINE void dd_77(void) { EAX; WM( EA, A );                                 } /* LD   (IX+o),A */
+void dd_70(void) { EAX(); WM( EA, B );                                 } /* LD   (IX+o),B */
+void dd_71(void) { EAX(); WM( EA, C );                                 } /* LD   (IX+o),C */
+void dd_72(void) { EAX(); WM( EA, D );                                 } /* LD   (IX+o),D */
+void dd_73(void) { EAX(); WM( EA, E );                                 } /* LD   (IX+o),E */
+void dd_74(void) { EAX(); WM( EA, H );                                 } /* LD   (IX+o),H */
+void dd_75(void) { EAX(); WM( EA, L );                                 } /* LD   (IX+o),L */
+void dd_76(void) { illegal_1(); op_76();                             } /* DB   DD       */
+void dd_77(void) { EAX(); WM( EA, A );                                 } /* LD   (IX+o),A */
 
-INLINE void dd_78(void) { illegal_1(); op_78();                             } /* DB   DD       */
-INLINE void dd_79(void) { illegal_1(); op_79();                             } /* DB   DD       */
-INLINE void dd_7a(void) { illegal_1(); op_7a();                             } /* DB   DD       */
-INLINE void dd_7b(void) { illegal_1(); op_7b();                             } /* DB   DD       */
-INLINE void dd_7c(void) { A = HX;                                           } /* LD   A,HX     */
-INLINE void dd_7d(void) { A = LX;                                           } /* LD   A,LX     */
-INLINE void dd_7e(void) { EAX; A = RM(EA);                                  } /* LD   A,(IX+o) */
-INLINE void dd_7f(void) { illegal_1(); op_7f();                             } /* DB   DD       */
+void dd_78(void) { illegal_1(); op_78();                             } /* DB   DD       */
+void dd_79(void) { illegal_1(); op_79();                             } /* DB   DD       */
+void dd_7a(void) { illegal_1(); op_7a();                             } /* DB   DD       */
+void dd_7b(void) { illegal_1(); op_7b();                             } /* DB   DD       */
+void dd_7c(void) { A = HX;                                           } /* LD   A,HX     */
+void dd_7d(void) { A = LX;                                           } /* LD   A,LX     */
+void dd_7e(void) { EAX(); A = RM(EA);                                  } /* LD   A,(IX+o) */
+void dd_7f(void) { illegal_1(); op_7f();                             } /* DB   DD       */
 
-INLINE void dd_80(void) { illegal_1(); op_80();                             } /* DB   DD       */
-INLINE void dd_81(void) { illegal_1(); op_81();                             } /* DB   DD       */
-INLINE void dd_82(void) { illegal_1(); op_82();                             } /* DB   DD       */
-INLINE void dd_83(void) { illegal_1(); op_83();                             } /* DB   DD       */
-INLINE void dd_84(void) { ADD(HX);                                          } /* ADD  A,HX     */
-INLINE void dd_85(void) { ADD(LX);                                          } /* ADD  A,LX     */
-INLINE void dd_86(void) { EAX; ADD(RM(EA));                                 } /* ADD  A,(IX+o) */
-INLINE void dd_87(void) { illegal_1(); op_87();                             } /* DB   DD       */
+void dd_80(void) { illegal_1(); op_80();                             } /* DB   DD       */
+void dd_81(void) { illegal_1(); op_81();                             } /* DB   DD       */
+void dd_82(void) { illegal_1(); op_82();                             } /* DB   DD       */
+void dd_83(void) { illegal_1(); op_83();                             } /* DB   DD       */
+void dd_84(void) { ADD(HX);                                          } /* ADD  A,HX     */
+void dd_85(void) { ADD(LX);                                          } /* ADD  A,LX     */
+void dd_86(void) { EAX(); ADD(RM(EA));                                 } /* ADD  A,(IX+o) */
+void dd_87(void) { illegal_1(); op_87();                             } /* DB   DD       */
 
-INLINE void dd_88(void) { illegal_1(); op_88();                             } /* DB   DD       */
-INLINE void dd_89(void) { illegal_1(); op_89();                             } /* DB   DD       */
-INLINE void dd_8a(void) { illegal_1(); op_8a();                             } /* DB   DD       */
-INLINE void dd_8b(void) { illegal_1(); op_8b();                             } /* DB   DD       */
-INLINE void dd_8c(void) { ADC(HX);                                          } /* ADC  A,HX     */
-INLINE void dd_8d(void) { ADC(LX);                                          } /* ADC  A,LX     */
-INLINE void dd_8e(void) { EAX; ADC(RM(EA));                                 } /* ADC  A,(IX+o) */
-INLINE void dd_8f(void) { illegal_1(); op_8f();                             } /* DB   DD       */
+void dd_88(void) { illegal_1(); op_88();                             } /* DB   DD       */
+void dd_89(void) { illegal_1(); op_89();                             } /* DB   DD       */
+void dd_8a(void) { illegal_1(); op_8a();                             } /* DB   DD       */
+void dd_8b(void) { illegal_1(); op_8b();                             } /* DB   DD       */
+void dd_8c(void) { ADC(HX);                                          } /* ADC  A,HX     */
+void dd_8d(void) { ADC(LX);                                          } /* ADC  A,LX     */
+void dd_8e(void) { EAX(); ADC(RM(EA));                                 } /* ADC  A,(IX+o) */
+void dd_8f(void) { illegal_1(); op_8f();                             } /* DB   DD       */
 
-INLINE void dd_90(void) { illegal_1(); op_90();                             } /* DB   DD       */
-INLINE void dd_91(void) { illegal_1(); op_91();                             } /* DB   DD       */
-INLINE void dd_92(void) { illegal_1(); op_92();                             } /* DB   DD       */
-INLINE void dd_93(void) { illegal_1(); op_93();                             } /* DB   DD       */
-INLINE void dd_94(void) { SUB(HX);                                          } /* SUB  HX       */
-INLINE void dd_95(void) { SUB(LX);                                          } /* SUB  LX       */
-INLINE void dd_96(void) { EAX; SUB(RM(EA));                                 } /* SUB  (IX+o)   */
-INLINE void dd_97(void) { illegal_1(); op_97();                             } /* DB   DD       */
+void dd_90(void) { illegal_1(); op_90();                             } /* DB   DD       */
+void dd_91(void) { illegal_1(); op_91();                             } /* DB   DD       */
+void dd_92(void) { illegal_1(); op_92();                             } /* DB   DD       */
+void dd_93(void) { illegal_1(); op_93();                             } /* DB   DD       */
+void dd_94(void) { SUB(HX);                                          } /* SUB  HX       */
+void dd_95(void) { SUB(LX);                                          } /* SUB  LX       */
+void dd_96(void) { EAX(); SUB(RM(EA));                                 } /* SUB  (IX+o)   */
+void dd_97(void) { illegal_1(); op_97();                             } /* DB   DD       */
 
-INLINE void dd_98(void) { illegal_1(); op_98();                             } /* DB   DD       */
-INLINE void dd_99(void) { illegal_1(); op_99();                             } /* DB   DD       */
-INLINE void dd_9a(void) { illegal_1(); op_9a();                             } /* DB   DD       */
-INLINE void dd_9b(void) { illegal_1(); op_9b();                             } /* DB   DD       */
-INLINE void dd_9c(void) { SBC(HX);                                          } /* SBC  A,HX     */
-INLINE void dd_9d(void) { SBC(LX);                                          } /* SBC  A,LX     */
-INLINE void dd_9e(void) { EAX; SBC(RM(EA));                                 } /* SBC  A,(IX+o) */
-INLINE void dd_9f(void) { illegal_1(); op_9f();                             } /* DB   DD       */
+void dd_98(void) { illegal_1(); op_98();                             } /* DB   DD       */
+void dd_99(void) { illegal_1(); op_99();                             } /* DB   DD       */
+void dd_9a(void) { illegal_1(); op_9a();                             } /* DB   DD       */
+void dd_9b(void) { illegal_1(); op_9b();                             } /* DB   DD       */
+void dd_9c(void) { SBC(HX);                                          } /* SBC  A,HX     */
+void dd_9d(void) { SBC(LX);                                          } /* SBC  A,LX     */
+void dd_9e(void) { EAX(); SBC(RM(EA));                                 } /* SBC  A,(IX+o) */
+void dd_9f(void) { illegal_1(); op_9f();                             } /* DB   DD       */
 
-INLINE void dd_a0(void) { illegal_1(); op_a0();                             } /* DB   DD       */
-INLINE void dd_a1(void) { illegal_1(); op_a1();                             } /* DB   DD       */
-INLINE void dd_a2(void) { illegal_1(); op_a2();                             } /* DB   DD       */
-INLINE void dd_a3(void) { illegal_1(); op_a3();                             } /* DB   DD       */
-INLINE void dd_a4(void) { AND(HX);                                          } /* AND  HX       */
-INLINE void dd_a5(void) { AND(LX);                                          } /* AND  LX       */
-INLINE void dd_a6(void) { EAX; AND(RM(EA));                                 } /* AND  (IX+o)   */
-INLINE void dd_a7(void) { illegal_1(); op_a7();                             } /* DB   DD       */
+void dd_a0(void) { illegal_1(); op_a0();                             } /* DB   DD       */
+void dd_a1(void) { illegal_1(); op_a1();                             } /* DB   DD       */
+void dd_a2(void) { illegal_1(); op_a2();                             } /* DB   DD       */
+void dd_a3(void) { illegal_1(); op_a3();                             } /* DB   DD       */
+void dd_a4(void) { AND(HX);                                          } /* AND  HX       */
+void dd_a5(void) { AND(LX);                                          } /* AND  LX       */
+void dd_a6(void) { EAX(); AND(RM(EA));                                 } /* AND  (IX+o)   */
+void dd_a7(void) { illegal_1(); op_a7();                             } /* DB   DD       */
 
-INLINE void dd_a8(void) { illegal_1(); op_a8();                             } /* DB   DD       */
-INLINE void dd_a9(void) { illegal_1(); op_a9();                             } /* DB   DD       */
-INLINE void dd_aa(void) { illegal_1(); op_aa();                             } /* DB   DD       */
-INLINE void dd_ab(void) { illegal_1(); op_ab();                             } /* DB   DD       */
-INLINE void dd_ac(void) { XOR(HX);                                          } /* XOR  HX       */
-INLINE void dd_ad(void) { XOR(LX);                                          } /* XOR  LX       */
-INLINE void dd_ae(void) { EAX; XOR(RM(EA));                                 } /* XOR  (IX+o)   */
-INLINE void dd_af(void) { illegal_1(); op_af();                             } /* DB   DD       */
+void dd_a8(void) { illegal_1(); op_a8();                             } /* DB   DD       */
+void dd_a9(void) { illegal_1(); op_a9();                             } /* DB   DD       */
+void dd_aa(void) { illegal_1(); op_aa();                             } /* DB   DD       */
+void dd_ab(void) { illegal_1(); op_ab();                             } /* DB   DD       */
+void dd_ac(void) { XOR(HX);                                          } /* XOR  HX       */
+void dd_ad(void) { XOR(LX);                                          } /* XOR  LX       */
+void dd_ae(void) { EAX(); XOR(RM(EA));                                 } /* XOR  (IX+o)   */
+void dd_af(void) { illegal_1(); op_af();                             } /* DB   DD       */
 
-INLINE void dd_b0(void) { illegal_1(); op_b0();                             } /* DB   DD       */
-INLINE void dd_b1(void) { illegal_1(); op_b1();                             } /* DB   DD       */
-INLINE void dd_b2(void) { illegal_1(); op_b2();                             } /* DB   DD       */
-INLINE void dd_b3(void) { illegal_1(); op_b3();                             } /* DB   DD       */
-INLINE void dd_b4(void) { OR(HX);                                           } /* OR   HX       */
-INLINE void dd_b5(void) { OR(LX);                                           } /* OR   LX       */
-INLINE void dd_b6(void) { EAX; OR(RM(EA));                                  } /* OR   (IX+o)   */
-INLINE void dd_b7(void) { illegal_1(); op_b7();                             } /* DB   DD       */
+void dd_b0(void) { illegal_1(); op_b0();                             } /* DB   DD       */
+void dd_b1(void) { illegal_1(); op_b1();                             } /* DB   DD       */
+void dd_b2(void) { illegal_1(); op_b2();                             } /* DB   DD       */
+void dd_b3(void) { illegal_1(); op_b3();                             } /* DB   DD       */
+void dd_b4(void) { OR(HX);                                           } /* OR   HX       */
+void dd_b5(void) { OR(LX);                                           } /* OR   LX       */
+void dd_b6(void) { EAX(); OR(RM(EA));                                  } /* OR   (IX+o)   */
+void dd_b7(void) { illegal_1(); op_b7();                             } /* DB   DD       */
 
-INLINE void dd_b8(void) { illegal_1(); op_b8();                             } /* DB   DD       */
-INLINE void dd_b9(void) { illegal_1(); op_b9();                             } /* DB   DD       */
-INLINE void dd_ba(void) { illegal_1(); op_ba();                             } /* DB   DD       */
-INLINE void dd_bb(void) { illegal_1(); op_bb();                             } /* DB   DD       */
-INLINE void dd_bc(void) { CP(HX);                                           } /* CP   HX       */
-INLINE void dd_bd(void) { CP(LX);                                           } /* CP   LX       */
-INLINE void dd_be(void) { EAX; CP(RM(EA));                                  } /* CP   (IX+o)   */
-INLINE void dd_bf(void) { illegal_1(); op_bf();                             } /* DB   DD       */
+void dd_b8(void) { illegal_1(); op_b8();                             } /* DB   DD       */
+void dd_b9(void) { illegal_1(); op_b9();                             } /* DB   DD       */
+void dd_ba(void) { illegal_1(); op_ba();                             } /* DB   DD       */
+void dd_bb(void) { illegal_1(); op_bb();                             } /* DB   DD       */
+void dd_bc(void) { CP(HX);                                           } /* CP   HX       */
+void dd_bd(void) { CP(LX);                                           } /* CP   LX       */
+void dd_be(void) { EAX(); CP(RM(EA));                                  } /* CP   (IX+o)   */
+void dd_bf(void) { illegal_1(); op_bf();                             } /* DB   DD       */
 
-INLINE void dd_c0(void) { illegal_1(); op_c0();                             } /* DB   DD       */
-INLINE void dd_c1(void) { illegal_1(); op_c1();                             } /* DB   DD       */
-INLINE void dd_c2(void) { illegal_1(); op_c2();                             } /* DB   DD       */
-INLINE void dd_c3(void) { illegal_1(); op_c3();                             } /* DB   DD       */
-INLINE void dd_c4(void) { illegal_1(); op_c4();                             } /* DB   DD       */
-INLINE void dd_c5(void) { illegal_1(); op_c5();                             } /* DB   DD       */
-INLINE void dd_c6(void) { illegal_1(); op_c6();                             } /* DB   DD       */
-INLINE void dd_c7(void) { illegal_1(); op_c7();                             } /* DB   DD       */
+void dd_c0(void) { illegal_1(); op_c0();                             } /* DB   DD       */
+void dd_c1(void) { illegal_1(); op_c1();                             } /* DB   DD       */
+void dd_c2(void) { illegal_1(); op_c2();                             } /* DB   DD       */
+void dd_c3(void) { illegal_1(); op_c3();                             } /* DB   DD       */
+void dd_c4(void) { illegal_1(); op_c4();                             } /* DB   DD       */
+void dd_c5(void) { illegal_1(); op_c5();                             } /* DB   DD       */
+void dd_c6(void) { illegal_1(); op_c6();                             } /* DB   DD       */
+void dd_c7(void) { illegal_1(); op_c7();                             } /* DB   DD       */
 
-INLINE void dd_c8(void) { illegal_1(); op_c8();                             } /* DB   DD       */
-INLINE void dd_c9(void) { illegal_1(); op_c9();                             } /* DB   DD       */
-INLINE void dd_ca(void) { illegal_1(); op_ca();                             } /* DB   DD       */
-INLINE void dd_cb(void) { EAX; EXEC(xycb,ARG());                            } /* **** DD CB xx */
-INLINE void dd_cc(void) { illegal_1(); op_cc();                             } /* DB   DD       */
-INLINE void dd_cd(void) { illegal_1(); op_cd();                             } /* DB   DD       */
-INLINE void dd_ce(void) { illegal_1(); op_ce();                             } /* DB   DD       */
-INLINE void dd_cf(void) { illegal_1(); op_cf();                             } /* DB   DD       */
+void dd_c8(void) { illegal_1(); op_c8();                             } /* DB   DD       */
+void dd_c9(void) { illegal_1(); op_c9();                             } /* DB   DD       */
+void dd_ca(void) { illegal_1(); op_ca();                             } /* DB   DD       */
+void dd_cb(void) { EAX(); EXEC(xycb,ARG());                            } /* **** DD CB xx */
+void dd_cc(void) { illegal_1(); op_cc();                             } /* DB   DD       */
+void dd_cd(void) { illegal_1(); op_cd();                             } /* DB   DD       */
+void dd_ce(void) { illegal_1(); op_ce();                             } /* DB   DD       */
+void dd_cf(void) { illegal_1(); op_cf();                             } /* DB   DD       */
 
-INLINE void dd_d0(void) { illegal_1(); op_d0();                             } /* DB   DD       */
-INLINE void dd_d1(void) { illegal_1(); op_d1();                             } /* DB   DD       */
-INLINE void dd_d2(void) { illegal_1(); op_d2();                             } /* DB   DD       */
-INLINE void dd_d3(void) { illegal_1(); op_d3();                             } /* DB   DD       */
-INLINE void dd_d4(void) { illegal_1(); op_d4();                             } /* DB   DD       */
-INLINE void dd_d5(void) { illegal_1(); op_d5();                             } /* DB   DD       */
-INLINE void dd_d6(void) { illegal_1(); op_d6();                             } /* DB   DD       */
-INLINE void dd_d7(void) { illegal_1(); op_d7();                             } /* DB   DD       */
+void dd_d0(void) { illegal_1(); op_d0();                             } /* DB   DD       */
+void dd_d1(void) { illegal_1(); op_d1();                             } /* DB   DD       */
+void dd_d2(void) { illegal_1(); op_d2();                             } /* DB   DD       */
+void dd_d3(void) { illegal_1(); op_d3();                             } /* DB   DD       */
+void dd_d4(void) { illegal_1(); op_d4();                             } /* DB   DD       */
+void dd_d5(void) { illegal_1(); op_d5();                             } /* DB   DD       */
+void dd_d6(void) { illegal_1(); op_d6();                             } /* DB   DD       */
+void dd_d7(void) { illegal_1(); op_d7();                             } /* DB   DD       */
 
-INLINE void dd_d8(void) { illegal_1(); op_d8();                             } /* DB   DD       */
-INLINE void dd_d9(void) { illegal_1(); op_d9();                             } /* DB   DD       */
-INLINE void dd_da(void) { illegal_1(); op_da();                             } /* DB   DD       */
-INLINE void dd_db(void) { illegal_1(); op_db();                             } /* DB   DD       */
-INLINE void dd_dc(void) { illegal_1(); op_dc();                             } /* DB   DD       */
-INLINE void dd_dd(void) { EXEC(dd,ROP());                                   } /* **** DD DD xx */
-INLINE void dd_de(void) { illegal_1(); op_de();                             } /* DB   DD       */
-INLINE void dd_df(void) { illegal_1(); op_df();                             } /* DB   DD       */
+void dd_d8(void) { illegal_1(); op_d8();                             } /* DB   DD       */
+void dd_d9(void) { illegal_1(); op_d9();                             } /* DB   DD       */
+void dd_da(void) { illegal_1(); op_da();                             } /* DB   DD       */
+void dd_db(void) { illegal_1(); op_db();                             } /* DB   DD       */
+void dd_dc(void) { illegal_1(); op_dc();                             } /* DB   DD       */
+void dd_dd(void) { EXEC(dd,ROP());                                   } /* **** DD DD xx */
+void dd_de(void) { illegal_1(); op_de();                             } /* DB   DD       */
+void dd_df(void) { illegal_1(); op_df();                             } /* DB   DD       */
 
-INLINE void dd_e0(void) { illegal_1(); op_e0();                             } /* DB   DD       */
-INLINE void dd_e1(void) { POP( ix );                                        } /* POP  IX       */
-INLINE void dd_e2(void) { illegal_1(); op_e2();                             } /* DB   DD       */
-INLINE void dd_e3(void) { EXSP( ix );                                       } /* EX   (SP),IX  */
-INLINE void dd_e4(void) { illegal_1(); op_e4();                             } /* DB   DD       */
-INLINE void dd_e5(void) { PUSH( ix );                                       } /* PUSH IX       */
-INLINE void dd_e6(void) { illegal_1(); op_e6();                             } /* DB   DD       */
-INLINE void dd_e7(void) { illegal_1(); op_e7();                             } /* DB   DD       */
+void dd_e0(void) { illegal_1(); op_e0();                             } /* DB   DD       */
+void dd_e1(void) { POP( ix );                                        } /* POP  IX       */
+void dd_e2(void) { illegal_1(); op_e2();                             } /* DB   DD       */
+void dd_e3(void) { EXSP( ix );                                       } /* EX   (SP),IX  */
+void dd_e4(void) { illegal_1(); op_e4();                             } /* DB   DD       */
+void dd_e5(void) { PUSH( ix );                                       } /* PUSH IX       */
+void dd_e6(void) { illegal_1(); op_e6();                             } /* DB   DD       */
+void dd_e7(void) { illegal_1(); op_e7();                             } /* DB   DD       */
 
-INLINE void dd_e8(void) { illegal_1(); op_e8();                             } /* DB   DD       */
-INLINE void dd_e9(void) { PC = IX;                                          } /* JP   (IX)     */
-INLINE void dd_ea(void) { illegal_1(); op_ea();                             } /* DB   DD       */
-INLINE void dd_eb(void) { illegal_1(); op_eb();                             } /* DB   DD       */
-INLINE void dd_ec(void) { illegal_1(); op_ec();                             } /* DB   DD       */
-INLINE void dd_ed(void) { illegal_1(); op_ed();                             } /* DB   DD       */
-INLINE void dd_ee(void) { illegal_1(); op_ee();                             } /* DB   DD       */
-INLINE void dd_ef(void) { illegal_1(); op_ef();                             } /* DB   DD       */
+void dd_e8(void) { illegal_1(); op_e8();                             } /* DB   DD       */
+void dd_e9(void) { PC = IX;                                          } /* JP   (IX)     */
+void dd_ea(void) { illegal_1(); op_ea();                             } /* DB   DD       */
+void dd_eb(void) { illegal_1(); op_eb();                             } /* DB   DD       */
+void dd_ec(void) { illegal_1(); op_ec();                             } /* DB   DD       */
+void dd_ed(void) { illegal_1(); op_ed();                             } /* DB   DD       */
+void dd_ee(void) { illegal_1(); op_ee();                             } /* DB   DD       */
+void dd_ef(void) { illegal_1(); op_ef();                             } /* DB   DD       */
 
-INLINE void dd_f0(void) { illegal_1(); op_f0();                             } /* DB   DD       */
-INLINE void dd_f1(void) { illegal_1(); op_f1();                             } /* DB   DD       */
-INLINE void dd_f2(void) { illegal_1(); op_f2();                             } /* DB   DD       */
-INLINE void dd_f3(void) { illegal_1(); op_f3();                             } /* DB   DD       */
-INLINE void dd_f4(void) { illegal_1(); op_f4();                             } /* DB   DD       */
-INLINE void dd_f5(void) { illegal_1(); op_f5();                             } /* DB   DD       */
-INLINE void dd_f6(void) { illegal_1(); op_f6();                             } /* DB   DD       */
-INLINE void dd_f7(void) { illegal_1(); op_f7();                             } /* DB   DD       */
+void dd_f0(void) { illegal_1(); op_f0();                             } /* DB   DD       */
+void dd_f1(void) { illegal_1(); op_f1();                             } /* DB   DD       */
+void dd_f2(void) { illegal_1(); op_f2();                             } /* DB   DD       */
+void dd_f3(void) { illegal_1(); op_f3();                             } /* DB   DD       */
+void dd_f4(void) { illegal_1(); op_f4();                             } /* DB   DD       */
+void dd_f5(void) { illegal_1(); op_f5();                             } /* DB   DD       */
+void dd_f6(void) { illegal_1(); op_f6();                             } /* DB   DD       */
+void dd_f7(void) { illegal_1(); op_f7();                             } /* DB   DD       */
 
-INLINE void dd_f8(void) { illegal_1(); op_f8();                             } /* DB   DD       */
-INLINE void dd_f9(void) { SP = IX;                                          } /* LD   SP,IX    */
-INLINE void dd_fa(void) { illegal_1(); op_fa();                             } /* DB   DD       */
-INLINE void dd_fb(void) { illegal_1(); op_fb();                             } /* DB   DD       */
-INLINE void dd_fc(void) { illegal_1(); op_fc();                             } /* DB   DD       */
-INLINE void dd_fd(void) { EXEC(fd,ROP());                                   } /* **** DD FD xx */
-INLINE void dd_fe(void) { illegal_1(); op_fe();                             } /* DB   DD       */
-INLINE void dd_ff(void) { illegal_1(); op_ff();                             } /* DB   DD       */
+void dd_f8(void) { illegal_1(); op_f8();                             } /* DB   DD       */
+void dd_f9(void) { SP = IX;                                          } /* LD   SP,IX    */
+void dd_fa(void) { illegal_1(); op_fa();                             } /* DB   DD       */
+void dd_fb(void) { illegal_1(); op_fb();                             } /* DB   DD       */
+void dd_fc(void) { illegal_1(); op_fc();                             } /* DB   DD       */
+void dd_fd(void) { EXEC(fd,ROP());                                   } /* **** DD FD xx */
+void dd_fe(void) { illegal_1(); op_fe();                             } /* DB   DD       */
+void dd_ff(void) { illegal_1(); op_ff();                             } /* DB   DD       */
 
 /**********************************************************
  * IY register related opcodes (FD prefix)
  **********************************************************/
-INLINE void fd_00(void) { illegal_1(); op_00();                             } /* DB   FD       */
-INLINE void fd_01(void) { illegal_1(); op_01();                             } /* DB   FD       */
-INLINE void fd_02(void) { illegal_1(); op_02();                             } /* DB   FD       */
-INLINE void fd_03(void) { illegal_1(); op_03();                             } /* DB   FD       */
-INLINE void fd_04(void) { illegal_1(); op_04();                             } /* DB   FD       */
-INLINE void fd_05(void) { illegal_1(); op_05();                             } /* DB   FD       */
-INLINE void fd_06(void) { illegal_1(); op_06();                             } /* DB   FD       */
-INLINE void fd_07(void) { illegal_1(); op_07();                             } /* DB   FD       */
+void fd_00(void) { illegal_1(); op_00();                             } /* DB   FD       */
+void fd_01(void) { illegal_1(); op_01();                             } /* DB   FD       */
+void fd_02(void) { illegal_1(); op_02();                             } /* DB   FD       */
+void fd_03(void) { illegal_1(); op_03();                             } /* DB   FD       */
+void fd_04(void) { illegal_1(); op_04();                             } /* DB   FD       */
+void fd_05(void) { illegal_1(); op_05();                             } /* DB   FD       */
+void fd_06(void) { illegal_1(); op_06();                             } /* DB   FD       */
+void fd_07(void) { illegal_1(); op_07();                             } /* DB   FD       */
 
-INLINE void fd_08(void) { illegal_1(); op_08();                             } /* DB   FD       */
-INLINE void fd_09(void) { ADD16(iy,bc);                                     } /* ADD  IY,BC    */
-INLINE void fd_0a(void) { illegal_1(); op_0a();                             } /* DB   FD       */
-INLINE void fd_0b(void) { illegal_1(); op_0b();                             } /* DB   FD       */
-INLINE void fd_0c(void) { illegal_1(); op_0c();                             } /* DB   FD       */
-INLINE void fd_0d(void) { illegal_1(); op_0d();                             } /* DB   FD       */
-INLINE void fd_0e(void) { illegal_1(); op_0e();                             } /* DB   FD       */
-INLINE void fd_0f(void) { illegal_1(); op_0f();                             } /* DB   FD       */
+void fd_08(void) { illegal_1(); op_08();                             } /* DB   FD       */
+void fd_09(void) { ADD16(iy,bc);                                     } /* ADD  IY,BC    */
+void fd_0a(void) { illegal_1(); op_0a();                             } /* DB   FD       */
+void fd_0b(void) { illegal_1(); op_0b();                             } /* DB   FD       */
+void fd_0c(void) { illegal_1(); op_0c();                             } /* DB   FD       */
+void fd_0d(void) { illegal_1(); op_0d();                             } /* DB   FD       */
+void fd_0e(void) { illegal_1(); op_0e();                             } /* DB   FD       */
+void fd_0f(void) { illegal_1(); op_0f();                             } /* DB   FD       */
 
-INLINE void fd_10(void) { illegal_1(); op_10();                             } /* DB   FD       */
-INLINE void fd_11(void) { illegal_1(); op_11();                             } /* DB   FD       */
-INLINE void fd_12(void) { illegal_1(); op_12();                             } /* DB   FD       */
-INLINE void fd_13(void) { illegal_1(); op_13();                             } /* DB   FD       */
-INLINE void fd_14(void) { illegal_1(); op_14();                             } /* DB   FD       */
-INLINE void fd_15(void) { illegal_1(); op_15();                             } /* DB   FD       */
-INLINE void fd_16(void) { illegal_1(); op_16();                             } /* DB   FD       */
-INLINE void fd_17(void) { illegal_1(); op_17();                             } /* DB   FD       */
+void fd_10(void) { illegal_1(); op_10();                             } /* DB   FD       */
+void fd_11(void) { illegal_1(); op_11();                             } /* DB   FD       */
+void fd_12(void) { illegal_1(); op_12();                             } /* DB   FD       */
+void fd_13(void) { illegal_1(); op_13();                             } /* DB   FD       */
+void fd_14(void) { illegal_1(); op_14();                             } /* DB   FD       */
+void fd_15(void) { illegal_1(); op_15();                             } /* DB   FD       */
+void fd_16(void) { illegal_1(); op_16();                             } /* DB   FD       */
+void fd_17(void) { illegal_1(); op_17();                             } /* DB   FD       */
 
-INLINE void fd_18(void) { illegal_1(); op_18();                             } /* DB   FD       */
-INLINE void fd_19(void) { ADD16(iy,de);                                     } /* ADD  IY,DE    */
-INLINE void fd_1a(void) { illegal_1(); op_1a();                             } /* DB   FD       */
-INLINE void fd_1b(void) { illegal_1(); op_1b();                             } /* DB   FD       */
-INLINE void fd_1c(void) { illegal_1(); op_1c();                             } /* DB   FD       */
-INLINE void fd_1d(void) { illegal_1(); op_1d();                             } /* DB   FD       */
-INLINE void fd_1e(void) { illegal_1(); op_1e();                             } /* DB   FD       */
-INLINE void fd_1f(void) { illegal_1(); op_1f();                             } /* DB   FD       */
+void fd_18(void) { illegal_1(); op_18();                             } /* DB   FD       */
+void fd_19(void) { ADD16(iy,de);                                     } /* ADD  IY,DE    */
+void fd_1a(void) { illegal_1(); op_1a();                             } /* DB   FD       */
+void fd_1b(void) { illegal_1(); op_1b();                             } /* DB   FD       */
+void fd_1c(void) { illegal_1(); op_1c();                             } /* DB   FD       */
+void fd_1d(void) { illegal_1(); op_1d();                             } /* DB   FD       */
+void fd_1e(void) { illegal_1(); op_1e();                             } /* DB   FD       */
+void fd_1f(void) { illegal_1(); op_1f();                             } /* DB   FD       */
 
-INLINE void fd_20(void) { illegal_1(); op_20();                             } /* DB   FD       */
-INLINE void fd_21(void) { IY = ARG16();                                     } /* LD   IY,w     */
-INLINE void fd_22(void) { EA = ARG16(); WM16( EA, &Z80.iy ); WZ = EA+1;     } /* LD   (w),IY   */
-INLINE void fd_23(void) { IY++;                                             } /* INC  IY       */
-INLINE void fd_24(void) { HY = INC(HY);                                     } /* INC  HY       */
-INLINE void fd_25(void) { HY = DEC(HY);                                     } /* DEC  HY       */
-INLINE void fd_26(void) { HY = ARG();                                       } /* LD   HY,n     */
-INLINE void fd_27(void) { illegal_1(); op_27();                             } /* DB   FD       */
+void fd_20(void) { illegal_1(); op_20();                             } /* DB   FD       */
+void fd_21(void) { IY = ARG16();                                     } /* LD   IY,w     */
+void fd_22(void) { EA = ARG16(); WM16( EA, &Z80.iy ); WZ = EA+1;     } /* LD   (w),IY   */
+void fd_23(void) { IY++;                                             } /* INC  IY       */
+void fd_24(void) { HY = INC(HY);                                     } /* INC  HY       */
+void fd_25(void) { HY = DEC(HY);                                     } /* DEC  HY       */
+void fd_26(void) { HY = ARG();                                       } /* LD   HY,n     */
+void fd_27(void) { illegal_1(); op_27();                             } /* DB   FD       */
 
-INLINE void fd_28(void) { illegal_1(); op_28();                             } /* DB   FD       */
-INLINE void fd_29(void) { ADD16(iy,iy);                                     } /* ADD  IY,IY    */
-INLINE void fd_2a(void) { EA = ARG16(); RM16( EA, &Z80.iy ); WZ = EA+1;     } /* LD   IY,(w)   */
-INLINE void fd_2b(void) { IY--;                                             } /* DEC  IY       */
-INLINE void fd_2c(void) { LY = INC(LY);                                     } /* INC  LY       */
-INLINE void fd_2d(void) { LY = DEC(LY);                                     } /* DEC  LY       */
-INLINE void fd_2e(void) { LY = ARG();                                       } /* LD   LY,n     */
-INLINE void fd_2f(void) { illegal_1(); op_2f();                             } /* DB   FD       */
+void fd_28(void) { illegal_1(); op_28();                             } /* DB   FD       */
+void fd_29(void) { ADD16(iy,iy);                                     } /* ADD  IY,IY    */
+void fd_2a(void) { EA = ARG16(); RM16( EA, &Z80.iy ); WZ = EA+1;     } /* LD   IY,(w)   */
+void fd_2b(void) { IY--;                                             } /* DEC  IY       */
+void fd_2c(void) { LY = INC(LY);                                     } /* INC  LY       */
+void fd_2d(void) { LY = DEC(LY);                                     } /* DEC  LY       */
+void fd_2e(void) { LY = ARG();                                       } /* LD   LY,n     */
+void fd_2f(void) { illegal_1(); op_2f();                             } /* DB   FD       */
 
-INLINE void fd_30(void) { illegal_1(); op_30();                             } /* DB   FD       */
-INLINE void fd_31(void) { illegal_1(); op_31();                             } /* DB   FD       */
-INLINE void fd_32(void) { illegal_1(); op_32();                             } /* DB   FD       */
-INLINE void fd_33(void) { illegal_1(); op_33();                             } /* DB   FD       */
-INLINE void fd_34(void) { EAY; WM( EA, INC(RM(EA)) );                       } /* INC  (IY+o)   */
-INLINE void fd_35(void) { EAY; WM( EA, DEC(RM(EA)) );                       } /* DEC  (IY+o)   */
-INLINE void fd_36(void) { EAY; WM( EA, ARG() );                             } /* LD   (IY+o),n */
-INLINE void fd_37(void) { illegal_1(); op_37();                             } /* DB   FD       */
+void fd_30(void) { illegal_1(); op_30();                             } /* DB   FD       */
+void fd_31(void) { illegal_1(); op_31();                             } /* DB   FD       */
+void fd_32(void) { illegal_1(); op_32();                             } /* DB   FD       */
+void fd_33(void) { illegal_1(); op_33();                             } /* DB   FD       */
+void fd_34(void) { EAY(); WM( EA, INC(RM(EA)) );                       } /* INC  (IY+o)   */
+void fd_35(void) { EAY(); WM( EA, DEC(RM(EA)) );                       } /* DEC  (IY+o)   */
+void fd_36(void) { EAY(); WM( EA, ARG() );                             } /* LD   (IY+o),n */
+void fd_37(void) { illegal_1(); op_37();                             } /* DB   FD       */
 
-INLINE void fd_38(void) { illegal_1(); op_38();                             } /* DB   FD       */
-INLINE void fd_39(void) { ADD16(iy,sp);                                     } /* ADD  IY,SP    */
-INLINE void fd_3a(void) { illegal_1(); op_3a();                             } /* DB   FD       */
-INLINE void fd_3b(void) { illegal_1(); op_3b();                             } /* DB   FD       */
-INLINE void fd_3c(void) { illegal_1(); op_3c();                             } /* DB   FD       */
-INLINE void fd_3d(void) { illegal_1(); op_3d();                             } /* DB   FD       */
-INLINE void fd_3e(void) { illegal_1(); op_3e();                             } /* DB   FD       */
-INLINE void fd_3f(void) { illegal_1(); op_3f();                             } /* DB   FD       */
+void fd_38(void) { illegal_1(); op_38();                             } /* DB   FD       */
+void fd_39(void) { ADD16(iy,sp);                                     } /* ADD  IY,SP    */
+void fd_3a(void) { illegal_1(); op_3a();                             } /* DB   FD       */
+void fd_3b(void) { illegal_1(); op_3b();                             } /* DB   FD       */
+void fd_3c(void) { illegal_1(); op_3c();                             } /* DB   FD       */
+void fd_3d(void) { illegal_1(); op_3d();                             } /* DB   FD       */
+void fd_3e(void) { illegal_1(); op_3e();                             } /* DB   FD       */
+void fd_3f(void) { illegal_1(); op_3f();                             } /* DB   FD       */
 
-INLINE void fd_40(void) { illegal_1(); op_40();                             } /* DB   FD       */
-INLINE void fd_41(void) { illegal_1(); op_41();                             } /* DB   FD       */
-INLINE void fd_42(void) { illegal_1(); op_42();                             } /* DB   FD       */
-INLINE void fd_43(void) { illegal_1(); op_43();                             } /* DB   FD       */
-INLINE void fd_44(void) { B = HY;                                           } /* LD   B,HY     */
-INLINE void fd_45(void) { B = LY;                                           } /* LD   B,LY     */
-INLINE void fd_46(void) { EAY; B = RM(EA);                                  } /* LD   B,(IY+o) */
-INLINE void fd_47(void) { illegal_1(); op_47();                             } /* DB   FD       */
+void fd_40(void) { illegal_1(); op_40();                             } /* DB   FD       */
+void fd_41(void) { illegal_1(); op_41();                             } /* DB   FD       */
+void fd_42(void) { illegal_1(); op_42();                             } /* DB   FD       */
+void fd_43(void) { illegal_1(); op_43();                             } /* DB   FD       */
+void fd_44(void) { B = HY;                                           } /* LD   B,HY     */
+void fd_45(void) { B = LY;                                           } /* LD   B,LY     */
+void fd_46(void) { EAY(); B = RM(EA);                                  } /* LD   B,(IY+o) */
+void fd_47(void) { illegal_1(); op_47();                             } /* DB   FD       */
 
-INLINE void fd_48(void) { illegal_1(); op_48();                             } /* DB   FD       */
-INLINE void fd_49(void) { illegal_1(); op_49();                             } /* DB   FD       */
-INLINE void fd_4a(void) { illegal_1(); op_4a();                             } /* DB   FD       */
-INLINE void fd_4b(void) { illegal_1(); op_4b();                             } /* DB   FD       */
-INLINE void fd_4c(void) { C = HY;                                           } /* LD   C,HY     */
-INLINE void fd_4d(void) { C = LY;                                           } /* LD   C,LY     */
-INLINE void fd_4e(void) { EAY; C = RM(EA);                                  } /* LD   C,(IY+o) */
-INLINE void fd_4f(void) { illegal_1(); op_4f();                             } /* DB   FD       */
+void fd_48(void) { illegal_1(); op_48();                             } /* DB   FD       */
+void fd_49(void) { illegal_1(); op_49();                             } /* DB   FD       */
+void fd_4a(void) { illegal_1(); op_4a();                             } /* DB   FD       */
+void fd_4b(void) { illegal_1(); op_4b();                             } /* DB   FD       */
+void fd_4c(void) { C = HY;                                           } /* LD   C,HY     */
+void fd_4d(void) { C = LY;                                           } /* LD   C,LY     */
+void fd_4e(void) { EAY(); C = RM(EA);                                  } /* LD   C,(IY+o) */
+void fd_4f(void) { illegal_1(); op_4f();                             } /* DB   FD       */
 
-INLINE void fd_50(void) { illegal_1(); op_50();                             } /* DB   FD       */
-INLINE void fd_51(void) { illegal_1(); op_51();                             } /* DB   FD       */
-INLINE void fd_52(void) { illegal_1(); op_52();                             } /* DB   FD       */
-INLINE void fd_53(void) { illegal_1(); op_53();                             } /* DB   FD       */
-INLINE void fd_54(void) { D = HY;                                           } /* LD   D,HY     */
-INLINE void fd_55(void) { D = LY;                                           } /* LD   D,LY     */
-INLINE void fd_56(void) { EAY; D = RM(EA);                                  } /* LD   D,(IY+o) */
-INLINE void fd_57(void) { illegal_1(); op_57();                             } /* DB   FD       */
+void fd_50(void) { illegal_1(); op_50();                             } /* DB   FD       */
+void fd_51(void) { illegal_1(); op_51();                             } /* DB   FD       */
+void fd_52(void) { illegal_1(); op_52();                             } /* DB   FD       */
+void fd_53(void) { illegal_1(); op_53();                             } /* DB   FD       */
+void fd_54(void) { D = HY;                                           } /* LD   D,HY     */
+void fd_55(void) { D = LY;                                           } /* LD   D,LY     */
+void fd_56(void) { EAY(); D = RM(EA);                                  } /* LD   D,(IY+o) */
+void fd_57(void) { illegal_1(); op_57();                             } /* DB   FD       */
 
-INLINE void fd_58(void) { illegal_1(); op_58();                             } /* DB   FD       */
-INLINE void fd_59(void) { illegal_1(); op_59();                             } /* DB   FD       */
-INLINE void fd_5a(void) { illegal_1(); op_5a();                             } /* DB   FD       */
-INLINE void fd_5b(void) { illegal_1(); op_5b();                             } /* DB   FD       */
-INLINE void fd_5c(void) { E = HY;                                           } /* LD   E,HY     */
-INLINE void fd_5d(void) { E = LY;                                           } /* LD   E,LY     */
-INLINE void fd_5e(void) { EAY; E = RM(EA);                                  } /* LD   E,(IY+o) */
-INLINE void fd_5f(void) { illegal_1(); op_5f();                             } /* DB   FD       */
+void fd_58(void) { illegal_1(); op_58();                             } /* DB   FD       */
+void fd_59(void) { illegal_1(); op_59();                             } /* DB   FD       */
+void fd_5a(void) { illegal_1(); op_5a();                             } /* DB   FD       */
+void fd_5b(void) { illegal_1(); op_5b();                             } /* DB   FD       */
+void fd_5c(void) { E = HY;                                           } /* LD   E,HY     */
+void fd_5d(void) { E = LY;                                           } /* LD   E,LY     */
+void fd_5e(void) { EAY(); E = RM(EA);                                  } /* LD   E,(IY+o) */
+void fd_5f(void) { illegal_1(); op_5f();                             } /* DB   FD       */
 
-INLINE void fd_60(void) { HY = B;                                           } /* LD   HY,B     */
-INLINE void fd_61(void) { HY = C;                                           } /* LD   HY,C     */
-INLINE void fd_62(void) { HY = D;                                           } /* LD   HY,D     */
-INLINE void fd_63(void) { HY = E;                                           } /* LD   HY,E     */
-INLINE void fd_64(void) {                                                   } /* LD   HY,HY    */
-INLINE void fd_65(void) { HY = LY;                                          } /* LD   HY,LY    */
-INLINE void fd_66(void) { EAY; H = RM(EA);                                  } /* LD   H,(IY+o) */
-INLINE void fd_67(void) { HY = A;                                           } /* LD   HY,A     */
+void fd_60(void) { HY = B;                                           } /* LD   HY,B     */
+void fd_61(void) { HY = C;                                           } /* LD   HY,C     */
+void fd_62(void) { HY = D;                                           } /* LD   HY,D     */
+void fd_63(void) { HY = E;                                           } /* LD   HY,E     */
+void fd_64(void) {                                                   } /* LD   HY,HY    */
+void fd_65(void) { HY = LY;                                          } /* LD   HY,LY    */
+void fd_66(void) { EAY(); H = RM(EA);                                  } /* LD   H,(IY+o) */
+void fd_67(void) { HY = A;                                           } /* LD   HY,A     */
 
-INLINE void fd_68(void) { LY = B;                                           } /* LD   LY,B     */
-INLINE void fd_69(void) { LY = C;                                           } /* LD   LY,C     */
-INLINE void fd_6a(void) { LY = D;                                           } /* LD   LY,D     */
-INLINE void fd_6b(void) { LY = E;                                           } /* LD   LY,E     */
-INLINE void fd_6c(void) { LY = HY;                                          } /* LD   LY,HY    */
-INLINE void fd_6d(void) {                                                   } /* LD   LY,LY    */
-INLINE void fd_6e(void) { EAY; L = RM(EA);                                  } /* LD   L,(IY+o) */
-INLINE void fd_6f(void) { LY = A;                                           } /* LD   LY,A     */
+void fd_68(void) { LY = B;                                           } /* LD   LY,B     */
+void fd_69(void) { LY = C;                                           } /* LD   LY,C     */
+void fd_6a(void) { LY = D;                                           } /* LD   LY,D     */
+void fd_6b(void) { LY = E;                                           } /* LD   LY,E     */
+void fd_6c(void) { LY = HY;                                          } /* LD   LY,HY    */
+void fd_6d(void) {                                                   } /* LD   LY,LY    */
+void fd_6e(void) { EAY(); L = RM(EA);                                  } /* LD   L,(IY+o) */
+void fd_6f(void) { LY = A;                                           } /* LD   LY,A     */
 
-INLINE void fd_70(void) { EAY; WM( EA, B );                                 } /* LD   (IY+o),B */
-INLINE void fd_71(void) { EAY; WM( EA, C );                                 } /* LD   (IY+o),C */
-INLINE void fd_72(void) { EAY; WM( EA, D );                                 } /* LD   (IY+o),D */
-INLINE void fd_73(void) { EAY; WM( EA, E );                                 } /* LD   (IY+o),E */
-INLINE void fd_74(void) { EAY; WM( EA, H );                                 } /* LD   (IY+o),H */
-INLINE void fd_75(void) { EAY; WM( EA, L );                                 } /* LD   (IY+o),L */
-INLINE void fd_76(void) { illegal_1(); op_76();                             } /* DB   FD       */
-INLINE void fd_77(void) { EAY; WM( EA, A );                                 } /* LD   (IY+o),A */
+void fd_70(void) { EAY(); WM( EA, B );                                 } /* LD   (IY+o),B */
+void fd_71(void) { EAY(); WM( EA, C );                                 } /* LD   (IY+o),C */
+void fd_72(void) { EAY(); WM( EA, D );                                 } /* LD   (IY+o),D */
+void fd_73(void) { EAY(); WM( EA, E );                                 } /* LD   (IY+o),E */
+void fd_74(void) { EAY(); WM( EA, H );                                 } /* LD   (IY+o),H */
+void fd_75(void) { EAY(); WM( EA, L );                                 } /* LD   (IY+o),L */
+void fd_76(void) { illegal_1(); op_76();                             } /* DB   FD       */
+void fd_77(void) { EAY(); WM( EA, A );                                 } /* LD   (IY+o),A */
 
-INLINE void fd_78(void) { illegal_1(); op_78();                             } /* DB   FD       */
-INLINE void fd_79(void) { illegal_1(); op_79();                             } /* DB   FD       */
-INLINE void fd_7a(void) { illegal_1(); op_7a();                             } /* DB   FD       */
-INLINE void fd_7b(void) { illegal_1(); op_7b();                             } /* DB   FD       */
-INLINE void fd_7c(void) { A = HY;                                           } /* LD   A,HY     */
-INLINE void fd_7d(void) { A = LY;                                           } /* LD   A,LY     */
-INLINE void fd_7e(void) { EAY; A = RM(EA);                                  } /* LD   A,(IY+o) */
-INLINE void fd_7f(void) { illegal_1(); op_7f();                             } /* DB   FD       */
+void fd_78(void) { illegal_1(); op_78();                             } /* DB   FD       */
+void fd_79(void) { illegal_1(); op_79();                             } /* DB   FD       */
+void fd_7a(void) { illegal_1(); op_7a();                             } /* DB   FD       */
+void fd_7b(void) { illegal_1(); op_7b();                             } /* DB   FD       */
+void fd_7c(void) { A = HY;                                           } /* LD   A,HY     */
+void fd_7d(void) { A = LY;                                           } /* LD   A,LY     */
+void fd_7e(void) { EAY(); A = RM(EA);                                  } /* LD   A,(IY+o) */
+void fd_7f(void) { illegal_1(); op_7f();                             } /* DB   FD       */
 
-INLINE void fd_80(void) { illegal_1(); op_80();                             } /* DB   FD       */
-INLINE void fd_81(void) { illegal_1(); op_81();                             } /* DB   FD       */
-INLINE void fd_82(void) { illegal_1(); op_82();                             } /* DB   FD       */
-INLINE void fd_83(void) { illegal_1(); op_83();                             } /* DB   FD       */
-INLINE void fd_84(void) { ADD(HY);                                          } /* ADD  A,HY     */
-INLINE void fd_85(void) { ADD(LY);                                          } /* ADD  A,LY     */
-INLINE void fd_86(void) { EAY; ADD(RM(EA));                                 } /* ADD  A,(IY+o) */
-INLINE void fd_87(void) { illegal_1(); op_87();                             } /* DB   FD       */
+void fd_80(void) { illegal_1(); op_80();                             } /* DB   FD       */
+void fd_81(void) { illegal_1(); op_81();                             } /* DB   FD       */
+void fd_82(void) { illegal_1(); op_82();                             } /* DB   FD       */
+void fd_83(void) { illegal_1(); op_83();                             } /* DB   FD       */
+void fd_84(void) { ADD(HY);                                          } /* ADD  A,HY     */
+void fd_85(void) { ADD(LY);                                          } /* ADD  A,LY     */
+void fd_86(void) { EAY(); ADD(RM(EA));                                 } /* ADD  A,(IY+o) */
+void fd_87(void) { illegal_1(); op_87();                             } /* DB   FD       */
 
-INLINE void fd_88(void) { illegal_1(); op_88();                             } /* DB   FD       */
-INLINE void fd_89(void) { illegal_1(); op_89();                             } /* DB   FD       */
-INLINE void fd_8a(void) { illegal_1(); op_8a();                             } /* DB   FD       */
-INLINE void fd_8b(void) { illegal_1(); op_8b();                             } /* DB   FD       */
-INLINE void fd_8c(void) { ADC(HY);                                          } /* ADC  A,HY     */
-INLINE void fd_8d(void) { ADC(LY);                                          } /* ADC  A,LY     */
-INLINE void fd_8e(void) { EAY; ADC(RM(EA));                                 } /* ADC  A,(IY+o) */
-INLINE void fd_8f(void) { illegal_1(); op_8f();                             } /* DB   FD       */
+void fd_88(void) { illegal_1(); op_88();                             } /* DB   FD       */
+void fd_89(void) { illegal_1(); op_89();                             } /* DB   FD       */
+void fd_8a(void) { illegal_1(); op_8a();                             } /* DB   FD       */
+void fd_8b(void) { illegal_1(); op_8b();                             } /* DB   FD       */
+void fd_8c(void) { ADC(HY);                                          } /* ADC  A,HY     */
+void fd_8d(void) { ADC(LY);                                          } /* ADC  A,LY     */
+void fd_8e(void) { EAY(); ADC(RM(EA));                                 } /* ADC  A,(IY+o) */
+void fd_8f(void) { illegal_1(); op_8f();                             } /* DB   FD       */
 
-INLINE void fd_90(void) { illegal_1(); op_90();                             } /* DB   FD       */
-INLINE void fd_91(void) { illegal_1(); op_91();                             } /* DB   FD       */
-INLINE void fd_92(void) { illegal_1(); op_92();                             } /* DB   FD       */
-INLINE void fd_93(void) { illegal_1(); op_93();                             } /* DB   FD       */
-INLINE void fd_94(void) { SUB(HY);                                          } /* SUB  HY       */
-INLINE void fd_95(void) { SUB(LY);                                          } /* SUB  LY       */
-INLINE void fd_96(void) { EAY; SUB(RM(EA));                                 } /* SUB  (IY+o)   */
-INLINE void fd_97(void) { illegal_1(); op_97();                             } /* DB   FD       */
+void fd_90(void) { illegal_1(); op_90();                             } /* DB   FD       */
+void fd_91(void) { illegal_1(); op_91();                             } /* DB   FD       */
+void fd_92(void) { illegal_1(); op_92();                             } /* DB   FD       */
+void fd_93(void) { illegal_1(); op_93();                             } /* DB   FD       */
+void fd_94(void) { SUB(HY);                                          } /* SUB  HY       */
+void fd_95(void) { SUB(LY);                                          } /* SUB  LY       */
+void fd_96(void) { EAY(); SUB(RM(EA));                                 } /* SUB  (IY+o)   */
+void fd_97(void) { illegal_1(); op_97();                             } /* DB   FD       */
 
-INLINE void fd_98(void) { illegal_1(); op_98();                             } /* DB   FD       */
-INLINE void fd_99(void) { illegal_1(); op_99();                             } /* DB   FD       */
-INLINE void fd_9a(void) { illegal_1(); op_9a();                             } /* DB   FD       */
-INLINE void fd_9b(void) { illegal_1(); op_9b();                             } /* DB   FD       */
-INLINE void fd_9c(void) { SBC(HY);                                          } /* SBC  A,HY     */
-INLINE void fd_9d(void) { SBC(LY);                                          } /* SBC  A,LY     */
-INLINE void fd_9e(void) { EAY; SBC(RM(EA));                                 } /* SBC  A,(IY+o) */
-INLINE void fd_9f(void) { illegal_1(); op_9f();                             } /* DB   FD       */
+void fd_98(void) { illegal_1(); op_98();                             } /* DB   FD       */
+void fd_99(void) { illegal_1(); op_99();                             } /* DB   FD       */
+void fd_9a(void) { illegal_1(); op_9a();                             } /* DB   FD       */
+void fd_9b(void) { illegal_1(); op_9b();                             } /* DB   FD       */
+void fd_9c(void) { SBC(HY);                                          } /* SBC  A,HY     */
+void fd_9d(void) { SBC(LY);                                          } /* SBC  A,LY     */
+void fd_9e(void) { EAY(); SBC(RM(EA));                                 } /* SBC  A,(IY+o) */
+void fd_9f(void) { illegal_1(); op_9f();                             } /* DB   FD       */
 
-INLINE void fd_a0(void) { illegal_1(); op_a0();                             } /* DB   FD       */
-INLINE void fd_a1(void) { illegal_1(); op_a1();                             } /* DB   FD       */
-INLINE void fd_a2(void) { illegal_1(); op_a2();                             } /* DB   FD       */
-INLINE void fd_a3(void) { illegal_1(); op_a3();                             } /* DB   FD       */
-INLINE void fd_a4(void) { AND(HY);                                          } /* AND  HY       */
-INLINE void fd_a5(void) { AND(LY);                                          } /* AND  LY       */
-INLINE void fd_a6(void) { EAY; AND(RM(EA));                                 } /* AND  (IY+o)   */
-INLINE void fd_a7(void) { illegal_1(); op_a7();                             } /* DB   FD       */
+void fd_a0(void) { illegal_1(); op_a0();                             } /* DB   FD       */
+void fd_a1(void) { illegal_1(); op_a1();                             } /* DB   FD       */
+void fd_a2(void) { illegal_1(); op_a2();                             } /* DB   FD       */
+void fd_a3(void) { illegal_1(); op_a3();                             } /* DB   FD       */
+void fd_a4(void) { AND(HY);                                          } /* AND  HY       */
+void fd_a5(void) { AND(LY);                                          } /* AND  LY       */
+void fd_a6(void) { EAY(); AND(RM(EA));                                 } /* AND  (IY+o)   */
+void fd_a7(void) { illegal_1(); op_a7();                             } /* DB   FD       */
 
-INLINE void fd_a8(void) { illegal_1(); op_a8();                             } /* DB   FD       */
-INLINE void fd_a9(void) { illegal_1(); op_a9();                             } /* DB   FD       */
-INLINE void fd_aa(void) { illegal_1(); op_aa();                             } /* DB   FD       */
-INLINE void fd_ab(void) { illegal_1(); op_ab();                             } /* DB   FD       */
-INLINE void fd_ac(void) { XOR(HY);                                          } /* XOR  HY       */
-INLINE void fd_ad(void) { XOR(LY);                                          } /* XOR  LY       */
-INLINE void fd_ae(void) { EAY; XOR(RM(EA));                                 } /* XOR  (IY+o)   */
-INLINE void fd_af(void) { illegal_1(); op_af();                             } /* DB   FD       */
+void fd_a8(void) { illegal_1(); op_a8();                             } /* DB   FD       */
+void fd_a9(void) { illegal_1(); op_a9();                             } /* DB   FD       */
+void fd_aa(void) { illegal_1(); op_aa();                             } /* DB   FD       */
+void fd_ab(void) { illegal_1(); op_ab();                             } /* DB   FD       */
+void fd_ac(void) { XOR(HY);                                          } /* XOR  HY       */
+void fd_ad(void) { XOR(LY);                                          } /* XOR  LY       */
+void fd_ae(void) { EAY(); XOR(RM(EA));                                 } /* XOR  (IY+o)   */
+void fd_af(void) { illegal_1(); op_af();                             } /* DB   FD       */
 
-INLINE void fd_b0(void) { illegal_1(); op_b0();                             } /* DB   FD       */
-INLINE void fd_b1(void) { illegal_1(); op_b1();                             } /* DB   FD       */
-INLINE void fd_b2(void) { illegal_1(); op_b2();                             } /* DB   FD       */
-INLINE void fd_b3(void) { illegal_1(); op_b3();                             } /* DB   FD       */
-INLINE void fd_b4(void) { OR(HY);                                           } /* OR   HY       */
-INLINE void fd_b5(void) { OR(LY);                                           } /* OR   LY       */
-INLINE void fd_b6(void) { EAY; OR(RM(EA));                                  } /* OR   (IY+o)   */
-INLINE void fd_b7(void) { illegal_1(); op_b7();                             } /* DB   FD       */
+void fd_b0(void) { illegal_1(); op_b0();                             } /* DB   FD       */
+void fd_b1(void) { illegal_1(); op_b1();                             } /* DB   FD       */
+void fd_b2(void) { illegal_1(); op_b2();                             } /* DB   FD       */
+void fd_b3(void) { illegal_1(); op_b3();                             } /* DB   FD       */
+void fd_b4(void) { OR(HY);                                           } /* OR   HY       */
+void fd_b5(void) { OR(LY);                                           } /* OR   LY       */
+void fd_b6(void) { EAY(); OR(RM(EA));                                  } /* OR   (IY+o)   */
+void fd_b7(void) { illegal_1(); op_b7();                             } /* DB   FD       */
 
-INLINE void fd_b8(void) { illegal_1(); op_b8();                             } /* DB   FD       */
-INLINE void fd_b9(void) { illegal_1(); op_b9();                             } /* DB   FD       */
-INLINE void fd_ba(void) { illegal_1(); op_ba();                             } /* DB   FD       */
-INLINE void fd_bb(void) { illegal_1(); op_bb();                             } /* DB   FD       */
-INLINE void fd_bc(void) { CP(HY);                                           } /* CP   HY       */
-INLINE void fd_bd(void) { CP(LY);                                           } /* CP   LY       */
-INLINE void fd_be(void) { EAY; CP(RM(EA));                                  } /* CP   (IY+o)   */
-INLINE void fd_bf(void) { illegal_1(); op_bf();                             } /* DB   FD       */
+void fd_b8(void) { illegal_1(); op_b8();                             } /* DB   FD       */
+void fd_b9(void) { illegal_1(); op_b9();                             } /* DB   FD       */
+void fd_ba(void) { illegal_1(); op_ba();                             } /* DB   FD       */
+void fd_bb(void) { illegal_1(); op_bb();                             } /* DB   FD       */
+void fd_bc(void) { CP(HY);                                           } /* CP   HY       */
+void fd_bd(void) { CP(LY);                                           } /* CP   LY       */
+void fd_be(void) { EAY(); CP(RM(EA));                                  } /* CP   (IY+o)   */
+void fd_bf(void) { illegal_1(); op_bf();                             } /* DB   FD       */
 
-INLINE void fd_c0(void) { illegal_1(); op_c0();                             } /* DB   FD       */
-INLINE void fd_c1(void) { illegal_1(); op_c1();                             } /* DB   FD       */
-INLINE void fd_c2(void) { illegal_1(); op_c2();                             } /* DB   FD       */
-INLINE void fd_c3(void) { illegal_1(); op_c3();                             } /* DB   FD       */
-INLINE void fd_c4(void) { illegal_1(); op_c4();                             } /* DB   FD       */
-INLINE void fd_c5(void) { illegal_1(); op_c5();                             } /* DB   FD       */
-INLINE void fd_c6(void) { illegal_1(); op_c6();                             } /* DB   FD       */
-INLINE void fd_c7(void) { illegal_1(); op_c7();                             } /* DB   FD       */
+void fd_c0(void) { illegal_1(); op_c0();                             } /* DB   FD       */
+void fd_c1(void) { illegal_1(); op_c1();                             } /* DB   FD       */
+void fd_c2(void) { illegal_1(); op_c2();                             } /* DB   FD       */
+void fd_c3(void) { illegal_1(); op_c3();                             } /* DB   FD       */
+void fd_c4(void) { illegal_1(); op_c4();                             } /* DB   FD       */
+void fd_c5(void) { illegal_1(); op_c5();                             } /* DB   FD       */
+void fd_c6(void) { illegal_1(); op_c6();                             } /* DB   FD       */
+void fd_c7(void) { illegal_1(); op_c7();                             } /* DB   FD       */
 
-INLINE void fd_c8(void) { illegal_1(); op_c8();                             } /* DB   FD       */
-INLINE void fd_c9(void) { illegal_1(); op_c9();                             } /* DB   FD       */
-INLINE void fd_ca(void) { illegal_1(); op_ca();                             } /* DB   FD       */
-INLINE void fd_cb(void) { EAY; EXEC(xycb,ARG());                            } /* **** FD CB xx */
-INLINE void fd_cc(void) { illegal_1(); op_cc();                             } /* DB   FD       */
-INLINE void fd_cd(void) { illegal_1(); op_cd();                             } /* DB   FD       */
-INLINE void fd_ce(void) { illegal_1(); op_ce();                             } /* DB   FD       */
-INLINE void fd_cf(void) { illegal_1(); op_cf();                             } /* DB   FD       */
+void fd_c8(void) { illegal_1(); op_c8();                             } /* DB   FD       */
+void fd_c9(void) { illegal_1(); op_c9();                             } /* DB   FD       */
+void fd_ca(void) { illegal_1(); op_ca();                             } /* DB   FD       */
+void fd_cb(void) { EAY(); EXEC(xycb,ARG());                            } /* **** FD CB xx */
+void fd_cc(void) { illegal_1(); op_cc();                             } /* DB   FD       */
+void fd_cd(void) { illegal_1(); op_cd();                             } /* DB   FD       */
+void fd_ce(void) { illegal_1(); op_ce();                             } /* DB   FD       */
+void fd_cf(void) { illegal_1(); op_cf();                             } /* DB   FD       */
 
-INLINE void fd_d0(void) { illegal_1(); op_d0();                             } /* DB   FD       */
-INLINE void fd_d1(void) { illegal_1(); op_d1();                             } /* DB   FD       */
-INLINE void fd_d2(void) { illegal_1(); op_d2();                             } /* DB   FD       */
-INLINE void fd_d3(void) { illegal_1(); op_d3();                             } /* DB   FD       */
-INLINE void fd_d4(void) { illegal_1(); op_d4();                             } /* DB   FD       */
-INLINE void fd_d5(void) { illegal_1(); op_d5();                             } /* DB   FD       */
-INLINE void fd_d6(void) { illegal_1(); op_d6();                             } /* DB   FD       */
-INLINE void fd_d7(void) { illegal_1(); op_d7();                             } /* DB   FD       */
+void fd_d0(void) { illegal_1(); op_d0();                             } /* DB   FD       */
+void fd_d1(void) { illegal_1(); op_d1();                             } /* DB   FD       */
+void fd_d2(void) { illegal_1(); op_d2();                             } /* DB   FD       */
+void fd_d3(void) { illegal_1(); op_d3();                             } /* DB   FD       */
+void fd_d4(void) { illegal_1(); op_d4();                             } /* DB   FD       */
+void fd_d5(void) { illegal_1(); op_d5();                             } /* DB   FD       */
+void fd_d6(void) { illegal_1(); op_d6();                             } /* DB   FD       */
+void fd_d7(void) { illegal_1(); op_d7();                             } /* DB   FD       */
 
-INLINE void fd_d8(void) { illegal_1(); op_d8();                             } /* DB   FD       */
-INLINE void fd_d9(void) { illegal_1(); op_d9();                             } /* DB   FD       */
-INLINE void fd_da(void) { illegal_1(); op_da();                             } /* DB   FD       */
-INLINE void fd_db(void) { illegal_1(); op_db();                             } /* DB   FD       */
-INLINE void fd_dc(void) { illegal_1(); op_dc();                             } /* DB   FD       */
-INLINE void fd_dd(void) { EXEC(dd,ROP());                                   } /* **** FD DD xx */
-INLINE void fd_de(void) { illegal_1(); op_de();                             } /* DB   FD       */
-INLINE void fd_df(void) { illegal_1(); op_df();                             } /* DB   FD       */
+void fd_d8(void) { illegal_1(); op_d8();                             } /* DB   FD       */
+void fd_d9(void) { illegal_1(); op_d9();                             } /* DB   FD       */
+void fd_da(void) { illegal_1(); op_da();                             } /* DB   FD       */
+void fd_db(void) { illegal_1(); op_db();                             } /* DB   FD       */
+void fd_dc(void) { illegal_1(); op_dc();                             } /* DB   FD       */
+void fd_dd(void) { EXEC(dd,ROP());                                   } /* **** FD DD xx */
+void fd_de(void) { illegal_1(); op_de();                             } /* DB   FD       */
+void fd_df(void) { illegal_1(); op_df();                             } /* DB   FD       */
 
-INLINE void fd_e0(void) { illegal_1(); op_e0();                             } /* DB   FD       */
-INLINE void fd_e1(void) { POP( iy );                                        } /* POP  IY       */
-INLINE void fd_e2(void) { illegal_1(); op_e2();                             } /* DB   FD       */
-INLINE void fd_e3(void) { EXSP( iy );                                       } /* EX   (SP),IY  */
-INLINE void fd_e4(void) { illegal_1(); op_e4();                             } /* DB   FD       */
-INLINE void fd_e5(void) { PUSH( iy );                                       } /* PUSH IY       */
-INLINE void fd_e6(void) { illegal_1(); op_e6();                             } /* DB   FD       */
-INLINE void fd_e7(void) { illegal_1(); op_e7();                             } /* DB   FD       */
+void fd_e0(void) { illegal_1(); op_e0();                             } /* DB   FD       */
+void fd_e1(void) { POP( iy );                                        } /* POP  IY       */
+void fd_e2(void) { illegal_1(); op_e2();                             } /* DB   FD       */
+void fd_e3(void) { EXSP( iy );                                       } /* EX   (SP),IY  */
+void fd_e4(void) { illegal_1(); op_e4();                             } /* DB   FD       */
+void fd_e5(void) { PUSH( iy );                                       } /* PUSH IY       */
+void fd_e6(void) { illegal_1(); op_e6();                             } /* DB   FD       */
+void fd_e7(void) { illegal_1(); op_e7();                             } /* DB   FD       */
 
-INLINE void fd_e8(void) { illegal_1(); op_e8();                             } /* DB   FD       */
-INLINE void fd_e9(void) { PC = IY;                                          } /* JP   (IY)     */
-INLINE void fd_ea(void) { illegal_1(); op_ea();                             } /* DB   FD       */
-INLINE void fd_eb(void) { illegal_1(); op_eb();                             } /* DB   FD       */
-INLINE void fd_ec(void) { illegal_1(); op_ec();                             } /* DB   FD       */
-INLINE void fd_ed(void) { illegal_1(); op_ed();                             } /* DB   FD       */
-INLINE void fd_ee(void) { illegal_1(); op_ee();                             } /* DB   FD       */
-INLINE void fd_ef(void) { illegal_1(); op_ef();                             } /* DB   FD       */
+void fd_e8(void) { illegal_1(); op_e8();                             } /* DB   FD       */
+void fd_e9(void) { PC = IY;                                          } /* JP   (IY)     */
+void fd_ea(void) { illegal_1(); op_ea();                             } /* DB   FD       */
+void fd_eb(void) { illegal_1(); op_eb();                             } /* DB   FD       */
+void fd_ec(void) { illegal_1(); op_ec();                             } /* DB   FD       */
+void fd_ed(void) { illegal_1(); op_ed();                             } /* DB   FD       */
+void fd_ee(void) { illegal_1(); op_ee();                             } /* DB   FD       */
+void fd_ef(void) { illegal_1(); op_ef();                             } /* DB   FD       */
 
-INLINE void fd_f0(void) { illegal_1(); op_f0();                             } /* DB   FD       */
-INLINE void fd_f1(void) { illegal_1(); op_f1();                             } /* DB   FD       */
-INLINE void fd_f2(void) { illegal_1(); op_f2();                             } /* DB   FD       */
-INLINE void fd_f3(void) { illegal_1(); op_f3();                             } /* DB   FD       */
-INLINE void fd_f4(void) { illegal_1(); op_f4();                             } /* DB   FD       */
-INLINE void fd_f5(void) { illegal_1(); op_f5();                             } /* DB   FD       */
-INLINE void fd_f6(void) { illegal_1(); op_f6();                             } /* DB   FD       */
-INLINE void fd_f7(void) { illegal_1(); op_f7();                             } /* DB   FD       */
+void fd_f0(void) { illegal_1(); op_f0();                             } /* DB   FD       */
+void fd_f1(void) { illegal_1(); op_f1();                             } /* DB   FD       */
+void fd_f2(void) { illegal_1(); op_f2();                             } /* DB   FD       */
+void fd_f3(void) { illegal_1(); op_f3();                             } /* DB   FD       */
+void fd_f4(void) { illegal_1(); op_f4();                             } /* DB   FD       */
+void fd_f5(void) { illegal_1(); op_f5();                             } /* DB   FD       */
+void fd_f6(void) { illegal_1(); op_f6();                             } /* DB   FD       */
+void fd_f7(void) { illegal_1(); op_f7();                             } /* DB   FD       */
 
-INLINE void fd_f8(void) { illegal_1(); op_f8();                             } /* DB   FD       */
-INLINE void fd_f9(void) { SP = IY;                                          } /* LD   SP,IY    */
-INLINE void fd_fa(void) { illegal_1(); op_fa();                             } /* DB   FD       */
-INLINE void fd_fb(void) { illegal_1(); op_fb();                             } /* DB   FD       */
-INLINE void fd_fc(void) { illegal_1(); op_fc();                             } /* DB   FD       */
-INLINE void fd_fd(void) { EXEC(fd,ROP());                                   } /* **** FD FD xx */
-INLINE void fd_fe(void) { illegal_1(); op_fe();                             } /* DB   FD       */
-INLINE void fd_ff(void) { illegal_1(); op_ff();                             } /* DB   FD       */
+void fd_f8(void) { illegal_1(); op_f8();                             } /* DB   FD       */
+void fd_f9(void) { SP = IY;                                          } /* LD   SP,IY    */
+void fd_fa(void) { illegal_1(); op_fa();                             } /* DB   FD       */
+void fd_fb(void) { illegal_1(); op_fb();                             } /* DB   FD       */
+void fd_fc(void) { illegal_1(); op_fc();                             } /* DB   FD       */
+void fd_fd(void) { EXEC(fd,ROP());                                   } /* **** FD FD xx */
+void fd_fe(void) { illegal_1(); op_fe();                             } /* DB   FD       */
+void fd_ff(void) { illegal_1(); op_ff();                             } /* DB   FD       */
 
-INLINE void illegal_2()
+void illegal_2()
 {
 #if VERBOSE
 logerror("Z80 #%d ill. opcode $ed $%02x\n",
@@ -2636,585 +3057,585 @@ logerror("Z80 #%d ill. opcode $ed $%02x\n",
 /**********************************************************
  * special opcodes (ED prefix)
  **********************************************************/
-INLINE void ed_00(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_01(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_02(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_03(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_04(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_05(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_06(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_07(void) { illegal_2();                                      } /* DB   ED      */
+void ed_00(void) { illegal_2();                                      } /* DB   ED      */
+void ed_01(void) { illegal_2();                                      } /* DB   ED      */
+void ed_02(void) { illegal_2();                                      } /* DB   ED      */
+void ed_03(void) { illegal_2();                                      } /* DB   ED      */
+void ed_04(void) { illegal_2();                                      } /* DB   ED      */
+void ed_05(void) { illegal_2();                                      } /* DB   ED      */
+void ed_06(void) { illegal_2();                                      } /* DB   ED      */
+void ed_07(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_08(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_09(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_0a(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_0b(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_0c(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_0d(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_0e(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_0f(void) { illegal_2();                                      } /* DB   ED      */
+void ed_08(void) { illegal_2();                                      } /* DB   ED      */
+void ed_09(void) { illegal_2();                                      } /* DB   ED      */
+void ed_0a(void) { illegal_2();                                      } /* DB   ED      */
+void ed_0b(void) { illegal_2();                                      } /* DB   ED      */
+void ed_0c(void) { illegal_2();                                      } /* DB   ED      */
+void ed_0d(void) { illegal_2();                                      } /* DB   ED      */
+void ed_0e(void) { illegal_2();                                      } /* DB   ED      */
+void ed_0f(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_10(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_11(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_12(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_13(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_14(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_15(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_16(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_17(void) { illegal_2();                                      } /* DB   ED      */
+void ed_10(void) { illegal_2();                                      } /* DB   ED      */
+void ed_11(void) { illegal_2();                                      } /* DB   ED      */
+void ed_12(void) { illegal_2();                                      } /* DB   ED      */
+void ed_13(void) { illegal_2();                                      } /* DB   ED      */
+void ed_14(void) { illegal_2();                                      } /* DB   ED      */
+void ed_15(void) { illegal_2();                                      } /* DB   ED      */
+void ed_16(void) { illegal_2();                                      } /* DB   ED      */
+void ed_17(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_18(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_19(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_1a(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_1b(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_1c(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_1d(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_1e(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_1f(void) { illegal_2();                                      } /* DB   ED      */
+void ed_18(void) { illegal_2();                                      } /* DB   ED      */
+void ed_19(void) { illegal_2();                                      } /* DB   ED      */
+void ed_1a(void) { illegal_2();                                      } /* DB   ED      */
+void ed_1b(void) { illegal_2();                                      } /* DB   ED      */
+void ed_1c(void) { illegal_2();                                      } /* DB   ED      */
+void ed_1d(void) { illegal_2();                                      } /* DB   ED      */
+void ed_1e(void) { illegal_2();                                      } /* DB   ED      */
+void ed_1f(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_20(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_21(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_22(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_23(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_24(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_25(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_26(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_27(void) { illegal_2();                                      } /* DB   ED      */
+void ed_20(void) { illegal_2();                                      } /* DB   ED      */
+void ed_21(void) { illegal_2();                                      } /* DB   ED      */
+void ed_22(void) { illegal_2();                                      } /* DB   ED      */
+void ed_23(void) { illegal_2();                                      } /* DB   ED      */
+void ed_24(void) { illegal_2();                                      } /* DB   ED      */
+void ed_25(void) { illegal_2();                                      } /* DB   ED      */
+void ed_26(void) { illegal_2();                                      } /* DB   ED      */
+void ed_27(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_28(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_29(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_2a(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_2b(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_2c(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_2d(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_2e(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_2f(void) { illegal_2();                                      } /* DB   ED      */
+void ed_28(void) { illegal_2();                                      } /* DB   ED      */
+void ed_29(void) { illegal_2();                                      } /* DB   ED      */
+void ed_2a(void) { illegal_2();                                      } /* DB   ED      */
+void ed_2b(void) { illegal_2();                                      } /* DB   ED      */
+void ed_2c(void) { illegal_2();                                      } /* DB   ED      */
+void ed_2d(void) { illegal_2();                                      } /* DB   ED      */
+void ed_2e(void) { illegal_2();                                      } /* DB   ED      */
+void ed_2f(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_30(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_31(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_32(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_33(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_34(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_35(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_36(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_37(void) { illegal_2();                                      } /* DB   ED      */
+void ed_30(void) { illegal_2();                                      } /* DB   ED      */
+void ed_31(void) { illegal_2();                                      } /* DB   ED      */
+void ed_32(void) { illegal_2();                                      } /* DB   ED      */
+void ed_33(void) { illegal_2();                                      } /* DB   ED      */
+void ed_34(void) { illegal_2();                                      } /* DB   ED      */
+void ed_35(void) { illegal_2();                                      } /* DB   ED      */
+void ed_36(void) { illegal_2();                                      } /* DB   ED      */
+void ed_37(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_38(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_39(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_3a(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_3b(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_3c(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_3d(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_3e(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_3f(void) { illegal_2();                                      } /* DB   ED      */
+void ed_38(void) { illegal_2();                                      } /* DB   ED      */
+void ed_39(void) { illegal_2();                                      } /* DB   ED      */
+void ed_3a(void) { illegal_2();                                      } /* DB   ED      */
+void ed_3b(void) { illegal_2();                                      } /* DB   ED      */
+void ed_3c(void) { illegal_2();                                      } /* DB   ED      */
+void ed_3d(void) { illegal_2();                                      } /* DB   ED      */
+void ed_3e(void) { illegal_2();                                      } /* DB   ED      */
+void ed_3f(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_40(void) { B = IN(BC); F = (F & CF) | SZP[B];                } /* IN   B,(C)   */
-INLINE void ed_41(void) { OUT(BC, B);                                       } /* OUT  (C),B   */
-INLINE void ed_42(void) { SBC16( bc );                                      } /* SBC  HL,BC   */
-INLINE void ed_43(void) { EA = ARG16(); WM16( EA, &Z80.bc ); WZ = EA+1;     } /* LD   (w),BC  */
-INLINE void ed_44(void) { NEG;                                              } /* NEG          */
-INLINE void ed_45(void) { RETN;                                             } /* RETN;        */
-INLINE void ed_46(void) { IM = 0;                                           } /* IM   0       */
-INLINE void ed_47(void) { LD_I_A;                                           } /* LD   I,A     */
+void ed_40(void) { B = IN(BC); F = (F & CF) | SZP[B];                } /* IN   B,(C)   */
+void ed_41(void) { OUT(BC, B);                                       } /* OUT  (C),B   */
+void ed_42(void) { SBC16( bc );                                      } /* SBC  HL,BC   */
+void ed_43(void) { EA = ARG16(); WM16( EA, &Z80.bc ); WZ = EA+1;     } /* LD   (w),BC  */
+void ed_44(void) { NEG;                                              } /* NEG          */
+void ed_45(void) { RETN;                                             } /* RETN;        */
+void ed_46(void) { IM = 0;                                           } /* IM   0       */
+void ed_47(void) { LD_I_A;                                           } /* LD   I,A     */
 
-INLINE void ed_48(void) { C = IN(BC); F = (F & CF) | SZP[C];                } /* IN   C,(C)   */
-INLINE void ed_49(void) { OUT(BC, C);                                       } /* OUT  (C),C   */
-INLINE void ed_4a(void) { ADC16( bc );                                      } /* ADC  HL,BC   */
-INLINE void ed_4b(void) { EA = ARG16(); RM16( EA, &Z80.bc ); WZ = EA+1;     } /* LD   BC,(w)  */
-INLINE void ed_4c(void) { NEG;                                              } /* NEG          */
-INLINE void ed_4d(void) { RETI;                                             } /* RETI         */
-INLINE void ed_4e(void) { IM = 0;                                           } /* IM   0       */
-INLINE void ed_4f(void) { LD_R_A;                                           } /* LD   R,A     */
+void ed_48(void) { C = IN(BC); F = (F & CF) | SZP[C];                } /* IN   C,(C)   */
+void ed_49(void) { OUT(BC, C);                                       } /* OUT  (C),C   */
+void ed_4a(void) { ADC16( bc );                                      } /* ADC  HL,BC   */
+void ed_4b(void) { EA = ARG16(); RM16( EA, &Z80.bc ); WZ = EA+1;     } /* LD   BC,(w)  */
+void ed_4c(void) { NEG;                                              } /* NEG          */
+void ed_4d(void) { RETI;                                             } /* RETI         */
+void ed_4e(void) { IM = 0;                                           } /* IM   0       */
+void ed_4f(void) { LD_R_A;                                           } /* LD   R,A     */
 
-INLINE void ed_50(void) { D = IN(BC); F = (F & CF) | SZP[D];                } /* IN   D,(C)   */
-INLINE void ed_51(void) { OUT(BC, D);                                       } /* OUT  (C),D   */
-INLINE void ed_52(void) { SBC16( de );                                      } /* SBC  HL,DE   */
-INLINE void ed_53(void) { EA = ARG16(); WM16( EA, &Z80.de ); WZ = EA+1;     } /* LD   (w),DE  */
-INLINE void ed_54(void) { NEG;                                              } /* NEG          */
-INLINE void ed_55(void) { RETN;                                             } /* RETN;        */
-INLINE void ed_56(void) { IM = 1;                                           } /* IM   1       */
-INLINE void ed_57(void) { LD_A_I;                                           } /* LD   A,I     */
+void ed_50(void) { D = IN(BC); F = (F & CF) | SZP[D];                } /* IN   D,(C)   */
+void ed_51(void) { OUT(BC, D);                                       } /* OUT  (C),D   */
+void ed_52(void) { SBC16( de );                                      } /* SBC  HL,DE   */
+void ed_53(void) { EA = ARG16(); WM16( EA, &Z80.de ); WZ = EA+1;     } /* LD   (w),DE  */
+void ed_54(void) { NEG;                                              } /* NEG          */
+void ed_55(void) { RETN;                                             } /* RETN;        */
+void ed_56(void) { IM = 1;                                           } /* IM   1       */
+void ed_57(void) { LD_A_I;                                           } /* LD   A,I     */
 
-INLINE void ed_58(void) { E = IN(BC); F = (F & CF) | SZP[E];                } /* IN   E,(C)   */
-INLINE void ed_59(void) { OUT(BC, E);                                       } /* OUT  (C),E   */
-INLINE void ed_5a(void) { ADC16( de );                                      } /* ADC  HL,DE   */
-INLINE void ed_5b(void) { EA = ARG16(); RM16( EA, &Z80.de ); WZ = EA+1;     } /* LD   DE,(w)  */
-INLINE void ed_5c(void) { NEG;                                              } /* NEG          */
-INLINE void ed_5d(void) { RETI;                                             } /* RETI         */
-INLINE void ed_5e(void) { IM = 2;                                           } /* IM   2       */
-INLINE void ed_5f(void) { LD_A_R;                                           } /* LD   A,R     */
+void ed_58(void) { E = IN(BC); F = (F & CF) | SZP[E];                } /* IN   E,(C)   */
+void ed_59(void) { OUT(BC, E);                                       } /* OUT  (C),E   */
+void ed_5a(void) { ADC16( de );                                      } /* ADC  HL,DE   */
+void ed_5b(void) { EA = ARG16(); RM16( EA, &Z80.de ); WZ = EA+1;     } /* LD   DE,(w)  */
+void ed_5c(void) { NEG;                                              } /* NEG          */
+void ed_5d(void) { RETI;                                             } /* RETI         */
+void ed_5e(void) { IM = 2;                                           } /* IM   2       */
+void ed_5f(void) { LD_A_R;                                           } /* LD   A,R     */
 
-INLINE void ed_60(void) { H = IN(BC); F = (F & CF) | SZP[H];                } /* IN   H,(C)   */
-INLINE void ed_61(void) { OUT(BC, H);                                       } /* OUT  (C),H   */
-INLINE void ed_62(void) { SBC16( hl );                                      } /* SBC  HL,HL   */
-INLINE void ed_63(void) { EA = ARG16(); WM16( EA, &Z80.hl ); WZ = EA+1;     } /* LD   (w),HL  */
-INLINE void ed_64(void) { NEG;                                              } /* NEG          */
-INLINE void ed_65(void) { RETN;                                             } /* RETN;        */
-INLINE void ed_66(void) { IM = 0;                                           } /* IM   0       */
-INLINE void ed_67(void) { RRD;                                              } /* RRD  (HL)    */
+void ed_60(void) { H = IN(BC); F = (F & CF) | SZP[H];                } /* IN   H,(C)   */
+void ed_61(void) { OUT(BC, H);                                       } /* OUT  (C),H   */
+void ed_62(void) { SBC16( hl );                                      } /* SBC  HL,HL   */
+void ed_63(void) { EA = ARG16(); WM16( EA, &Z80.hl ); WZ = EA+1;     } /* LD   (w),HL  */
+void ed_64(void) { NEG;                                              } /* NEG          */
+void ed_65(void) { RETN;                                             } /* RETN;        */
+void ed_66(void) { IM = 0;                                           } /* IM   0       */
+void ed_67(void) { RRD;                                              } /* RRD  (HL)    */
 
-INLINE void ed_68(void) { L = IN(BC); F = (F & CF) | SZP[L];                } /* IN   L,(C)   */
-INLINE void ed_69(void) { OUT(BC, L);                                       } /* OUT  (C),L   */
-INLINE void ed_6a(void) { ADC16( hl );                                      } /* ADC  HL,HL   */
-INLINE void ed_6b(void) { EA = ARG16(); RM16( EA, &Z80.hl ); WZ = EA+1;     } /* LD   HL,(w)  */
-INLINE void ed_6c(void) { NEG;                                              } /* NEG          */
-INLINE void ed_6d(void) { RETI;                                             } /* RETI         */
-INLINE void ed_6e(void) { IM = 0;                                           } /* IM   0       */
-INLINE void ed_6f(void) { RLD;                                              } /* RLD  (HL)    */
+void ed_68(void) { L = IN(BC); F = (F & CF) | SZP[L];                } /* IN   L,(C)   */
+void ed_69(void) { OUT(BC, L);                                       } /* OUT  (C),L   */
+void ed_6a(void) { ADC16( hl );                                      } /* ADC  HL,HL   */
+void ed_6b(void) { EA = ARG16(); RM16( EA, &Z80.hl ); WZ = EA+1;     } /* LD   HL,(w)  */
+void ed_6c(void) { NEG;                                              } /* NEG          */
+void ed_6d(void) { RETI;                                             } /* RETI         */
+void ed_6e(void) { IM = 0;                                           } /* IM   0       */
+void ed_6f(void) { RLD;                                              } /* RLD  (HL)    */
 
-INLINE void ed_70(void) { UINT8 res = IN(BC); F = (F & CF) | SZP[res];      } /* IN   0,(C)   */
-INLINE void ed_71(void) { OUT(BC, 0);                                       } /* OUT  (C),0   */
-INLINE void ed_72(void) { SBC16( sp );                                      } /* SBC  HL,SP   */
-INLINE void ed_73(void) { EA = ARG16(); WM16( EA, &Z80.sp ); WZ = EA+1;     } /* LD   (w),SP  */
-INLINE void ed_74(void) { NEG;                                              } /* NEG          */
-INLINE void ed_75(void) { RETN;                                             } /* RETN;        */
-INLINE void ed_76(void) { IM = 1;                                           } /* IM   1       */
-INLINE void ed_77(void) { illegal_2();                                      } /* DB   ED,77   */
+void ed_70(void) { UINT8 res = IN(BC); F = (F & CF) | SZP[res];      } /* IN   0,(C)   */
+void ed_71(void) { OUT(BC, 0);                                       } /* OUT  (C),0   */
+void ed_72(void) { SBC16( sp );                                      } /* SBC  HL,SP   */
+void ed_73(void) { EA = ARG16(); WM16( EA, &Z80.sp ); WZ = EA+1;     } /* LD   (w),SP  */
+void ed_74(void) { NEG;                                              } /* NEG          */
+void ed_75(void) { RETN;                                             } /* RETN;        */
+void ed_76(void) { IM = 1;                                           } /* IM   1       */
+void ed_77(void) { illegal_2();                                      } /* DB   ED,77   */
 
-INLINE void ed_78(void) { A = IN(BC); F = (F & CF) | SZP[A]; WZ = BC+1;     } /* IN   E,(C)   */
-INLINE void ed_79(void) { OUT(BC, A); WZ = BC + 1;                          } /* OUT  (C),A   */
-INLINE void ed_7a(void) { ADC16( sp );                                      } /* ADC  HL,SP   */
-INLINE void ed_7b(void) { EA = ARG16(); RM16( EA, &Z80.sp ); WZ = EA+1; } /* LD   SP,(w)  */
-INLINE void ed_7c(void) { NEG;                                              } /* NEG          */
-INLINE void ed_7d(void) { RETI;                                             } /* RETI         */
-INLINE void ed_7e(void) { IM = 2;                                           } /* IM   2       */
-INLINE void ed_7f(void) { illegal_2();                                      } /* DB   ED,7F   */
+void ed_78(void) { A = IN(BC); F = (F & CF) | SZP[A]; WZ = BC+1;     } /* IN   E,(C)   */
+void ed_79(void) { OUT(BC, A); WZ = BC + 1;                          } /* OUT  (C),A   */
+void ed_7a(void) { ADC16( sp );                                      } /* ADC  HL,SP   */
+void ed_7b(void) { EA = ARG16(); RM16( EA, &Z80.sp ); WZ = EA+1; } /* LD   SP,(w)  */
+void ed_7c(void) { NEG;                                              } /* NEG          */
+void ed_7d(void) { RETI;                                             } /* RETI         */
+void ed_7e(void) { IM = 2;                                           } /* IM   2       */
+void ed_7f(void) { illegal_2();                                      } /* DB   ED,7F   */
 
-INLINE void ed_80(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_81(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_82(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_83(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_84(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_85(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_86(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_87(void) { illegal_2();                                      } /* DB   ED      */
+void ed_80(void) { illegal_2();                                      } /* DB   ED      */
+void ed_81(void) { illegal_2();                                      } /* DB   ED      */
+void ed_82(void) { illegal_2();                                      } /* DB   ED      */
+void ed_83(void) { illegal_2();                                      } /* DB   ED      */
+void ed_84(void) { illegal_2();                                      } /* DB   ED      */
+void ed_85(void) { illegal_2();                                      } /* DB   ED      */
+void ed_86(void) { illegal_2();                                      } /* DB   ED      */
+void ed_87(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_88(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_89(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_8a(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_8b(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_8c(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_8d(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_8e(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_8f(void) { illegal_2();                                      } /* DB   ED      */
+void ed_88(void) { illegal_2();                                      } /* DB   ED      */
+void ed_89(void) { illegal_2();                                      } /* DB   ED      */
+void ed_8a(void) { illegal_2();                                      } /* DB   ED      */
+void ed_8b(void) { illegal_2();                                      } /* DB   ED      */
+void ed_8c(void) { illegal_2();                                      } /* DB   ED      */
+void ed_8d(void) { illegal_2();                                      } /* DB   ED      */
+void ed_8e(void) { illegal_2();                                      } /* DB   ED      */
+void ed_8f(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_90(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_91(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_92(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_93(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_94(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_95(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_96(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_97(void) { illegal_2();                                      } /* DB   ED      */
+void ed_90(void) { illegal_2();                                      } /* DB   ED      */
+void ed_91(void) { illegal_2();                                      } /* DB   ED      */
+void ed_92(void) { illegal_2();                                      } /* DB   ED      */
+void ed_93(void) { illegal_2();                                      } /* DB   ED      */
+void ed_94(void) { illegal_2();                                      } /* DB   ED      */
+void ed_95(void) { illegal_2();                                      } /* DB   ED      */
+void ed_96(void) { illegal_2();                                      } /* DB   ED      */
+void ed_97(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_98(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_99(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_9a(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_9b(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_9c(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_9d(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_9e(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_9f(void) { illegal_2();                                      } /* DB   ED      */
+void ed_98(void) { illegal_2();                                      } /* DB   ED      */
+void ed_99(void) { illegal_2();                                      } /* DB   ED      */
+void ed_9a(void) { illegal_2();                                      } /* DB   ED      */
+void ed_9b(void) { illegal_2();                                      } /* DB   ED      */
+void ed_9c(void) { illegal_2();                                      } /* DB   ED      */
+void ed_9d(void) { illegal_2();                                      } /* DB   ED      */
+void ed_9e(void) { illegal_2();                                      } /* DB   ED      */
+void ed_9f(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_a0(void) { LDI;                                              } /* LDI          */
-INLINE void ed_a1(void) { CPI;                                              } /* CPI          */
-INLINE void ed_a2(void) { INI;                                              } /* INI          */
-INLINE void ed_a3(void) { OUTI;                                             } /* OUTI         */
-INLINE void ed_a4(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_a5(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_a6(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_a7(void) { illegal_2();                                      } /* DB   ED      */
+void ed_a0(void) { LDI;                                              } /* LDI          */
+void ed_a1(void) { CPI;                                              } /* CPI          */
+void ed_a2(void) { INI;                                              } /* INI          */
+void ed_a3(void) { OUTI;                                             } /* OUTI         */
+void ed_a4(void) { illegal_2();                                      } /* DB   ED      */
+void ed_a5(void) { illegal_2();                                      } /* DB   ED      */
+void ed_a6(void) { illegal_2();                                      } /* DB   ED      */
+void ed_a7(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_a8(void) { LDD;                                              } /* LDD          */
-INLINE void ed_a9(void) { CPD;                                              } /* CPD          */
-INLINE void ed_aa(void) { IND;                                              } /* IND          */
-INLINE void ed_ab(void) { OUTD;                                             } /* OUTD         */
-INLINE void ed_ac(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_ad(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_ae(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_af(void) { illegal_2();                                      } /* DB   ED      */
+void ed_a8(void) { LDD;                                              } /* LDD          */
+void ed_a9(void) { CPD;                                              } /* CPD          */
+void ed_aa(void) { IND;                                              } /* IND          */
+void ed_ab(void) { OUTD;                                             } /* OUTD         */
+void ed_ac(void) { illegal_2();                                      } /* DB   ED      */
+void ed_ad(void) { illegal_2();                                      } /* DB   ED      */
+void ed_ae(void) { illegal_2();                                      } /* DB   ED      */
+void ed_af(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_b0(void) { LDIR;                                             } /* LDIR         */
-INLINE void ed_b1(void) { CPIR;                                             } /* CPIR         */
-INLINE void ed_b2(void) { INIR;                                             } /* INIR         */
-INLINE void ed_b3(void) { OTIR();                                             } /* OTIR         */
-INLINE void ed_b4(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_b5(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_b6(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_b7(void) { illegal_2();                                      } /* DB   ED      */
+void ed_b0(void) { LDIR;                                             } /* LDIR         */
+void ed_b1(void) { CPIR;                                             } /* CPIR         */
+void ed_b2(void) { INIR;                                             } /* INIR         */
+void ed_b3(void) { OTIR();                                             } /* OTIR         */
+void ed_b4(void) { illegal_2();                                      } /* DB   ED      */
+void ed_b5(void) { illegal_2();                                      } /* DB   ED      */
+void ed_b6(void) { illegal_2();                                      } /* DB   ED      */
+void ed_b7(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_b8(void) { LDDR();                                             } /* LDDR         */
-INLINE void ed_b9(void) { CPDR();                                             } /* CPDR         */
-INLINE void ed_ba(void) { INDR();                                             } /* INDR         */
-INLINE void ed_bb(void) { OTDR();                                             } /* OTDR         */
-INLINE void ed_bc(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_bd(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_be(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_bf(void) { illegal_2();                                      } /* DB   ED      */
+void ed_b8(void) { LDDR();                                             } /* LDDR         */
+void ed_b9(void) { CPDR();                                             } /* CPDR         */
+void ed_ba(void) { INDR();                                             } /* INDR         */
+void ed_bb(void) { OTDR();                                             } /* OTDR         */
+void ed_bc(void) { illegal_2();                                      } /* DB   ED      */
+void ed_bd(void) { illegal_2();                                      } /* DB   ED      */
+void ed_be(void) { illegal_2();                                      } /* DB   ED      */
+void ed_bf(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_c0(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_c1(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_c2(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_c3(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_c4(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_c5(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_c6(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_c7(void) { illegal_2();                                      } /* DB   ED      */
+void ed_c0(void) { illegal_2();                                      } /* DB   ED      */
+void ed_c1(void) { illegal_2();                                      } /* DB   ED      */
+void ed_c2(void) { illegal_2();                                      } /* DB   ED      */
+void ed_c3(void) { illegal_2();                                      } /* DB   ED      */
+void ed_c4(void) { illegal_2();                                      } /* DB   ED      */
+void ed_c5(void) { illegal_2();                                      } /* DB   ED      */
+void ed_c6(void) { illegal_2();                                      } /* DB   ED      */
+void ed_c7(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_c8(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_c9(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_ca(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_cb(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_cc(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_cd(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_ce(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_cf(void) { illegal_2();                                      } /* DB   ED      */
+void ed_c8(void) { illegal_2();                                      } /* DB   ED      */
+void ed_c9(void) { illegal_2();                                      } /* DB   ED      */
+void ed_ca(void) { illegal_2();                                      } /* DB   ED      */
+void ed_cb(void) { illegal_2();                                      } /* DB   ED      */
+void ed_cc(void) { illegal_2();                                      } /* DB   ED      */
+void ed_cd(void) { illegal_2();                                      } /* DB   ED      */
+void ed_ce(void) { illegal_2();                                      } /* DB   ED      */
+void ed_cf(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_d0(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_d1(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_d2(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_d3(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_d4(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_d5(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_d6(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_d7(void) { illegal_2();                                      } /* DB   ED      */
+void ed_d0(void) { illegal_2();                                      } /* DB   ED      */
+void ed_d1(void) { illegal_2();                                      } /* DB   ED      */
+void ed_d2(void) { illegal_2();                                      } /* DB   ED      */
+void ed_d3(void) { illegal_2();                                      } /* DB   ED      */
+void ed_d4(void) { illegal_2();                                      } /* DB   ED      */
+void ed_d5(void) { illegal_2();                                      } /* DB   ED      */
+void ed_d6(void) { illegal_2();                                      } /* DB   ED      */
+void ed_d7(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_d8(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_d9(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_da(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_db(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_dc(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_dd(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_de(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_df(void) { illegal_2();                                      } /* DB   ED      */
+void ed_d8(void) { illegal_2();                                      } /* DB   ED      */
+void ed_d9(void) { illegal_2();                                      } /* DB   ED      */
+void ed_da(void) { illegal_2();                                      } /* DB   ED      */
+void ed_db(void) { illegal_2();                                      } /* DB   ED      */
+void ed_dc(void) { illegal_2();                                      } /* DB   ED      */
+void ed_dd(void) { illegal_2();                                      } /* DB   ED      */
+void ed_de(void) { illegal_2();                                      } /* DB   ED      */
+void ed_df(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_e0(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_e1(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_e2(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_e3(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_e4(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_e5(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_e6(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_e7(void) { illegal_2();                                      } /* DB   ED      */
+void ed_e0(void) { illegal_2();                                      } /* DB   ED      */
+void ed_e1(void) { illegal_2();                                      } /* DB   ED      */
+void ed_e2(void) { illegal_2();                                      } /* DB   ED      */
+void ed_e3(void) { illegal_2();                                      } /* DB   ED      */
+void ed_e4(void) { illegal_2();                                      } /* DB   ED      */
+void ed_e5(void) { illegal_2();                                      } /* DB   ED      */
+void ed_e6(void) { illegal_2();                                      } /* DB   ED      */
+void ed_e7(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_e8(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_e9(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_ea(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_eb(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_ec(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_ed(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_ee(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_ef(void) { illegal_2();                                      } /* DB   ED      */
+void ed_e8(void) { illegal_2();                                      } /* DB   ED      */
+void ed_e9(void) { illegal_2();                                      } /* DB   ED      */
+void ed_ea(void) { illegal_2();                                      } /* DB   ED      */
+void ed_eb(void) { illegal_2();                                      } /* DB   ED      */
+void ed_ec(void) { illegal_2();                                      } /* DB   ED      */
+void ed_ed(void) { illegal_2();                                      } /* DB   ED      */
+void ed_ee(void) { illegal_2();                                      } /* DB   ED      */
+void ed_ef(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_f0(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_f1(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_f2(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_f3(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_f4(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_f5(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_f6(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_f7(void) { illegal_2();                                      } /* DB   ED      */
+void ed_f0(void) { illegal_2();                                      } /* DB   ED      */
+void ed_f1(void) { illegal_2();                                      } /* DB   ED      */
+void ed_f2(void) { illegal_2();                                      } /* DB   ED      */
+void ed_f3(void) { illegal_2();                                      } /* DB   ED      */
+void ed_f4(void) { illegal_2();                                      } /* DB   ED      */
+void ed_f5(void) { illegal_2();                                      } /* DB   ED      */
+void ed_f6(void) { illegal_2();                                      } /* DB   ED      */
+void ed_f7(void) { illegal_2();                                      } /* DB   ED      */
 
-INLINE void ed_f8(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_f9(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_fa(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_fb(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_fc(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_fd(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_fe(void) { illegal_2();                                      } /* DB   ED      */
-INLINE void ed_ff(void) { illegal_2();                                      } /* DB   ED      */
+void ed_f8(void) { illegal_2();                                      } /* DB   ED      */
+void ed_f9(void) { illegal_2();                                      } /* DB   ED      */
+void ed_fa(void) { illegal_2();                                      } /* DB   ED      */
+void ed_fb(void) { illegal_2();                                      } /* DB   ED      */
+void ed_fc(void) { illegal_2();                                      } /* DB   ED      */
+void ed_fd(void) { illegal_2();                                      } /* DB   ED      */
+void ed_fe(void) { illegal_2();                                      } /* DB   ED      */
+void ed_ff(void) { illegal_2();                                      } /* DB   ED      */
 
 
 /**********************************************************
  * main opcodes
  **********************************************************/
-INLINE void op_00(void) {                                                                                                } /* NOP              */
-INLINE void op_01(void) { BC = ARG16();                                                                                  } /* LD   BC,w        */
-INLINE void op_02(void) { WM( BC, A ); WZ_L = (BC + 1) & 0xFF;  WZ_H = A;                                                } /* LD   (BC),A      */
-INLINE void op_03(void) { BC++;                                                                                          } /* INC  BC          */
-INLINE void op_04(void) { B = INC(B);                                                                                    } /* INC  B           */
-INLINE void op_05(void) { B = DEC(B);                                                                                    } /* DEC  B           */
-INLINE void op_06(void) { B = ARG();                                                                                     } /* LD   B,n         */
-INLINE void op_07(void) { RLCA;                                                                                          } /* RLCA             */
+void op_00(void) {                                                                                                } /* NOP              */
+void op_01(void) { BC = ARG16();                                                                                  } /* LD   BC,w        */
+void op_02(void) { WM( BC, A ); WZ_L = (BC + 1) & 0xFF;  WZ_H = A;                                                } /* LD   (BC),A      */
+void op_03(void) { BC++;                                                                                          } /* INC  BC          */
+void op_04(void) { B = INC(B);                                                                                    } /* INC  B           */
+void op_05(void) { B = DEC(B);                                                                                    } /* DEC  B           */
+void op_06(void) { B = ARG();                                                                                     } /* LD   B,n         */
+void op_07(void) { RLCA;                                                                                          } /* RLCA             */
 
-INLINE void op_08(void) { EX_AF;                                                                                         } /* EX   AF,AF'      */
-INLINE void op_09(void) { ADD16(hl, bc);                                                                                 } /* ADD  HL,BC       */
-INLINE void op_0a(void) { A = RM( BC ); WZ=BC+1;                                                                         } /* LD   A,(BC)      */
-INLINE void op_0b(void) { BC--;                                                                                          } /* DEC  BC          */
-INLINE void op_0c(void) { C = INC(C);                                                                                    } /* INC  C           */
-INLINE void op_0d(void) { C = DEC(C);                                                                                    } /* DEC  C           */
-INLINE void op_0e(void) { C = ARG();                                                                                     } /* LD   C,n         */
-INLINE void op_0f(void) { RRCA;                                                                                          } /* RRCA             */
+void op_08(void) { EX_AF;                                                                                         } /* EX   AF,AF'      */
+void op_09(void) { ADD16(hl, bc);                                                                                 } /* ADD  HL,BC       */
+void op_0a(void) { A = RM( BC ); WZ=BC+1;                                                                         } /* LD   A,(BC)      */
+void op_0b(void) { BC--;                                                                                          } /* DEC  BC          */
+void op_0c(void) { C = INC(C);                                                                                    } /* INC  C           */
+void op_0d(void) { C = DEC(C);                                                                                    } /* DEC  C           */
+void op_0e(void) { C = ARG();                                                                                     } /* LD   C,n         */
+void op_0f(void) { RRCA;                                                                                          } /* RRCA             */
 
-INLINE void op_10(void) { B--; JR_COND( B, 0x10 );                                                                       } /* DJNZ o           */
-INLINE void op_11(void) { DE = ARG16();                                                                                  } /* LD   DE,w        */
-INLINE void op_12(void) { WM( DE, A ); WZ_L = (DE + 1) & 0xFF;  WZ_H = A;                                                } /* LD   (DE),A      */
-INLINE void op_13(void) { DE++;                                                                                          } /* INC  DE          */
-INLINE void op_14(void) { D = INC(D);                                                                                    } /* INC  D           */
-INLINE void op_15(void) { D = DEC(D);                                                                                    } /* DEC  D           */
-INLINE void op_16(void) { D = ARG();                                                                                     } /* LD   D,n         */
-INLINE void op_17(void) { RLA;                                                                                           } /* RLA              */
+void op_10(void) { B--; JR_COND( B, 0x10 );                                                                       } /* DJNZ o           */
+void op_11(void) { DE = ARG16();                                                                                  } /* LD   DE,w        */
+void op_12(void) { WM( DE, A ); WZ_L = (DE + 1) & 0xFF;  WZ_H = A;                                                } /* LD   (DE),A      */
+void op_13(void) { DE++;                                                                                          } /* INC  DE          */
+void op_14(void) { D = INC(D);                                                                                    } /* INC  D           */
+void op_15(void) { D = DEC(D);                                                                                    } /* DEC  D           */
+void op_16(void) { D = ARG();                                                                                     } /* LD   D,n         */
+void op_17(void) { RLA;                                                                                           } /* RLA              */
 
-INLINE void op_18(void) { JR();                                                                                          } /* JR   o           */
-INLINE void op_19(void) { ADD16(hl, de);                                                                                 } /* ADD  HL,DE       */
-INLINE void op_1a(void) { A = RM( DE ); WZ=DE+1;                                                                         } /* LD   A,(DE)      */
-INLINE void op_1b(void) { DE--;                                                                                          } /* DEC  DE          */
-INLINE void op_1c(void) { E = INC(E);                                                                                    } /* INC  E           */
-INLINE void op_1d(void) { E = DEC(E);                                                                                    } /* DEC  E           */
-INLINE void op_1e(void) { E = ARG();                                                                                     } /* LD   E,n         */
-INLINE void op_1f(void) { RRA;                                                                                           } /* RRA              */
+void op_18(void) { JR();                                                                                          } /* JR   o           */
+void op_19(void) { ADD16(hl, de);                                                                                 } /* ADD  HL,DE       */
+void op_1a(void) { A = RM( DE ); WZ=DE+1;                                                                         } /* LD   A,(DE)      */
+void op_1b(void) { DE--;                                                                                          } /* DEC  DE          */
+void op_1c(void) { E = INC(E);                                                                                    } /* INC  E           */
+void op_1d(void) { E = DEC(E);                                                                                    } /* DEC  E           */
+void op_1e(void) { E = ARG();                                                                                     } /* LD   E,n         */
+void op_1f(void) { RRA;                                                                                           } /* RRA              */
 
-INLINE void op_20(void) { JR_COND( !(F & ZF), 0x20 );                                                                    } /* JR   NZ,o        */
-INLINE void op_21(void) { HL = ARG16();                                                                                  } /* LD   HL,w        */
-INLINE void op_22(void) { EA = ARG16(); WM16( EA, &Z80.hl ); WZ = EA+1;                                                  } /* LD   (w),HL      */
-INLINE void op_23(void) { HL++;                                                                                          } /* INC  HL          */
-INLINE void op_24(void) { H = INC(H);                                                                                    } /* INC  H           */
-INLINE void op_25(void) { H = DEC(H);                                                                                    } /* DEC  H           */
-INLINE void op_26(void) { H = ARG();                                                                                     } /* LD   H,n         */
-INLINE void op_27(void) { DAA;                                                                                           } /* DAA              */
+void op_20(void) { JR_COND( !(F & ZF), 0x20 );                                                                    } /* JR   NZ,o        */
+void op_21(void) { HL = ARG16();                                                                                  } /* LD   HL,w        */
+void op_22(void) { EA = ARG16(); WM16( EA, &Z80.hl ); WZ = EA+1;                                                  } /* LD   (w),HL      */
+void op_23(void) { HL++;                                                                                          } /* INC  HL          */
+void op_24(void) { H = INC(H);                                                                                    } /* INC  H           */
+void op_25(void) { H = DEC(H);                                                                                    } /* DEC  H           */
+void op_26(void) { H = ARG();                                                                                     } /* LD   H,n         */
+void op_27(void) { DAA;                                                                                           } /* DAA              */
 
-INLINE void op_28(void) { JR_COND( F & ZF, 0x28 );                                                                       } /* JR   Z,o         */
-INLINE void op_29(void) { ADD16(hl, hl);                                                                                 } /* ADD  HL,HL       */
-INLINE void op_2a(void) { EA = ARG16(); RM16( EA, &Z80.hl ); WZ = EA+1;                                                  } /* LD   HL,(w)      */
-INLINE void op_2b(void) { HL--;                                                                                          } /* DEC  HL          */
-INLINE void op_2c(void) { L = INC(L);                                                                                    } /* INC  L           */
-INLINE void op_2d(void) { L = DEC(L);                                                                                    } /* DEC  L           */
-INLINE void op_2e(void) { L = ARG();                                                                                     } /* LD   L,n         */
-INLINE void op_2f(void) { A ^= 0xff; F = (F&(SF|ZF|PF|CF))|HF|NF|(A&(YF|XF));                                            } /* CPL              */
+void op_28(void) { JR_COND( F & ZF, 0x28 );                                                                       } /* JR   Z,o         */
+void op_29(void) { ADD16(hl, hl);                                                                                 } /* ADD  HL,HL       */
+void op_2a(void) { EA = ARG16(); RM16( EA, &Z80.hl ); WZ = EA+1;                                                  } /* LD   HL,(w)      */
+void op_2b(void) { HL--;                                                                                          } /* DEC  HL          */
+void op_2c(void) { L = INC(L);                                                                                    } /* INC  L           */
+void op_2d(void) { L = DEC(L);                                                                                    } /* DEC  L           */
+void op_2e(void) { L = ARG();                                                                                     } /* LD   L,n         */
+void op_2f(void) { A ^= 0xff; F = (F&(SF|ZF|PF|CF))|HF|NF|(A&(YF|XF));                                            } /* CPL              */
 
-INLINE void op_30(void) { JR_COND( !(F & CF), 0x30 );                                                                    } /* JR   NC,o        */
-INLINE void op_31(void) { SP = ARG16();                                                                                  } /* LD   SP,w        */
-INLINE void op_32(void) { EA = ARG16(); WM( EA, A ); WZ_L=(EA+1)&0xFF;WZ_H=A;                                            } /* LD   (w),A       */
-INLINE void op_33(void) { SP++;                                                                                          } /* INC  SP          */
-INLINE void op_34(void) { WM( HL, INC(RM(HL)) );                                                                         } /* INC  (HL)        */
-INLINE void op_35(void) { WM( HL, DEC(RM(HL)) );                                                                         } /* DEC  (HL)        */
-INLINE void op_36(void) { WM( HL, ARG() );                                                                               } /* LD   (HL),n      */
-INLINE void op_37(void) { F = (F & (SF|ZF|YF|XF|PF)) | CF | (A & (YF|XF));                                               } /* SCF              */
+void op_30(void) { JR_COND( !(F & CF), 0x30 );                                                                    } /* JR   NC,o        */
+void op_31(void) { SP = ARG16();                                                                                  } /* LD   SP,w        */
+void op_32(void) { EA = ARG16(); WM( EA, A ); WZ_L=(EA+1)&0xFF;WZ_H=A;                                            } /* LD   (w),A       */
+void op_33(void) { SP++;                                                                                          } /* INC  SP          */
+void op_34(void) { WM( HL, INC(RM(HL)) );                                                                         } /* INC  (HL)        */
+void op_35(void) { WM( HL, DEC(RM(HL)) );                                                                         } /* DEC  (HL)        */
+void op_36(void) { WM( HL, ARG() );                                                                               } /* LD   (HL),n      */
+void op_37(void) { F = (F & (SF|ZF|YF|XF|PF)) | CF | (A & (YF|XF));                                               } /* SCF              */
 
-INLINE void op_38(void) { JR_COND( F & CF, 0x38 );                                                                       } /* JR   C,o         */
-INLINE void op_39(void) { ADD16(hl, sp);                                                                                 } /* ADD  HL,SP       */
-INLINE void op_3a(void) { EA = ARG16(); A = RM( EA ); WZ = EA+1;                                                         } /* LD   A,(w)       */
-INLINE void op_3b(void) { SP--;                                                                                          } /* DEC  SP          */
-INLINE void op_3c(void) { A = INC(A);                                                                                    } /* INC  A           */
-INLINE void op_3d(void) { A = DEC(A);                                                                                    } /* DEC  A           */
-INLINE void op_3e(void) { A = ARG();                                                                                     } /* LD   A,n         */
-INLINE void op_3f(void) { F = ((F&(SF|ZF|YF|XF|PF|CF))|((F&CF)<<4)|(A&(YF|XF)))^CF;                                      } /* CCF              */
+void op_38(void) { JR_COND( F & CF, 0x38 );                                                                       } /* JR   C,o         */
+void op_39(void) { ADD16(hl, sp);                                                                                 } /* ADD  HL,SP       */
+void op_3a(void) { EA = ARG16(); A = RM( EA ); WZ = EA+1;                                                         } /* LD   A,(w)       */
+void op_3b(void) { SP--;                                                                                          } /* DEC  SP          */
+void op_3c(void) { A = INC(A);                                                                                    } /* INC  A           */
+void op_3d(void) { A = DEC(A);                                                                                    } /* DEC  A           */
+void op_3e(void) { A = ARG();                                                                                     } /* LD   A,n         */
+void op_3f(void) { F = ((F&(SF|ZF|YF|XF|PF|CF))|((F&CF)<<4)|(A&(YF|XF)))^CF;                                      } /* CCF              */
 
-INLINE void op_40(void) {                                                                                                } /* LD   B,B         */
-INLINE void op_41(void) { B = C;                                                                                         } /* LD   B,C         */
-INLINE void op_42(void) { B = D;                                                                                         } /* LD   B,D         */
-INLINE void op_43(void) { B = E;                                                                                         } /* LD   B,E         */
-INLINE void op_44(void) { B = H;                                                                                         } /* LD   B,H         */
-INLINE void op_45(void) { B = L;                                                                                         } /* LD   B,L         */
-INLINE void op_46(void) { B = RM(HL);                                                                                    } /* LD   B,(HL)      */
-INLINE void op_47(void) { B = A;                                                                                         } /* LD   B,A         */
+void op_40(void) {                                                                                                } /* LD   B,B         */
+void op_41(void) { B = C;                                                                                         } /* LD   B,C         */
+void op_42(void) { B = D;                                                                                         } /* LD   B,D         */
+void op_43(void) { B = E;                                                                                         } /* LD   B,E         */
+void op_44(void) { B = H;                                                                                         } /* LD   B,H         */
+void op_45(void) { B = L;                                                                                         } /* LD   B,L         */
+void op_46(void) { B = RM(HL);                                                                                    } /* LD   B,(HL)      */
+void op_47(void) { B = A;                                                                                         } /* LD   B,A         */
 
-INLINE void op_48(void) { C = B;                                                                                         } /* LD   C,B         */
-INLINE void op_49(void) {                                                                                                } /* LD   C,C         */
-INLINE void op_4a(void) { C = D;                                                                                         } /* LD   C,D         */
-INLINE void op_4b(void) { C = E;                                                                                         } /* LD   C,E         */
-INLINE void op_4c(void) { C = H;                                                                                         } /* LD   C,H         */
-INLINE void op_4d(void) { C = L;                                                                                         } /* LD   C,L         */
-INLINE void op_4e(void) { C = RM(HL);                                                                                    } /* LD   C,(HL)      */
-INLINE void op_4f(void) { C = A;                                                                                         } /* LD   C,A         */
+void op_48(void) { C = B;                                                                                         } /* LD   C,B         */
+void op_49(void) {                                                                                                } /* LD   C,C         */
+void op_4a(void) { C = D;                                                                                         } /* LD   C,D         */
+void op_4b(void) { C = E;                                                                                         } /* LD   C,E         */
+void op_4c(void) { C = H;                                                                                         } /* LD   C,H         */
+void op_4d(void) { C = L;                                                                                         } /* LD   C,L         */
+void op_4e(void) { C = RM(HL);                                                                                    } /* LD   C,(HL)      */
+void op_4f(void) { C = A;                                                                                         } /* LD   C,A         */
 
-INLINE void op_50(void) { D = B;                                                                                         } /* LD   D,B         */
-INLINE void op_51(void) { D = C;                                                                                         } /* LD   D,C         */
-INLINE void op_52(void) {                                                                                                } /* LD   D,D         */
-INLINE void op_53(void) { D = E;                                                                                         } /* LD   D,E         */
-INLINE void op_54(void) { D = H;                                                                                         } /* LD   D,H         */
-INLINE void op_55(void) { D = L;                                                                                         } /* LD   D,L         */
-INLINE void op_56(void) { D = RM(HL);                                                                                    } /* LD   D,(HL)      */
-INLINE void op_57(void) { D = A;                                                                                         } /* LD   D,A         */
+void op_50(void) { D = B;                                                                                         } /* LD   D,B         */
+void op_51(void) { D = C;                                                                                         } /* LD   D,C         */
+void op_52(void) {                                                                                                } /* LD   D,D         */
+void op_53(void) { D = E;                                                                                         } /* LD   D,E         */
+void op_54(void) { D = H;                                                                                         } /* LD   D,H         */
+void op_55(void) { D = L;                                                                                         } /* LD   D,L         */
+void op_56(void) { D = RM(HL);                                                                                    } /* LD   D,(HL)      */
+void op_57(void) { D = A;                                                                                         } /* LD   D,A         */
 
-INLINE void op_58(void) { E = B;                                                                                         } /* LD   E,B         */
-INLINE void op_59(void) { E = C;                                                                                         } /* LD   E,C         */
-INLINE void op_5a(void) { E = D;                                                                                         } /* LD   E,D         */
-INLINE void op_5b(void) {                                                                                                } /* LD   E,E         */
-INLINE void op_5c(void) { E = H;                                                                                         } /* LD   E,H         */
-INLINE void op_5d(void) { E = L;                                                                                         } /* LD   E,L         */
-INLINE void op_5e(void) { E = RM(HL);                                                                                    } /* LD   E,(HL)      */
-INLINE void op_5f(void) { E = A;                                                                                         } /* LD   E,A         */
+void op_58(void) { E = B;                                                                                         } /* LD   E,B         */
+void op_59(void) { E = C;                                                                                         } /* LD   E,C         */
+void op_5a(void) { E = D;                                                                                         } /* LD   E,D         */
+void op_5b(void) {                                                                                                } /* LD   E,E         */
+void op_5c(void) { E = H;                                                                                         } /* LD   E,H         */
+void op_5d(void) { E = L;                                                                                         } /* LD   E,L         */
+void op_5e(void) { E = RM(HL);                                                                                    } /* LD   E,(HL)      */
+void op_5f(void) { E = A;                                                                                         } /* LD   E,A         */
 
-INLINE void op_60(void) { H = B;                                                                                         } /* LD   H,B         */
-INLINE void op_61(void) { H = C;                                                                                         } /* LD   H,C         */
-INLINE void op_62(void) { H = D;                                                                                         } /* LD   H,D         */
-INLINE void op_63(void) { H = E;                                                                                         } /* LD   H,E         */
-INLINE void op_64(void) {                                                                                                } /* LD   H,H         */
-INLINE void op_65(void) { H = L;                                                                                         } /* LD   H,L         */
-INLINE void op_66(void) { H = RM(HL);                                                                                    } /* LD   H,(HL)      */
-INLINE void op_67(void) { H = A;                                                                                         } /* LD   H,A         */
+void op_60(void) { H = B;                                                                                         } /* LD   H,B         */
+void op_61(void) { H = C;                                                                                         } /* LD   H,C         */
+void op_62(void) { H = D;                                                                                         } /* LD   H,D         */
+void op_63(void) { H = E;                                                                                         } /* LD   H,E         */
+void op_64(void) {                                                                                                } /* LD   H,H         */
+void op_65(void) { H = L;                                                                                         } /* LD   H,L         */
+void op_66(void) { H = RM(HL);                                                                                    } /* LD   H,(HL)      */
+void op_67(void) { H = A;                                                                                         } /* LD   H,A         */
 
-INLINE void op_68(void) { L = B;                                                                                         } /* LD   L,B         */
-INLINE void op_69(void) { L = C;                                                                                         } /* LD   L,C         */
-INLINE void op_6a(void) { L = D;                                                                                         } /* LD   L,D         */
-INLINE void op_6b(void) { L = E;                                                                                         } /* LD   L,E         */
-INLINE void op_6c(void) { L = H;                                                                                         } /* LD   L,H         */
-INLINE void op_6d(void) {                                                                                                } /* LD   L,L         */
-INLINE void op_6e(void) { L = RM(HL);                                                                                    } /* LD   L,(HL)      */
-INLINE void op_6f(void) { L = A;                                                                                         } /* LD   L,A         */
+void op_68(void) { L = B;                                                                                         } /* LD   L,B         */
+void op_69(void) { L = C;                                                                                         } /* LD   L,C         */
+void op_6a(void) { L = D;                                                                                         } /* LD   L,D         */
+void op_6b(void) { L = E;                                                                                         } /* LD   L,E         */
+void op_6c(void) { L = H;                                                                                         } /* LD   L,H         */
+void op_6d(void) {                                                                                                } /* LD   L,L         */
+void op_6e(void) { L = RM(HL);                                                                                    } /* LD   L,(HL)      */
+void op_6f(void) { L = A;                                                                                         } /* LD   L,A         */
 
-INLINE void op_70(void) { WM( HL, B );                                                                                   } /* LD   (HL),B      */
-INLINE void op_71(void) { WM( HL, C );                                                                                   } /* LD   (HL),C      */
-INLINE void op_72(void) { WM( HL, D );                                                                                   } /* LD   (HL),D      */
-INLINE void op_73(void) { WM( HL, E );                                                                                   } /* LD   (HL),E      */
-INLINE void op_74(void) { WM( HL, H );                                                                                   } /* LD   (HL),H      */
-INLINE void op_75(void) { WM( HL, L );                                                                                   } /* LD   (HL),L      */
-INLINE void op_76(void) { ENTER_HALT;                                                                                    } /* HALT             */
-INLINE void op_77(void) { WM( HL, A );                                                                                   } /* LD   (HL),A      */
+void op_70(void) { WM( HL, B );                                                                                   } /* LD   (HL),B      */
+void op_71(void) { WM( HL, C );                                                                                   } /* LD   (HL),C      */
+void op_72(void) { WM( HL, D );                                                                                   } /* LD   (HL),D      */
+void op_73(void) { WM( HL, E );                                                                                   } /* LD   (HL),E      */
+void op_74(void) { WM( HL, H );                                                                                   } /* LD   (HL),H      */
+void op_75(void) { WM( HL, L );                                                                                   } /* LD   (HL),L      */
+void op_76(void) { ENTER_HALT;                                                                                    } /* HALT             */
+void op_77(void) { WM( HL, A );                                                                                   } /* LD   (HL),A      */
 
-INLINE void op_78(void) { A = B;                                                                                         } /* LD   A,B         */
-INLINE void op_79(void) { A = C;                                                                                         } /* LD   A,C         */
-INLINE void op_7a(void) { A = D;                                                                                         } /* LD   A,D         */
-INLINE void op_7b(void) { A = E;                                                                                         } /* LD   A,E         */
-INLINE void op_7c(void) { A = H;                                                                                         } /* LD   A,H         */
-INLINE void op_7d(void) { A = L;                                                                                         } /* LD   A,L         */
-INLINE void op_7e(void) { A = RM(HL);                                                                                    } /* LD   A,(HL)      */
-INLINE void op_7f(void) {                                                                                                } /* LD   A,A         */
+void op_78(void) { A = B;                                                                                         } /* LD   A,B         */
+void op_79(void) { A = C;                                                                                         } /* LD   A,C         */
+void op_7a(void) { A = D;                                                                                         } /* LD   A,D         */
+void op_7b(void) { A = E;                                                                                         } /* LD   A,E         */
+void op_7c(void) { A = H;                                                                                         } /* LD   A,H         */
+void op_7d(void) { A = L;                                                                                         } /* LD   A,L         */
+void op_7e(void) { A = RM(HL);                                                                                    } /* LD   A,(HL)      */
+void op_7f(void) {                                                                                                } /* LD   A,A         */
 
-INLINE void op_80(void) { ADD(B);                                                                                        } /* ADD  A,B         */
-INLINE void op_81(void) { ADD(C);                                                                                        } /* ADD  A,C         */
-INLINE void op_82(void) { ADD(D);                                                                                        } /* ADD  A,D         */
-INLINE void op_83(void) { ADD(E);                                                                                        } /* ADD  A,E         */
-INLINE void op_84(void) { ADD(H);                                                                                        } /* ADD  A,H         */
-INLINE void op_85(void) { ADD(L);                                                                                        } /* ADD  A,L         */
-INLINE void op_86(void) { ADD(RM(HL));                                                                                   } /* ADD  A,(HL)      */
-INLINE void op_87(void) { ADD(A);                                                                                        } /* ADD  A,A         */
+void op_80(void) { ADD(B);                                                                                        } /* ADD  A,B         */
+void op_81(void) { ADD(C);                                                                                        } /* ADD  A,C         */
+void op_82(void) { ADD(D);                                                                                        } /* ADD  A,D         */
+void op_83(void) { ADD(E);                                                                                        } /* ADD  A,E         */
+void op_84(void) { ADD(H);                                                                                        } /* ADD  A,H         */
+void op_85(void) { ADD(L);                                                                                        } /* ADD  A,L         */
+void op_86(void) { ADD(RM(HL));                                                                                   } /* ADD  A,(HL)      */
+void op_87(void) { ADD(A);                                                                                        } /* ADD  A,A         */
 
-INLINE void op_88(void) { ADC(B);                                                                                        } /* ADC  A,B         */
-INLINE void op_89(void) { ADC(C);                                                                                        } /* ADC  A,C         */
-INLINE void op_8a(void) { ADC(D);                                                                                        } /* ADC  A,D         */
-INLINE void op_8b(void) { ADC(E);                                                                                        } /* ADC  A,E         */
-INLINE void op_8c(void) { ADC(H);                                                                                        } /* ADC  A,H         */
-INLINE void op_8d(void) { ADC(L);                                                                                        } /* ADC  A,L         */
-INLINE void op_8e(void) { ADC(RM(HL));                                                                                   } /* ADC  A,(HL)      */
-INLINE void op_8f(void) { ADC(A);                                                                                        } /* ADC  A,A         */
+void op_88(void) { ADC(B);                                                                                        } /* ADC  A,B         */
+void op_89(void) { ADC(C);                                                                                        } /* ADC  A,C         */
+void op_8a(void) { ADC(D);                                                                                        } /* ADC  A,D         */
+void op_8b(void) { ADC(E);                                                                                        } /* ADC  A,E         */
+void op_8c(void) { ADC(H);                                                                                        } /* ADC  A,H         */
+void op_8d(void) { ADC(L);                                                                                        } /* ADC  A,L         */
+void op_8e(void) { ADC(RM(HL));                                                                                   } /* ADC  A,(HL)      */
+void op_8f(void) { ADC(A);                                                                                        } /* ADC  A,A         */
 
-INLINE void op_90(void) { SUB(B);                                                                                        } /* SUB  B           */
-INLINE void op_91(void) { SUB(C);                                                                                        } /* SUB  C           */
-INLINE void op_92(void) { SUB(D);                                                                                        } /* SUB  D           */
-INLINE void op_93(void) { SUB(E);                                                                                        } /* SUB  E           */
-INLINE void op_94(void) { SUB(H);                                                                                        } /* SUB  H           */
-INLINE void op_95(void) { SUB(L);                                                                                        } /* SUB  L           */
-INLINE void op_96(void) { SUB(RM(HL));                                                                                   } /* SUB  (HL)        */
-INLINE void op_97(void) { SUB(A);                                                                                        } /* SUB  A           */
+void op_90(void) { SUB(B);                                                                                        } /* SUB  B           */
+void op_91(void) { SUB(C);                                                                                        } /* SUB  C           */
+void op_92(void) { SUB(D);                                                                                        } /* SUB  D           */
+void op_93(void) { SUB(E);                                                                                        } /* SUB  E           */
+void op_94(void) { SUB(H);                                                                                        } /* SUB  H           */
+void op_95(void) { SUB(L);                                                                                        } /* SUB  L           */
+void op_96(void) { SUB(RM(HL));                                                                                   } /* SUB  (HL)        */
+void op_97(void) { SUB(A);                                                                                        } /* SUB  A           */
 
-INLINE void op_98(void) { SBC(B);                                                                                        } /* SBC  A,B         */
-INLINE void op_99(void) { SBC(C);                                                                                        } /* SBC  A,C         */
-INLINE void op_9a(void) { SBC(D);                                                                                        } /* SBC  A,D         */
-INLINE void op_9b(void) { SBC(E);                                                                                        } /* SBC  A,E         */
-INLINE void op_9c(void) { SBC(H);                                                                                        } /* SBC  A,H         */
-INLINE void op_9d(void) { SBC(L);                                                                                        } /* SBC  A,L         */
-INLINE void op_9e(void) { SBC(RM(HL));                                                                                   } /* SBC  A,(HL)      */
-INLINE void op_9f(void) { SBC(A);                                                                                        } /* SBC  A,A         */
+void op_98(void) { SBC(B);                                                                                        } /* SBC  A,B         */
+void op_99(void) { SBC(C);                                                                                        } /* SBC  A,C         */
+void op_9a(void) { SBC(D);                                                                                        } /* SBC  A,D         */
+void op_9b(void) { SBC(E);                                                                                        } /* SBC  A,E         */
+void op_9c(void) { SBC(H);                                                                                        } /* SBC  A,H         */
+void op_9d(void) { SBC(L);                                                                                        } /* SBC  A,L         */
+void op_9e(void) { SBC(RM(HL));                                                                                   } /* SBC  A,(HL)      */
+void op_9f(void) { SBC(A);                                                                                        } /* SBC  A,A         */
 
-INLINE void op_a0(void) { AND(B);                                                                                        } /* AND  B           */
-INLINE void op_a1(void) { AND(C);                                                                                        } /* AND  C           */
-INLINE void op_a2(void) { AND(D);                                                                                        } /* AND  D           */
-INLINE void op_a3(void) { AND(E);                                                                                        } /* AND  E           */
-INLINE void op_a4(void) { AND(H);                                                                                        } /* AND  H           */
-INLINE void op_a5(void) { AND(L);                                                                                        } /* AND  L           */
-INLINE void op_a6(void) { AND(RM(HL));                                                                                   } /* AND  (HL)        */
-INLINE void op_a7(void) { AND(A);                                                                                        } /* AND  A           */
+void op_a0(void) { AND(B);                                                                                        } /* AND  B           */
+void op_a1(void) { AND(C);                                                                                        } /* AND  C           */
+void op_a2(void) { AND(D);                                                                                        } /* AND  D           */
+void op_a3(void) { AND(E);                                                                                        } /* AND  E           */
+void op_a4(void) { AND(H);                                                                                        } /* AND  H           */
+void op_a5(void) { AND(L);                                                                                        } /* AND  L           */
+void op_a6(void) { AND(RM(HL));                                                                                   } /* AND  (HL)        */
+void op_a7(void) { AND(A);                                                                                        } /* AND  A           */
 
-INLINE void op_a8(void) { XOR(B);                                                                                        } /* XOR  B           */
-INLINE void op_a9(void) { XOR(C);                                                                                        } /* XOR  C           */
-INLINE void op_aa(void) { XOR(D);                                                                                        } /* XOR  D           */
-INLINE void op_ab(void) { XOR(E);                                                                                        } /* XOR  E           */
-INLINE void op_ac(void) { XOR(H);                                                                                        } /* XOR  H           */
-INLINE void op_ad(void) { XOR(L);                                                                                        } /* XOR  L           */
-INLINE void op_ae(void) { XOR(RM(HL));                                                                                   } /* XOR  (HL)        */
-INLINE void op_af(void) { XOR(A);                                                                                        } /* XOR  A           */
+void op_a8(void) { XOR(B);                                                                                        } /* XOR  B           */
+void op_a9(void) { XOR(C);                                                                                        } /* XOR  C           */
+void op_aa(void) { XOR(D);                                                                                        } /* XOR  D           */
+void op_ab(void) { XOR(E);                                                                                        } /* XOR  E           */
+void op_ac(void) { XOR(H);                                                                                        } /* XOR  H           */
+void op_ad(void) { XOR(L);                                                                                        } /* XOR  L           */
+void op_ae(void) { XOR(RM(HL));                                                                                   } /* XOR  (HL)        */
+void op_af(void) { XOR(A);                                                                                        } /* XOR  A           */
 
-INLINE void op_b0(void) { OR(B);                                                                                         } /* OR   B           */
-INLINE void op_b1(void) { OR(C);                                                                                         } /* OR   C           */
-INLINE void op_b2(void) { OR(D);                                                                                         } /* OR   D           */
-INLINE void op_b3(void) { OR(E);                                                                                         } /* OR   E           */
-INLINE void op_b4(void) { OR(H);                                                                                         } /* OR   H           */
-INLINE void op_b5(void) { OR(L);                                                                                         } /* OR   L           */
-INLINE void op_b6(void) { OR(RM(HL));                                                                                    } /* OR   (HL)        */
-INLINE void op_b7(void) { OR(A);                                                                                         } /* OR   A           */
+void op_b0(void) { OR(B);                                                                                         } /* OR   B           */
+void op_b1(void) { OR(C);                                                                                         } /* OR   C           */
+void op_b2(void) { OR(D);                                                                                         } /* OR   D           */
+void op_b3(void) { OR(E);                                                                                         } /* OR   E           */
+void op_b4(void) { OR(H);                                                                                         } /* OR   H           */
+void op_b5(void) { OR(L);                                                                                         } /* OR   L           */
+void op_b6(void) { OR(RM(HL));                                                                                    } /* OR   (HL)        */
+void op_b7(void) { OR(A);                                                                                         } /* OR   A           */
 
-INLINE void op_b8(void) { CP(B);                                                                                         } /* CP   B           */
-INLINE void op_b9(void) { CP(C);                                                                                         } /* CP   C           */
-INLINE void op_ba(void) { CP(D);                                                                                         } /* CP   D           */
-INLINE void op_bb(void) { CP(E);                                                                                         } /* CP   E           */
-INLINE void op_bc(void) { CP(H);                                                                                         } /* CP   H           */
-INLINE void op_bd(void) { CP(L);                                                                                         } /* CP   L           */
-INLINE void op_be(void) { CP(RM(HL));                                                                                    } /* CP   (HL)        */
-INLINE void op_bf(void) { CP(A);                                                                                         } /* CP   A           */
+void op_b8(void) { CP(B);                                                                                         } /* CP   B           */
+void op_b9(void) { CP(C);                                                                                         } /* CP   C           */
+void op_ba(void) { CP(D);                                                                                         } /* CP   D           */
+void op_bb(void) { CP(E);                                                                                         } /* CP   E           */
+void op_bc(void) { CP(H);                                                                                         } /* CP   H           */
+void op_bd(void) { CP(L);                                                                                         } /* CP   L           */
+void op_be(void) { CP(RM(HL));                                                                                    } /* CP   (HL)        */
+void op_bf(void) { CP(A);                                                                                         } /* CP   A           */
 
-INLINE void op_c0(void) { RET_COND( !(F & ZF), 0xc0 );                                                                   } /* RET  NZ          */
-INLINE void op_c1(void) { POP( bc );                                                                                     } /* POP  BC          */
-INLINE void op_c2(void) { JP_COND( !(F & ZF) );                                                                          } /* JP   NZ,a        */
-INLINE void op_c3(void) { JP;                                                                                            } /* JP   a           */
-INLINE void op_c4(void) { CALL_COND( !(F & ZF), 0xc4 );                                                                  } /* CALL NZ,a        */
-INLINE void op_c5(void) { PUSH( bc );                                                                                    } /* PUSH BC          */
-INLINE void op_c6(void) { ADD(ARG());                                                                                    } /* ADD  A,n         */
-INLINE void op_c7(void) { RST(0x00);                                                                                     } /* RST  0           */
+void op_c0(void) { RET_COND( !(F & ZF), 0xc0 );                                                                   } /* RET  NZ          */
+void op_c1(void) { POP( bc );                                                                                     } /* POP  BC          */
+void op_c2(void) { JP_COND( !(F & ZF) );                                                                          } /* JP   NZ,a        */
+void op_c3(void) { JP();                                                                                            } /* JP   a           */
+void op_c4(void) { CALL_COND( !(F & ZF), 0xc4 );                                                                  } /* CALL NZ,a        */
+void op_c5(void) { PUSH( bc );                                                                                    } /* PUSH BC          */
+void op_c6(void) { ADD(ARG());                                                                                    } /* ADD  A,n         */
+void op_c7(void) { RST(0x00);                                                                                     } /* RST  0           */
 
-INLINE void op_c8(void) { RET_COND( F & ZF, 0xc8 );                                                                      } /* RET  Z           */
-INLINE void op_c9(void) { POP( pc ); WZ=PCD;                                                                             } /* RET              */
-INLINE void op_ca(void) { JP_COND( F & ZF );                                                                             } /* JP   Z,a         */
-INLINE void op_cb(void) { R++; EXEC(cb,ROP());                                                                           } /* **** CB xx       */
-INLINE void op_cc(void) { CALL_COND( F & ZF, 0xcc );                                                                     } /* CALL Z,a         */
-INLINE void op_cd(void) { CALL();                                                                                        } /* CALL a           */
-INLINE void op_ce(void) { ADC(ARG());                                                                                    } /* ADC  A,n         */
-INLINE void op_cf(void) { RST(0x08);                                                                                     } /* RST  1           */
+void op_c8(void) { RET_COND( F & ZF, 0xc8 );                                                                      } /* RET  Z           */
+void op_c9(void) { POP( pc ); WZ=PCD;                                                                             } /* RET              */
+void op_ca(void) { JP_COND( F & ZF );                                                                             } /* JP   Z,a         */
+void op_cb(void) { R++; EXEC(cb,ROP());                                                                           } /* **** CB xx       */
+void op_cc(void) { CALL_COND( F & ZF, 0xcc );                                                                     } /* CALL Z,a         */
+void op_cd(void) { CALL();                                                                                        } /* CALL a           */
+void op_ce(void) { ADC(ARG());                                                                                    } /* ADC  A,n         */
+void op_cf(void) { RST(0x08);                                                                                     } /* RST  1           */
 
-INLINE void op_d0(void) { RET_COND( !(F & CF), 0xd0 );                                                                   } /* RET  NC          */
-INLINE void op_d1(void) { POP( de );                                                                                     } /* POP  DE          */
-INLINE void op_d2(void) { JP_COND( !(F & CF) );                                                                          } /* JP   NC,a        */
-INLINE void op_d3(void) { unsigned n = ARG() | (A << 8); OUT( n, A ); WZ_L = ((n & 0xff) + 1) & 0xff;  WZ_H = A; } /* OUT  (n),A       */
-INLINE void op_d4(void) { CALL_COND( !(F & CF), 0xd4 );                                                                  } /* CALL NC,a        */
-INLINE void op_d5(void) { PUSH( de );                                                                                    } /* PUSH DE          */
-INLINE void op_d6(void) { SUB(ARG());                                                                                    } /* SUB  n           */
-INLINE void op_d7(void) { RST(0x10);                                                                                     } /* RST  2           */
+void op_d0(void) { RET_COND( !(F & CF), 0xd0 );                                                                   } /* RET  NC          */
+void op_d1(void) { POP( de );                                                                                     } /* POP  DE          */
+void op_d2(void) { JP_COND( !(F & CF) );                                                                          } /* JP   NC,a        */
+void op_d3(void) { unsigned n = ARG() | (A << 8); OUT( n, A ); WZ_L = ((n & 0xff) + 1) & 0xff;  WZ_H = A; } /* OUT  (n),A       */
+void op_d4(void) { CALL_COND( !(F & CF), 0xd4 );                                                                  } /* CALL NC,a        */
+void op_d5(void) { PUSH( de );                                                                                    } /* PUSH DE          */
+void op_d6(void) { SUB(ARG());                                                                                    } /* SUB  n           */
+void op_d7(void) { RST(0x10);                                                                                     } /* RST  2           */
 
-INLINE void op_d8(void) { RET_COND( F & CF, 0xd8 );                                                                      } /* RET  C           */
-INLINE void op_d9(void) { EXX();                                                                                           } /* EXX              */
-INLINE void op_da(void) { JP_COND( F & CF );                                                                             } /* JP   C,a         */
-INLINE void op_db(void) { unsigned n = ARG() | (A << 8); A = IN( n ); WZ = n + 1;                                        } /* IN   A,(n)       */
-INLINE void op_dc(void) { CALL_COND( F & CF, 0xdc );                                                                     } /* CALL C,a         */
-INLINE void op_dd(void) { R++; EXEC(dd,ROP());                                                                           } /* **** DD xx       */
-INLINE void op_de(void) { SBC(ARG());                                                                                    } /* SBC  A,n         */
-INLINE void op_df(void) { RST(0x18);                                                                                     } /* RST  3           */
+void op_d8(void) { RET_COND( F & CF, 0xd8 );                                                                      } /* RET  C           */
+void op_d9(void) { EXX();                                                                                           } /* EXX              */
+void op_da(void) { JP_COND( F & CF );                                                                             } /* JP   C,a         */
+void op_db(void) { unsigned n = ARG() | (A << 8); A = IN( n ); WZ = n + 1;                                        } /* IN   A,(n)       */
+void op_dc(void) { CALL_COND( F & CF, 0xdc );                                                                     } /* CALL C,a         */
+void op_dd(void) { R++; EXEC(dd,ROP());                                                                           } /* **** DD xx       */
+void op_de(void) { SBC(ARG());                                                                                    } /* SBC  A,n         */
+void op_df(void) { RST(0x18);                                                                                     } /* RST  3           */
 
-INLINE void op_e0(void) { RET_COND( !(F & PF), 0xe0 );                                                                   } /* RET  PO          */
-INLINE void op_e1(void) { POP( hl );                                                                                     } /* POP  HL          */
-INLINE void op_e2(void) { JP_COND( !(F & PF) );                                                                          } /* JP   PO,a        */
-INLINE void op_e3(void) { EXSP( hl );                                                                                    } /* EX   HL,(SP)     */
-INLINE void op_e4(void) { CALL_COND( !(F & PF), 0xe4 );                                                                  } /* CALL PO,a        */
-INLINE void op_e5(void) { PUSH( hl );                                                                                    } /* PUSH HL          */
-INLINE void op_e6(void) { AND(ARG());                                                                                    } /* AND  n           */
-INLINE void op_e7(void) { RST(0x20);                                                                                     } /* RST  4           */
+void op_e0(void) { RET_COND( !(F & PF), 0xe0 );                                                                   } /* RET  PO          */
+void op_e1(void) { POP( hl );                                                                                     } /* POP  HL          */
+void op_e2(void) { JP_COND( !(F & PF) );                                                                          } /* JP   PO,a        */
+void op_e3(void) { EXSP( hl );                                                                                    } /* EX   HL,(SP)     */
+void op_e4(void) { CALL_COND( !(F & PF), 0xe4 );                                                                  } /* CALL PO,a        */
+void op_e5(void) { PUSH( hl );                                                                                    } /* PUSH HL          */
+void op_e6(void) { AND(ARG());                                                                                    } /* AND  n           */
+void op_e7(void) { RST(0x20);                                                                                     } /* RST  4           */
 
-INLINE void op_e8(void) { RET_COND( F & PF, 0xe8 );                                                                      } /* RET  PE          */
-INLINE void op_e9(void) { PC = HL;                                                                                       } /* JP   (HL)        */
-INLINE void op_ea(void) { JP_COND( F & PF );                                                                             } /* JP   PE,a        */
-INLINE void op_eb(void) { EX_DE_HL();                                                                                      } /* EX   DE,HL       */
-INLINE void op_ec(void) { CALL_COND( F & PF, 0xec );                                                                     } /* CALL PE,a        */
-INLINE void op_ed(void) { R++; EXEC(ed,ROP());                                                                           } /* **** ED xx       */
-INLINE void op_ee(void) { XOR(ARG());                                                                                    } /* XOR  n           */
-INLINE void op_ef(void) { RST(0x28);                                                                                     } /* RST  5           */
+void op_e8(void) { RET_COND( F & PF, 0xe8 );                                                                      } /* RET  PE          */
+void op_e9(void) { PC = HL;                                                                                       } /* JP   (HL)        */
+void op_ea(void) { JP_COND( F & PF );                                                                             } /* JP   PE,a        */
+void op_eb(void) { EX_DE_HL();                                                                                      } /* EX   DE,HL       */
+void op_ec(void) { CALL_COND( F & PF, 0xec );                                                                     } /* CALL PE,a        */
+void op_ed(void) { R++; EXEC(ed,ROP());                                                                           } /* **** ED xx       */
+void op_ee(void) { XOR(ARG());                                                                                    } /* XOR  n           */
+void op_ef(void) { RST(0x28);                                                                                     } /* RST  5           */
 
-INLINE void op_f0(void) { RET_COND( !(F & SF), 0xf0 );                                                                   } /* RET  P           */
-INLINE void op_f1(void) { POP( af );                                                                                     } /* POP  AF          */
-INLINE void op_f2(void) { JP_COND( !(F & SF) );                                                                          } /* JP   P,a         */
-INLINE void op_f3(void) { IFF1 = IFF2 = 0;                                                                               } /* DI               */
-INLINE void op_f4(void) { CALL_COND( !(F & SF), 0xf4 );                                                                  } /* CALL P,a         */
-INLINE void op_f5(void) { PUSH( af );                                                                                    } /* PUSH AF          */
-INLINE void op_f6(void) { OR(ARG());                                                                                     } /* OR   n           */
-INLINE void op_f7(void) { RST(0x30);                                                                                     } /* RST  6           */
+void op_f0(void) { RET_COND( !(F & SF), 0xf0 );                                                                   } /* RET  P           */
+void op_f1(void) { POP( af );                                                                                     } /* POP  AF          */
+void op_f2(void) { JP_COND( !(F & SF) );                                                                          } /* JP   P,a         */
+void op_f3(void) { IFF1 = IFF2 = 0;                                                                               } /* DI               */
+void op_f4(void) { CALL_COND( !(F & SF), 0xf4 );                                                                  } /* CALL P,a         */
+void op_f5(void) { PUSH( af );                                                                                    } /* PUSH AF          */
+void op_f6(void) { OR(ARG());                                                                                     } /* OR   n           */
+void op_f7(void) { RST(0x30);                                                                                     } /* RST  6           */
 
-INLINE void op_f8(void) { RET_COND( F & SF, 0xf8 );                                                                      } /* RET  M           */
-INLINE void op_f9(void) { SP = HL;                                                                                       } /* LD   SP,HL       */
-INLINE void op_fa(void) { JP_COND(F & SF);                                                                               } /* JP   M,a         */
-INLINE void op_fb(void) { EI();                                                                                            } /* EI               */
-INLINE void op_fc(void) { CALL_COND( F & SF, 0xfc );                                                                     } /* CALL M,a         */
-INLINE void op_fd(void) { R++; EXEC(fd,ROP());                                                                           } /* **** FD xx       */
-INLINE void op_fe(void) { CP(ARG());                                                                                     } /* CP   n           */
-INLINE void op_ff(void) { RST(0x38);                                                                                     } /* RST  7           */
+void op_f8(void) { RET_COND( F & SF, 0xf8 );                                                                      } /* RET  M           */
+void op_f9(void) { SP = HL;                                                                                       } /* LD   SP,HL       */
+void op_fa(void) { JP_COND(F & SF);                                                                               } /* JP   M,a         */
+void op_fb(void) { EI();                                                                                            } /* EI               */
+void op_fc(void) { CALL_COND( F & SF, 0xfc );                                                                     } /* CALL M,a         */
+void op_fd(void) { R++; EXEC(fd,ROP());                                                                           } /* **** FD xx       */
+void op_fe(void) { CP(ARG());                                                                                     } /* CP   n           */
+void op_ff(void) { RST(0x38);                                                                                     } /* RST  7           */
 
 
 static void take_interrupt(void)
@@ -3412,7 +3833,7 @@ void z80_run(unsigned int cycles)
 
     Z80.after_ei = FALSE;
     R++;
-    EXEC_INLINE(op,ROP());
+    EXEC(op,ROP());
   }
 } 
 
