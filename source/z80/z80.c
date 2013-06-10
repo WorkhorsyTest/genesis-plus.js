@@ -1008,22 +1008,30 @@ void LEAVE_HALT() {
 /***************************************************************
  * Input a byte from given I/O port
  ***************************************************************/
-#define IN(port) z80_readport(port)
+unsigned char IN(unsigned int port) {
+	return z80_readport(port);
+}
 
 /***************************************************************
  * Output a byte to given I/O port
  ***************************************************************/
-#define OUT(port,value) z80_writeport(port,value)
+void OUT(unsigned int port, unsigned char value) {
+	z80_writeport(port, value);
+}
 
 /***************************************************************
  * Read a byte from given memory location
  ***************************************************************/
-#define RM(addr) z80_readmem(addr)
+unsigned char RM(unsigned int address) {
+	z80_readmem(address);
+}
 
 /***************************************************************
  * Write a byte to given memory location
  ***************************************************************/
-#define WM(addr,value) z80_writemem(addr,value)
+void WM(unsigned int address, unsigned char value) {
+	z80_writemem(address, value);
+}
 
 /***************************************************************
  * Read a word from given memory location
@@ -1114,25 +1122,22 @@ void JP() {
 /***************************************************************
  * JP_COND
  ***************************************************************/
-#define JP_COND(cond) {                         \
-  if (cond)                                     \
-  {                                             \
-    PCD = ARG16();                              \
-    WZ = PCD;                                   \
-  }                                             \
-  else                                          \
-  {                                             \
-    WZ = ARG16(); /* implicit do PC += 2 */     \
-  }                                             \
+void JP_COND(bool cond) {
+  if (cond) {
+    PCD = ARG16();
+    WZ = PCD;
+  } else {
+    WZ = ARG16(); /* implicit do PC += 2 */
+  }
 }
 
 /***************************************************************
  * JR
  ***************************************************************/
-#define JR() {                                            \
-  INT8 arg = (INT8)ARG(); /* ARG() also increments PC */  \
-  PC += arg;        /* so don't do PC += ARG() */         \
-  WZ = PC;                                                \
+void JR() {
+  INT8 arg = (INT8)ARG(); /* ARG() also increments PC */
+  PC += arg;        /* so don't do PC += ARG() */
+  WZ = PC;
 }
 
 /***************************************************************
@@ -1150,11 +1155,11 @@ void JP() {
 /***************************************************************
  * CALL
  ***************************************************************/
-#define CALL() {                  \
-  EA = ARG16();                   \
-  WZ = EA;                        \
-  PUSH(pc);                       \
-  PCD = EA;                       \
+void CALL() {
+  EA = ARG16();
+  WZ = EA;
+  PUSH(pc);
+  PCD = EA;
 }
 
 /***************************************************************
@@ -1190,52 +1195,54 @@ void JP() {
 /***************************************************************
  * RETN
  ***************************************************************/
-#define RETN do { \
-  LOG(("Z80 #%d RETN IFF1:%d IFF2:%d\n", cpu_getactivecpu(), IFF1, IFF2)); \
-  POP( pc ); \
-  WZ = PC; \
-  IFF1 = IFF2; \
-} while (0)
+void RETN() {
+	do {
+	  LOG(("Z80 #%d RETN IFF1:%d IFF2:%d\n", cpu_getactivecpu(), IFF1, IFF2));
+	  POP( pc );
+	  WZ = PC;
+	  IFF1 = IFF2;
+	} while (0);
+}
 
 /***************************************************************
  * RETI
  ***************************************************************/
-#define RETI { \
-  POP( pc ); \
-  WZ = PC; \
-/* according to http://www.msxnet.org/tech/z80-documented.pdf */ \
-  IFF1 = IFF2; \
+void RETI() {
+  POP( pc );
+  WZ = PC;
+/* according to http://www.msxnet.org/tech/z80-documented.pdf */
+  IFF1 = IFF2;
 }
 
 /***************************************************************
  * LD  R,A
  ***************************************************************/
-#define LD_R_A {  \
-  R = A;  \
-  R2 = A & 0x80;  /* keep bit 7 of R */ \
+void LD_R_A() {
+  R = A;
+  R2 = A & 0x80;  /* keep bit 7 of R */
 }
 
 /***************************************************************
  * LD  A,R
  ***************************************************************/
-#define LD_A_R {  \
-  A = (R & 0x7f) | R2;  \
-  F = (F & CF) | SZ[A] | ( IFF2 << 2 ); \
+void LD_A_R() {
+  A = (R & 0x7f) | R2;
+  F = (F & CF) | SZ[A] | ( IFF2 << 2 );
 }
 
 /***************************************************************
  * LD  I,A
  ***************************************************************/
-#define LD_I_A {  \
-  I = A;  \
+void LD_I_A() {
+  I = A;
 }
 
 /***************************************************************
  * LD  A,I
  ***************************************************************/
-#define LD_A_I {  \
-  A = I;  \
-  F = (F & CF) | SZ[A] | ( IFF2 << 2 ); \
+void LD_A_I() {
+  A = I;
+  F = (F & CF) | SZ[A] | ( IFF2 << 2 );
 }
 
 /***************************************************************
@@ -1269,58 +1276,60 @@ UINT8 DEC(UINT8 value)
 /***************************************************************
  * RLCA
  ***************************************************************/
-#define RLCA                                        \
-  A = (A << 1) | (A >> 7);                          \
-  F = (F & (SF | ZF | PF)) | (A & (YF | XF | CF))
+void RLCA() {
+  A = (A << 1) | (A >> 7);
+  F = (F & (SF | ZF | PF)) | (A & (YF | XF | CF));
+}
 
 /***************************************************************
  * RRCA
  ***************************************************************/
-#define RRCA                                        \
-  F = (F & (SF | ZF | PF)) | (A & CF);              \
-  A = (A >> 1) | (A << 7);                          \
-  F |= (A & (YF | XF) )
+void RRCA() {
+  F = (F & (SF | ZF | PF)) | (A & CF);
+  A = (A >> 1) | (A << 7);
+  F |= (A & (YF | XF) );
+}
 
 /***************************************************************
  * RLA
  ***************************************************************/
-#define RLA {                                       \
-  UINT8 res = (A << 1) | (F & CF);                  \
-  UINT8 c = (A & 0x80) ? CF : 0;                    \
-  F = (F & (SF | ZF | PF)) | c | (res & (YF | XF)); \
-  A = res;                                          \
+void RLA() {
+  UINT8 res = (A << 1) | (F & CF);
+  UINT8 c = (A & 0x80) ? CF : 0;
+  F = (F & (SF | ZF | PF)) | c | (res & (YF | XF));
+  A = res;
 }
 
 /***************************************************************
  * RRA
  ***************************************************************/
-#define RRA {                                       \
-  UINT8 res = (A >> 1) | (F << 7);                  \
-  UINT8 c = (A & 0x01) ? CF : 0;                    \
-  F = (F & (SF | ZF | PF)) | c | (res & (YF | XF)); \
-  A = res;                                          \
+void RRA() {
+  UINT8 res = (A >> 1) | (F << 7);
+  UINT8 c = (A & 0x01) ? CF : 0;
+  F = (F & (SF | ZF | PF)) | c | (res & (YF | XF));
+  A = res;
 }
 
 /***************************************************************
  * RRD
  ***************************************************************/
-#define RRD {                                       \
-  UINT8 n = RM(HL);                                 \
-  WZ = HL+1;                                        \
-  WM( HL, (n >> 4) | (A << 4) );                    \
-  A = (A & 0xf0) | (n & 0x0f);                      \
-  F = (F & CF) | SZP[A];                            \
+void RRD() {
+  UINT8 n = RM(HL);
+  WZ = HL+1;
+  WM( HL, (n >> 4) | (A << 4) );
+  A = (A & 0xf0) | (n & 0x0f);
+  F = (F & CF) | SZP[A];
 }
 
 /***************************************************************
  * RLD
  ***************************************************************/
-#define RLD {                                       \
-  UINT8 n = RM(HL);                                 \
-  WZ = HL+1;                                        \
-  WM( HL, (n << 4) | (A & 0x0f) );                  \
-  A = (A & 0xf0) | (n >> 4);                        \
-  F = (F & CF) | SZP[A];                            \
+void RLD() {
+  UINT8 n = RM(HL);
+  WZ = HL+1;
+  WM( HL, (n << 4) | (A & 0x0f) );
+  A = (A & 0xf0) | (n >> 4);
+  F = (F & CF) | SZP[A];
 }
 
 /***************************************************************
@@ -1370,28 +1379,27 @@ UINT8 DEC(UINT8 value)
 /***************************************************************
  * NEG
  ***************************************************************/
-#define NEG {                                       \
-  UINT8 value = A;                                  \
-  A = 0;                                            \
-  SUB(value);                                       \
+void NEG() {
+  UINT8 value = A;
+  A = 0;
+  SUB(value);
 }
 
 /***************************************************************
  * DAA
  ***************************************************************/
-#define DAA {                                       \
-  UINT8 a = A;                                      \
-  if (F & NF) {                                     \
-    if ((F&HF) | ((A&0xf)>9)) a-=6;                 \
-    if ((F&CF) | (A>0x99)) a-=0x60;                 \
-  }                                                 \
-  else {                                            \
-    if ((F&HF) | ((A&0xf)>9)) a+=6;                 \
-    if ((F&CF) | (A>0x99)) a+=0x60;                 \
-  }                                                 \
-                                                    \
-  F = (F&(CF|NF)) | (A>0x99) | ((A^a)&HF) | SZP[a]; \
-  A = a;                                            \
+void DAA() {
+  UINT8 a = A;
+  if (F & NF) {
+    if ((F&HF) | ((A&0xf)>9)) a-=6;
+    if ((F&CF) | (A>0x99)) a-=0x60;
+  } else {
+    if ((F&HF) | ((A&0xf)>9)) a+=6;
+    if ((F&CF) | (A>0x99)) a+=0x60;
+  }
+
+  F = (F&(CF|NF)) | (A>0x99) | ((A^a)&HF) | SZP[a];
+  A = a;
 }
 
 /***************************************************************
@@ -1429,10 +1437,9 @@ UINT8 DEC(UINT8 value)
 /***************************************************************
  * EX  AF,AF'
  ***************************************************************/
-#define EX_AF                                       \
-{                                                   \
-  PAIR tmp;                                         \
-  tmp = Z80.af; Z80.af = Z80.af2; Z80.af2 = tmp;    \
+void EX_AF() {
+  PAIR tmp;
+  tmp = Z80.af; Z80.af = Z80.af2; Z80.af2 = tmp;
 }
 
 /***************************************************************
@@ -1645,169 +1652,172 @@ UINT8 SET(UINT8 bit, UINT8 value)
 /***************************************************************
  * LDI
  ***************************************************************/
-#define LDI {                                           \
-  UINT8 io = RM(HL);                                    \
-  WM( DE, io );                                         \
-  F &= SF | ZF | CF;                                    \
-  if( (A + io) & 0x02 ) F |= YF; /* bit 1 -> flag 5 */  \
-  if( (A + io) & 0x08 ) F |= XF; /* bit 3 -> flag 3 */  \
-  HL++; DE++; BC--;                                     \
-  if( BC ) F |= VF;                                     \
+void LDI() {
+  UINT8 io = RM(HL);
+  WM( DE, io );
+  F &= SF | ZF | CF;
+  if( (A + io) & 0x02 ) F |= YF; /* bit 1 -> flag 5 */
+  if( (A + io) & 0x08 ) F |= XF; /* bit 3 -> flag 3 */
+  HL++; DE++; BC--;
+  if( BC ) F |= VF;
 }
 
 /***************************************************************
  * CPI
  ***************************************************************/
-#define CPI {                                                 \
-  UINT8 val = RM(HL);                                         \
-  UINT8 res = A - val;                                        \
-  WZ++;                                                       \
-  HL++; BC--;                                                 \
-  F = (F & CF) | (SZ[res]&~(YF|XF)) | ((A^val^res)&HF) | NF;  \
-  if( F & HF ) res -= 1;                                      \
-  if( res & 0x02 ) F |= YF; /* bit 1 -> flag 5 */             \
-  if( res & 0x08 ) F |= XF; /* bit 3 -> flag 3 */             \
-  if( BC ) F |= VF;                                           \
+void CPI() {
+  UINT8 val = RM(HL);
+  UINT8 res = A - val;
+  WZ++;
+  HL++; BC--;
+  F = (F & CF) | (SZ[res]&~(YF|XF)) | ((A^val^res)&HF) | NF;
+  if( F & HF ) res -= 1;
+  if( res & 0x02 ) F |= YF; /* bit 1 -> flag 5 */
+  if( res & 0x08 ) F |= XF; /* bit 3 -> flag 3 */
+  if( BC ) F |= VF;
 }
 
 /***************************************************************
  * INI
  ***************************************************************/
-#define INI {                                           \
-  unsigned t;                                           \
-  UINT8 io = IN(BC);                                    \
-  WZ = BC + 1;                                          \
-  CC(ex,0xa2);                                          \
-  B--;                                                  \
-  WM( HL, io );                                         \
-  HL++;                                                 \
-  F = SZ[B];                                            \
-  t = (unsigned)((C + 1) & 0xff) + (unsigned)io;        \
-  if( io & SF ) F |= NF;                                \
-  if( t & 0x100 ) F |= HF | CF;                         \
-  F |= SZP[(UINT8)(t & 0x07) ^ B] & PF;                 \
+void INI() {
+  unsigned t;
+  UINT8 io = IN(BC);
+  WZ = BC + 1;
+  CC(ex,0xa2);
+  B--;
+  WM( HL, io );
+  HL++;
+  F = SZ[B];
+  t = (unsigned)((C + 1) & 0xff) + (unsigned)io;
+  if( io & SF ) F |= NF;
+  if( t & 0x100 ) F |= HF | CF;
+  F |= SZP[(UINT8)(t & 0x07) ^ B] & PF;
 }
 
 /***************************************************************
  * OUTI
  ***************************************************************/
-#define OUTI {                                          \
-  unsigned t;                                           \
-  UINT8 io = RM(HL);                                    \
-  B--;                                                  \
-  WZ = BC + 1;                                          \
-  OUT( BC, io );                                        \
-  HL++;                                                 \
-  F = SZ[B];                                            \
-  t = (unsigned)L + (unsigned)io;                       \
-  if( io & SF ) F |= NF;                                \
-  if( t & 0x100 ) F |= HF | CF;                         \
-  F |= SZP[(UINT8)(t & 0x07) ^ B] & PF;                 \
+void OUTI() {
+  unsigned t;
+  UINT8 io = RM(HL);
+  B--;
+  WZ = BC + 1;
+  OUT( BC, io );
+  HL++;
+  F = SZ[B];
+  t = (unsigned)L + (unsigned)io;
+  if( io & SF ) F |= NF;
+  if( t & 0x100 ) F |= HF | CF;
+  F |= SZP[(UINT8)(t & 0x07) ^ B] & PF;
 }
 
 /***************************************************************
  * LDD
  ***************************************************************/
-#define LDD {                                           \
-  UINT8 io = RM(HL);                                    \
-  WM( DE, io );                                         \
-  F &= SF | ZF | CF;                                    \
-  if( (A + io) & 0x02 ) F |= YF; /* bit 1 -> flag 5 */  \
-  if( (A + io) & 0x08 ) F |= XF; /* bit 3 -> flag 3 */  \
-  HL--; DE--; BC--;                                     \
-  if( BC ) F |= VF;                                     \
+void LDD() {
+  UINT8 io = RM(HL);
+  WM( DE, io );
+  F &= SF | ZF | CF;
+  if( (A + io) & 0x02 ) F |= YF; /* bit 1 -> flag 5 */
+  if( (A + io) & 0x08 ) F |= XF; /* bit 3 -> flag 3 */
+  HL--; DE--; BC--;
+  if( BC ) F |= VF;
 }
 
 /***************************************************************
  * CPD
  ***************************************************************/
-#define CPD {                                                 \
-  UINT8 val = RM(HL);                                         \
-  UINT8 res = A - val;                                        \
-  WZ--;                                                       \
-  HL--; BC--;                                                 \
-  F = (F & CF) | (SZ[res]&~(YF|XF)) | ((A^val^res)&HF) | NF;  \
-  if( F & HF ) res -= 1;                                      \
-  if( res & 0x02 ) F |= YF; /* bit 1 -> flag 5 */             \
-  if( res & 0x08 ) F |= XF; /* bit 3 -> flag 3 */             \
-  if( BC ) F |= VF;                                           \
+void CPD() {
+  UINT8 val = RM(HL);
+  UINT8 res = A - val;
+  WZ--;
+  HL--; BC--;
+  F = (F & CF) | (SZ[res]&~(YF|XF)) | ((A^val^res)&HF) | NF;
+  if( F & HF ) res -= 1;
+  if( res & 0x02 ) F |= YF; /* bit 1 -> flag 5 */
+  if( res & 0x08 ) F |= XF; /* bit 3 -> flag 3 */
+  if( BC ) F |= VF;
 }
 
 /***************************************************************
  * IND
  ***************************************************************/
-#define IND {                                           \
-  unsigned t;                                           \
-  UINT8 io = IN(BC);                                    \
-  WZ = BC - 1;                                          \
-  CC(ex,0xaa);                                          \
-  B--;                                                  \
-  WM( HL, io );                                         \
-  HL--;                                                 \
-  F = SZ[B];                                            \
-  t = ((unsigned)(C - 1) & 0xff) + (unsigned)io;        \
-  if( io & SF ) F |= NF;                                \
-  if( t & 0x100 ) F |= HF | CF;                         \
-  F |= SZP[(UINT8)(t & 0x07) ^ B] & PF;                 \
+void IND() {
+  unsigned t;
+  UINT8 io = IN(BC);
+  WZ = BC - 1;
+  CC(ex,0xaa);
+  B--;
+  WM( HL, io );
+  HL--;
+  F = SZ[B];
+  t = ((unsigned)(C - 1) & 0xff) + (unsigned)io;
+  if( io & SF ) F |= NF;
+  if( t & 0x100 ) F |= HF | CF;
+  F |= SZP[(UINT8)(t & 0x07) ^ B] & PF;
 }
 
 /***************************************************************
  * OUTD
  ***************************************************************/
-#define OUTD {                                          \
-  unsigned t;                                           \
-  UINT8 io = RM(HL);                                    \
-  B--;                                                  \
-  WZ = BC - 1;                                          \
-  OUT( BC, io );                                        \
-  HL--;                                                 \
-  F = SZ[B];                                            \
-  t = (unsigned)L + (unsigned)io;                       \
-  if( io & SF ) F |= NF;                                \
-  if( t & 0x100 ) F |= HF | CF;                         \
-  F |= SZP[(UINT8)(t & 0x07) ^ B] & PF;                 \
+void OUTD() {
+  unsigned t;
+  UINT8 io = RM(HL);
+  B--;
+  WZ = BC - 1;
+  OUT( BC, io );
+  HL--;
+  F = SZ[B];
+  t = (unsigned)L + (unsigned)io;
+  if( io & SF ) F |= NF;
+  if( t & 0x100 ) F |= HF | CF;
+  F |= SZP[(UINT8)(t & 0x07) ^ B] & PF;
 }
 
 /***************************************************************
  * LDIR
  ***************************************************************/
-#define LDIR            \
-  LDI;                  \
-  if( BC )              \
-  {                     \
-    PC -= 2;            \
-    WZ = PC + 1;        \
-    CC(ex,0xb0);        \
+void LDIR() {
+  LDI();
+  if( BC )
+  {
+    PC -= 2;
+    WZ = PC + 1;
+    CC(ex,0xb0);
   }
+}
 
 /***************************************************************
  * CPIR
  ***************************************************************/
-#define CPIR            \
-  CPI;                  \
-  if( BC && !(F & ZF) ) \
-  {                     \
-    PC -= 2;            \
-   WZ = PC + 1;         \
-    CC(ex,0xb1);        \
+void CPIR() {
+  CPI();
+  if( BC && !(F & ZF) )
+  {
+    PC -= 2;
+   WZ = PC + 1;
+    CC(ex,0xb1);
   }
+}
 
 /***************************************************************
  * INIR
  ***************************************************************/
-#define INIR      \
-  INI;            \
-  if( B )         \
-  {               \
-    PC -= 2;      \
-    CC(ex,0xb2);  \
+void INIR() {
+  INI();
+  if( B )
+  {
+    PC -= 2;
+    CC(ex,0xb2);
   }
+}
 
 /***************************************************************
  * OTIR
  ***************************************************************/
 void OTIR() {
-  OUTI;
+  OUTI();
   if( B )
   {
     PC -= 2;
@@ -1819,7 +1829,7 @@ void OTIR() {
  * LDDR
  ***************************************************************/
 void LDDR() {
-  LDD;
+  LDD();
   if( BC )
   {
     PC -= 2;
@@ -1832,7 +1842,7 @@ void LDDR() {
  * CPDR
  ***************************************************************/
 void CPDR() {
-  CPD;
+  CPD();
   if( BC && !(F & ZF) )
   {
     PC -= 2;
@@ -1845,7 +1855,7 @@ void CPDR() {
  * INDR
  ***************************************************************/
 void INDR() {
-  IND;
+  IND();
   if( B )
   {
     PC -= 2;
@@ -1857,7 +1867,7 @@ void INDR() {
  * OTDR
  ***************************************************************/
 void OTDR() {
-  OUTD;
+  OUTD();
   if( B )
   {
     PC -= 2;
@@ -3237,8 +3247,8 @@ void ed_9d(void) { illegal_2();                                      } /* DB   E
 void ed_9e(void) { illegal_2();                                      } /* DB   ED      */
 void ed_9f(void) { illegal_2();                                      } /* DB   ED      */
 
-void ed_a0(void) { LDI;                                              } /* LDI          */
-void ed_a1(void) { CPI;                                              } /* CPI          */
+void ed_a0(void) { LDI();                                              } /* LDI          */
+void ed_a1(void) { CPI();                                              } /* CPI          */
 void ed_a2(void) { INI;                                              } /* INI          */
 void ed_a3(void) { OUTI;                                             } /* OUTI         */
 void ed_a4(void) { illegal_2();                                      } /* DB   ED      */
