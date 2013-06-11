@@ -5,7 +5,6 @@
 #endif
 
 #include "SDL.h"
-#include "SDL_thread.h"
 
 #include "shared.h"
 #include "sms_ntsc.h"
@@ -255,55 +254,6 @@ static void sdl_video_close()
     SDL_FreeSurface(sdl_video.surf_screen);
 }
 
-/* Timer Sync */
-
-struct {
-  SDL_sem* sem_sync;
-  unsigned ticks;
-} sdl_sync;
-
-static Uint32 sdl_sync_timer_callback(Uint32 interval)
-{
-  SDL_SemPost(sdl_sync.sem_sync);
-  sdl_sync.ticks++;
-  if (sdl_sync.ticks == (vdp_pal ? 50 : 20))
-  {
-    SDL_Event event;
-    SDL_UserEvent userevent;
-
-    userevent.type = SDL_USEREVENT;
-    userevent.code = vdp_pal ? (sdl_video.frames_rendered / 3) : sdl_video.frames_rendered;
-    userevent.data1 = NULL;
-    userevent.data2 = NULL;
-    sdl_sync.ticks = sdl_video.frames_rendered = 0;
-
-    event.type = SDL_USEREVENT;
-    event.user = userevent;
-
-    SDL_PushEvent(&event);
-  }
-  return interval;
-}
-
-static int sdl_sync_init()
-{
-  if(SDL_InitSubSystem(SDL_INIT_TIMER|SDL_INIT_EVENTTHREAD) < 0)
-  {
-    MessageBox(NULL, "SDL Timer initialization failed", "Error", 0);
-    return 0;
-  }
-
-  sdl_sync.sem_sync = SDL_CreateSemaphore(0);
-  sdl_sync.ticks = 0;
-  return 1;
-}
-
-static void sdl_sync_close()
-{
-  if(sdl_sync.sem_sync)
-    SDL_DestroySemaphore(sdl_sync.sem_sync);
-}
-
 static const uint16 vc_table[4][2] = 
 {
   /* NTSC, PAL */
@@ -362,7 +312,6 @@ static int sdl_control_update(SDLKey keystate)
         if (!use_sound)
         {
           turbo_mode ^=1;
-          sdl_sync.ticks = 0;
         }
         break;
       }
@@ -740,7 +689,6 @@ int main (int argc, char **argv)
   }
   sdl_video_init();
   if (use_sound) sdl_sound_init();
-  sdl_sync_init();
 
   /* initialize Genesis virtual system */
   SDL_LockSurface(sdl_video.surf_bitmap);
@@ -840,13 +788,22 @@ int main (int argc, char **argv)
 
   if(use_sound) SDL_PauseAudio(0);
 
-  /* 3 frames = 50 ms (60hz) or 60 ms (50hz) */
-  if(sdl_sync.sem_sync)
-    SDL_SetTimer(vdp_pal ? 60 : 50, sdl_sync_timer_callback);
+  struct timeval frame_start;
+  struct timeval frame_end;
+  frame_start.tv_usec = 0;
+  frame_start.tv_sec = 0;
+  frame_end.tv_usec = 0;
+  frame_end.tv_sec = 0;
+
+  /* PAL 50Hz, NTSC 60Hz */
+  const double MICRO_SECONDS_PER_FRAME = vdp_pal ? 1000000.0 / 50.0 : 1000000.0 / 60.0;
 
   /* emulation loop */
   while(running)
   {
+    /* Get the time at the start of the loop */
+    gettimeofday(&frame_start, NULL);
+
     SDL_Event event;
     if (SDL_PollEvent(&event)) 
     {
@@ -877,9 +834,18 @@ int main (int argc, char **argv)
     sdl_video_update();
     sdl_sound_update(use_sound);
 
-    if(!turbo_mode && sdl_sync.sem_sync && sdl_video.frames_rendered % 3 == 0)
-    {
-      SDL_SemWait(sdl_sync.sem_sync);
+    /* Get the time at the end of the loop */
+    gettimeofday(&frame_end, NULL);
+    double end = frame_end.tv_usec + (frame_end.tv_sec * 1000000.0);
+    double start = frame_start.tv_usec + (frame_start.tv_sec * 1000000.0);
+
+    /* Sleep if there is still time left over, after drawing this frame */
+    if(!turbo_mode) {
+        double diff = end - start;
+        if(diff < MICRO_SECONDS_PER_FRAME) {
+            double wait = MICRO_SECONDS_PER_FRAME - diff;
+            usleep(wait);
+        }
     }
   }
 
@@ -927,7 +893,6 @@ int main (int argc, char **argv)
 
   sdl_video_close();
   sdl_sound_close();
-  sdl_sync_close();
   SDL_Quit();
 
   return 0;
