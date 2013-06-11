@@ -974,16 +974,46 @@ void BURNODD(int cycles, int opcodes, int cyclesum)
 /***************************************************************
  * adjust cycle count by n T-states
  ***************************************************************/
-#define CC(prefix,opcode) Z80.cycles += cc[Z80_TABLE_##prefix][opcode]
+void CC_op(UINT8 opcode) { Z80.cycles += cc[Z80_TABLE_op][opcode]; }
+void CC_cb(UINT8 opcode) { Z80.cycles += cc[Z80_TABLE_cb][opcode]; }
+void CC_dd(UINT8 opcode) { Z80.cycles += cc[Z80_TABLE_dd][opcode]; }
+void CC_ed(UINT8 opcode) { Z80.cycles += cc[Z80_TABLE_ed][opcode]; }
+void CC_fd(UINT8 opcode) { Z80.cycles += cc[Z80_TABLE_fd][opcode]; }
+void CC_xy(UINT8 opcode) { Z80.cycles += cc[Z80_TABLE_xy][opcode]; }
+void CC_xycb(UINT8 opcode) { Z80.cycles += cc[Z80_TABLE_xycb][opcode]; }
+void CC_ex(UINT8 opcode) { Z80.cycles += cc[Z80_TABLE_ex][opcode]; }
 
 /***************************************************************
  * execute an opcode
  ***************************************************************/
-#define EXEC(prefix,opcode)      \
-{                                \
-  unsigned op = opcode;          \
-  CC(prefix,op);                 \
-  (*Z80##prefix[op])();          \
+void EXEC_op(UINT8 opcode) {
+  CC_op(opcode);
+  (*Z80op[opcode])();
+}
+
+void EXEC_cb(UINT8 opcode) {
+  CC_cb(opcode);
+  (*Z80cb[opcode])();
+}
+
+void EXEC_dd(UINT8 opcode) {
+  CC_dd(opcode);
+  (*Z80dd[opcode])();
+}
+
+void EXEC_ed(UINT8 opcode) {
+  CC_ed(opcode);
+  (*Z80ed[opcode])();
+}
+
+void EXEC_fd(UINT8 opcode) {
+  CC_fd(opcode);
+  (*Z80fd[opcode])();
+}
+
+void EXEC_xycb(UINT8 opcode) {
+  CC_xycb(opcode);
+  (*Z80xycb[opcode])();
 }
 
 /***************************************************************
@@ -1088,28 +1118,90 @@ UINT32 ARG16(void)
  * IX+offset resp. IY+offset addressing.
  ***************************************************************/
 void EAX() {
-    do { 
-        EA = (UINT32)(UINT16)(IX + (INT8)ARG());
-        WZ = EA;
-    } while (0);
+    EA = (UINT32)(UINT16)(IX + (INT8)ARG());
+    WZ = EA;
 }
 
 void EAY() {
-    do {
-        EA = (UINT32)(UINT16)(IY + (INT8)ARG());
-        WZ = EA;
-    } while (0);
+    EA = (UINT32)(UINT16)(IY + (INT8)ARG());
+    WZ = EA;
 }
 
 /***************************************************************
  * POP
  ***************************************************************/
-#define POP(DR) do { RM16( SPD, &Z80.DR ); SP += 2; } while (0)
+void POP_af() {
+    RM16( SPD, &Z80.af );
+    SP += 2;
+}
+
+void POP_bc() {
+    RM16( SPD, &Z80.bc );
+    SP += 2;
+}
+
+void POP_de() {
+    RM16( SPD, &Z80.de );
+    SP += 2;
+}
+
+void POP_hl() {
+    RM16( SPD, &Z80.hl );
+    SP += 2;
+}
+
+void POP_iy() {
+    RM16( SPD, &Z80.iy );
+    SP += 2;
+}
+
+void POP_ix() {
+    RM16( SPD, &Z80.ix );
+    SP += 2;
+}
+
+void POP_pc() {
+    RM16( SPD, &Z80.pc );
+    SP += 2;
+}
 
 /***************************************************************
  * PUSH
  ***************************************************************/
-#define PUSH(SR) do { SP -= 2; WM16( SPD, &Z80.SR ); } while (0)
+void PUSH_af() {
+	SP -= 2;
+	WM16( SPD, &Z80.af );
+}
+
+void PUSH_bc() {
+	SP -= 2;
+	WM16( SPD, &Z80.bc );
+}
+
+void PUSH_de() {
+	SP -= 2;
+	WM16( SPD, &Z80.de );
+}
+
+void PUSH_hl() {
+	SP -= 2;
+	WM16( SPD, &Z80.hl );
+}
+
+void PUSH_iy() {
+	SP -= 2;
+	WM16( SPD, &Z80.iy );
+}
+
+void PUSH_ix() {
+	SP -= 2;
+	WM16( SPD, &Z80.ix );
+}
+
+void PUSH_pc() {
+	SP -= 2;
+	WM16( SPD, &Z80.pc );
+}
 
 /***************************************************************
  * JP
@@ -1143,13 +1235,13 @@ void JR() {
 /***************************************************************
  * JR_COND
  ***************************************************************/
-#define JR_COND(cond, opcode) {   \
-  if (cond)                       \
-  {                               \
-    JR();                         \
-    CC(ex, opcode);               \
-  }                               \
-  else PC++;                      \
+void JR_COND(bool cond, UINT8 opcode) {
+  if (cond)
+  {
+    JR();
+    CC_ex(opcode);
+  }
+  else PC++;
 }
 
 /***************************************************************
@@ -1158,57 +1250,55 @@ void JR() {
 void CALL() {
   EA = ARG16();
   WZ = EA;
-  PUSH(pc);
+  PUSH_pc();
   PCD = EA;
 }
 
 /***************************************************************
  * CALL_COND
  ***************************************************************/
-#define CALL_COND(cond, opcode) { \
-  if (cond)                       \
-  {                               \
-    EA = ARG16();                 \
-    WZ = EA;                      \
-    PUSH(pc);                     \
-    PCD = EA;                     \
-    CC(ex, opcode);               \
-  }                               \
-  else                            \
-  {                               \
-    WZ = ARG16();  /* implicit call PC+=2;   */ \
-  }                               \
+void CALL_COND(bool cond, UINT8 opcode) {
+  if (cond)
+  {
+    EA = ARG16();
+    WZ = EA;
+    PUSH_pc();
+    PCD = EA;
+    CC_ex(opcode);
+  }
+  else
+  {
+    WZ = ARG16();  /* implicit call PC+=2;   */
+  }
 }
 
 /***************************************************************
  * RET_COND
  ***************************************************************/
-#define RET_COND(cond, opcode) do { \
-  if (cond)                         \
-  {                                 \
-    POP(pc);                        \
-    WZ = PC;                        \
-    CC(ex, opcode);                 \
-  }                                 \
-} while (0)
+void RET_COND(bool cond, UINT8 opcode) {
+  if (cond)
+  {
+    POP_pc();
+    WZ = PC;
+    CC_ex(opcode);
+  }
+}
 
 /***************************************************************
  * RETN
  ***************************************************************/
 void RETN() {
-	do {
-	  LOG(("Z80 #%d RETN IFF1:%d IFF2:%d\n", cpu_getactivecpu(), IFF1, IFF2));
-	  POP( pc );
-	  WZ = PC;
-	  IFF1 = IFF2;
-	} while (0);
+	LOG(("Z80 #%d RETN IFF1:%d IFF2:%d\n", cpu_getactivecpu(), IFF1, IFF2));
+	POP_pc();
+	WZ = PC;
+	IFF1 = IFF2;
 }
 
 /***************************************************************
  * RETI
  ***************************************************************/
 void RETI() {
-  POP( pc );
+  POP_pc();
   WZ = PC;
 /* according to http://www.msxnet.org/tech/z80-documented.pdf */
   IFF1 = IFF2;
@@ -1248,10 +1338,11 @@ void LD_A_I() {
 /***************************************************************
  * RST
  ***************************************************************/
-#define RST(addr) \
-  PUSH( pc ); \
-  PCD = addr; \
-  WZ = PC;  \
+void RST(UINT8 addr) {
+  PUSH_pc();
+  PCD = addr;
+  WZ = PC;
+}
 
 /***************************************************************
  * INC  r8
@@ -1335,45 +1426,41 @@ void RLD() {
 /***************************************************************
  * ADD  A,n
  ***************************************************************/
-#define ADD(value)                                  \
-{                                                   \
-  UINT32 ah = AFD & 0xff00;                         \
-  UINT32 res = (UINT8)((ah >> 8) + value);          \
-  F = SZHVC_add[ah | res];                          \
-  A = res;                                          \
+void ADD(UINT8 value) {
+  UINT32 ah = AFD & 0xff00;
+  UINT32 res = (UINT8)((ah >> 8) + value);
+  F = SZHVC_add[ah | res];
+  A = res;
 }
 
 /***************************************************************
  * ADC  A,n
  ***************************************************************/
-#define ADC(value)                                  \
-{                                                   \
-  UINT32 ah = AFD & 0xff00, c = AFD & 1;            \
-  UINT32 res = (UINT8)((ah >> 8) + value + c);      \
-  F = SZHVC_add[(c << 16) | ah | res];              \
-  A = res;                                          \
+void ADC(UINT8 value) {
+  UINT32 ah = AFD & 0xff00, c = AFD & 1;
+  UINT32 res = (UINT8)((ah >> 8) + value + c);
+  F = SZHVC_add[(c << 16) | ah | res];
+  A = res;
 }
 
 /***************************************************************
  * SUB  n
  ***************************************************************/
-#define SUB(value)                                  \
-{                                                   \
-  UINT32 ah = AFD & 0xff00;                         \
-  UINT32 res = (UINT8)((ah >> 8) - value);          \
-  F = SZHVC_sub[ah | res];                          \
-  A = res;                                          \
+void SUB(UINT8 value) {
+  UINT32 ah = AFD & 0xff00;
+  UINT32 res = (UINT8)((ah >> 8) - value);
+  F = SZHVC_sub[ah | res];
+  A = res;
 }
 
 /***************************************************************
  * SBC  A,n
  ***************************************************************/
-#define SBC(value)                                  \
-{                                                   \
-  UINT32 ah = AFD & 0xff00, c = AFD & 1;            \
-  UINT32 res = (UINT8)((ah >> 8) - value - c);      \
-  F = SZHVC_sub[(c<<16) | ah | res];                \
-  A = res;                                          \
+void SBC(UINT8 value) {
+  UINT32 ah = AFD & 0xff00, c = AFD & 1;
+  UINT32 res = (UINT8)((ah >> 8) - value - c);
+  F = SZHVC_sub[(c<<16) | ah | res];
+  A = res;
 }
 
 /***************************************************************
@@ -1405,33 +1492,35 @@ void DAA() {
 /***************************************************************
  * AND  n
  ***************************************************************/
-#define AND(value)  \
-  A &= value;       \
-  F = SZP[A] | HF
+void AND(UINT8 value) {
+  A &= value;
+  F = SZP[A] | HF;
+}
 
 /***************************************************************
  * OR  n
  ***************************************************************/
-#define OR(value)   \
-  A |= value;       \
-  F = SZP[A]
+void OR(UINT8 value) {
+  A |= value;
+  F = SZP[A];
+}
 
 /***************************************************************
  * XOR  n
  ***************************************************************/
-#define XOR(value)  \
-  A ^= value;       \
-  F = SZP[A]
+void XOR(UINT8 value) {
+  A ^= value;
+  F = SZP[A];
+}
 
 /***************************************************************
  * CP  n
  ***************************************************************/
-#define CP(value)                                             \
-{                                                             \
-  unsigned val = value;                                       \
-  UINT32 ah = AFD & 0xff00;                                   \
-  UINT32 res = (UINT8)((ah >> 8) - val);                      \
-  F = (SZHVC_sub[ah | res] & ~(YF | XF)) | (val & (YF | XF)); \
+void CP(UINT8 value) {
+  unsigned val = value;
+  UINT32 ah = AFD & 0xff00;
+  UINT32 res = (UINT8)((ah >> 8) - val);
+  F = (SZHVC_sub[ah | res] & ~(YF | XF)) | (val & (YF | XF));
 }
 
 /***************************************************************
@@ -1465,15 +1554,32 @@ void EXX()
 /***************************************************************
  * EX  (SP),r16
  ***************************************************************/
-#define EXSP(DR)                                    \
-{                                                   \
-  PAIR tmp = { { 0, 0, 0, 0 } };                    \
-  RM16( SPD, &tmp );                                \
-  WM16( SPD, &Z80.DR );                             \
-  Z80.DR = tmp;                                     \
-  WZ = Z80.DR.d;                                    \
+void EXSP_ix()
+{
+  PAIR tmp = { { 0, 0, 0, 0 } };
+  RM16( SPD, &tmp );
+  WM16( SPD, &Z80.ix );
+  Z80.ix = tmp;
+  WZ = Z80.ix.d;
 }
 
+void EXSP_iy()
+{
+  PAIR tmp = { { 0, 0, 0, 0 } };
+  RM16( SPD, &tmp );
+  WM16( SPD, &Z80.iy );
+  Z80.iy = tmp;
+  WZ = Z80.iy.d;
+}
+
+void EXSP_hl()
+{
+  PAIR tmp = { { 0, 0, 0, 0 } };
+  RM16( SPD, &tmp );
+  WM16( SPD, &Z80.hl );
+  Z80.hl = tmp;
+  WZ = Z80.hl.d;
+}
 
 /***************************************************************
  * ADD16
@@ -1684,7 +1790,7 @@ void INI() {
   unsigned t;
   UINT8 io = IN(BC);
   WZ = BC + 1;
-  CC(ex,0xa2);
+  CC_ex(0xa2);
   B--;
   WM( HL, io );
   HL++;
@@ -1747,7 +1853,7 @@ void IND() {
   unsigned t;
   UINT8 io = IN(BC);
   WZ = BC - 1;
-  CC(ex,0xaa);
+  CC_ex(0xaa);
   B--;
   WM( HL, io );
   HL--;
@@ -1784,7 +1890,7 @@ void LDIR() {
   {
     PC -= 2;
     WZ = PC + 1;
-    CC(ex,0xb0);
+    CC_ex(0xb0);
   }
 }
 
@@ -1797,7 +1903,7 @@ void CPIR() {
   {
     PC -= 2;
    WZ = PC + 1;
-    CC(ex,0xb1);
+    CC_ex(0xb1);
   }
 }
 
@@ -1809,7 +1915,7 @@ void INIR() {
   if( B )
   {
     PC -= 2;
-    CC(ex,0xb2);
+    CC_ex(0xb2);
   }
 }
 
@@ -1821,7 +1927,7 @@ void OTIR() {
   if( B )
   {
     PC -= 2;
-    CC(ex,0xb3);
+    CC_ex(0xb3);
   }
 }
 
@@ -1834,7 +1940,7 @@ void LDDR() {
   {
     PC -= 2;
     WZ = PC + 1;
-    CC(ex,0xb8);
+    CC_ex(0xb8);
   }
 }
 
@@ -1847,7 +1953,7 @@ void CPDR() {
   {
     PC -= 2;
    WZ = PC + 1;
-    CC(ex,0xb9);
+    CC_ex(0xb9);
   }
 }
 
@@ -1859,7 +1965,7 @@ void INDR() {
   if( B )
   {
     PC -= 2;
-    CC(ex,0xba);
+    CC_ex(0xba);
   }
 }
 
@@ -1871,7 +1977,7 @@ void OTDR() {
   if( B )
   {
     PC -= 2;
-    CC(ex,0xbb);
+    CC_ex(0xbb);
   }
 }
 
@@ -2705,7 +2811,7 @@ void dd_c7(void) { illegal_1(); op_c7();                             } /* DB   D
 void dd_c8(void) { illegal_1(); op_c8();                             } /* DB   DD       */
 void dd_c9(void) { illegal_1(); op_c9();                             } /* DB   DD       */
 void dd_ca(void) { illegal_1(); op_ca();                             } /* DB   DD       */
-void dd_cb(void) { EAX(); EXEC(xycb,ARG());                            } /* **** DD CB xx */
+void dd_cb(void) { EAX(); EXEC_xycb(ARG());                            } /* **** DD CB xx */
 void dd_cc(void) { illegal_1(); op_cc();                             } /* DB   DD       */
 void dd_cd(void) { illegal_1(); op_cd();                             } /* DB   DD       */
 void dd_ce(void) { illegal_1(); op_ce();                             } /* DB   DD       */
@@ -2725,16 +2831,16 @@ void dd_d9(void) { illegal_1(); op_d9();                             } /* DB   D
 void dd_da(void) { illegal_1(); op_da();                             } /* DB   DD       */
 void dd_db(void) { illegal_1(); op_db();                             } /* DB   DD       */
 void dd_dc(void) { illegal_1(); op_dc();                             } /* DB   DD       */
-void dd_dd(void) { EXEC(dd,ROP());                                   } /* **** DD DD xx */
+void dd_dd(void) { EXEC_dd(ROP());                                   } /* **** DD DD xx */
 void dd_de(void) { illegal_1(); op_de();                             } /* DB   DD       */
 void dd_df(void) { illegal_1(); op_df();                             } /* DB   DD       */
 
 void dd_e0(void) { illegal_1(); op_e0();                             } /* DB   DD       */
-void dd_e1(void) { POP( ix );                                        } /* POP  IX       */
+void dd_e1(void) { POP_ix();                                        } /* POP  IX       */
 void dd_e2(void) { illegal_1(); op_e2();                             } /* DB   DD       */
-void dd_e3(void) { EXSP( ix );                                       } /* EX   (SP),IX  */
+void dd_e3(void) { EXSP_ix();                                       } /* EX   (SP),IX  */
 void dd_e4(void) { illegal_1(); op_e4();                             } /* DB   DD       */
-void dd_e5(void) { PUSH( ix );                                       } /* PUSH IX       */
+void dd_e5(void) { PUSH_ix();                                       } /* PUSH IX       */
 void dd_e6(void) { illegal_1(); op_e6();                             } /* DB   DD       */
 void dd_e7(void) { illegal_1(); op_e7();                             } /* DB   DD       */
 
@@ -2761,7 +2867,7 @@ void dd_f9(void) { SP = IX;                                          } /* LD   S
 void dd_fa(void) { illegal_1(); op_fa();                             } /* DB   DD       */
 void dd_fb(void) { illegal_1(); op_fb();                             } /* DB   DD       */
 void dd_fc(void) { illegal_1(); op_fc();                             } /* DB   DD       */
-void dd_fd(void) { EXEC(fd,ROP());                                   } /* **** DD FD xx */
+void dd_fd(void) { EXEC_fd(ROP());                                   } /* **** DD FD xx */
 void dd_fe(void) { illegal_1(); op_fe();                             } /* DB   DD       */
 void dd_ff(void) { illegal_1(); op_ff();                             } /* DB   DD       */
 
@@ -2996,7 +3102,7 @@ void fd_c7(void) { illegal_1(); op_c7();                             } /* DB   F
 void fd_c8(void) { illegal_1(); op_c8();                             } /* DB   FD       */
 void fd_c9(void) { illegal_1(); op_c9();                             } /* DB   FD       */
 void fd_ca(void) { illegal_1(); op_ca();                             } /* DB   FD       */
-void fd_cb(void) { EAY(); EXEC(xycb,ARG());                            } /* **** FD CB xx */
+void fd_cb(void) { EAY(); EXEC_xycb(ARG());                            } /* **** FD CB xx */
 void fd_cc(void) { illegal_1(); op_cc();                             } /* DB   FD       */
 void fd_cd(void) { illegal_1(); op_cd();                             } /* DB   FD       */
 void fd_ce(void) { illegal_1(); op_ce();                             } /* DB   FD       */
@@ -3016,16 +3122,16 @@ void fd_d9(void) { illegal_1(); op_d9();                             } /* DB   F
 void fd_da(void) { illegal_1(); op_da();                             } /* DB   FD       */
 void fd_db(void) { illegal_1(); op_db();                             } /* DB   FD       */
 void fd_dc(void) { illegal_1(); op_dc();                             } /* DB   FD       */
-void fd_dd(void) { EXEC(dd,ROP());                                   } /* **** FD DD xx */
+void fd_dd(void) { EXEC_dd(ROP());                                   } /* **** FD DD xx */
 void fd_de(void) { illegal_1(); op_de();                             } /* DB   FD       */
 void fd_df(void) { illegal_1(); op_df();                             } /* DB   FD       */
 
 void fd_e0(void) { illegal_1(); op_e0();                             } /* DB   FD       */
-void fd_e1(void) { POP( iy );                                        } /* POP  IY       */
+void fd_e1(void) { POP_iy();                                        } /* POP  IY       */
 void fd_e2(void) { illegal_1(); op_e2();                             } /* DB   FD       */
-void fd_e3(void) { EXSP( iy );                                       } /* EX   (SP),IY  */
+void fd_e3(void) { EXSP_iy();                                       } /* EX   (SP),IY  */
 void fd_e4(void) { illegal_1(); op_e4();                             } /* DB   FD       */
-void fd_e5(void) { PUSH( iy );                                       } /* PUSH IY       */
+void fd_e5(void) { PUSH_iy();                                       } /* PUSH IY       */
 void fd_e6(void) { illegal_1(); op_e6();                             } /* DB   FD       */
 void fd_e7(void) { illegal_1(); op_e7();                             } /* DB   FD       */
 
@@ -3052,7 +3158,7 @@ void fd_f9(void) { SP = IY;                                          } /* LD   S
 void fd_fa(void) { illegal_1(); op_fa();                             } /* DB   FD       */
 void fd_fb(void) { illegal_1(); op_fb();                             } /* DB   FD       */
 void fd_fc(void) { illegal_1(); op_fc();                             } /* DB   FD       */
-void fd_fd(void) { EXEC(fd,ROP());                                   } /* **** FD FD xx */
+void fd_fd(void) { EXEC_fd(ROP());                                   } /* **** FD FD xx */
 void fd_fe(void) { illegal_1(); op_fe();                             } /* DB   FD       */
 void fd_ff(void) { illegal_1(); op_ff();                             } /* DB   FD       */
 
@@ -3576,29 +3682,29 @@ void op_be(void) { CP(RM(HL));                                                  
 void op_bf(void) { CP(A);                                                                                         } /* CP   A           */
 
 void op_c0(void) { RET_COND( !(F & ZF), 0xc0 );                                                                   } /* RET  NZ          */
-void op_c1(void) { POP( bc );                                                                                     } /* POP  BC          */
+void op_c1(void) { POP_bc();                                                                                     } /* POP  BC          */
 void op_c2(void) { JP_COND( !(F & ZF) );                                                                          } /* JP   NZ,a        */
 void op_c3(void) { JP();                                                                                            } /* JP   a           */
 void op_c4(void) { CALL_COND( !(F & ZF), 0xc4 );                                                                  } /* CALL NZ,a        */
-void op_c5(void) { PUSH( bc );                                                                                    } /* PUSH BC          */
+void op_c5(void) { PUSH_bc();                                                                                    } /* PUSH BC          */
 void op_c6(void) { ADD(ARG());                                                                                    } /* ADD  A,n         */
 void op_c7(void) { RST(0x00);                                                                                     } /* RST  0           */
 
 void op_c8(void) { RET_COND( F & ZF, 0xc8 );                                                                      } /* RET  Z           */
-void op_c9(void) { POP( pc ); WZ=PCD;                                                                             } /* RET              */
+void op_c9(void) { POP_pc(); WZ=PCD;                                                                             } /* RET              */
 void op_ca(void) { JP_COND( F & ZF );                                                                             } /* JP   Z,a         */
-void op_cb(void) { R++; EXEC(cb,ROP());                                                                           } /* **** CB xx       */
+void op_cb(void) { R++; EXEC_cb(ROP());                                                                           } /* **** CB xx       */
 void op_cc(void) { CALL_COND( F & ZF, 0xcc );                                                                     } /* CALL Z,a         */
 void op_cd(void) { CALL();                                                                                        } /* CALL a           */
 void op_ce(void) { ADC(ARG());                                                                                    } /* ADC  A,n         */
 void op_cf(void) { RST(0x08);                                                                                     } /* RST  1           */
 
 void op_d0(void) { RET_COND( !(F & CF), 0xd0 );                                                                   } /* RET  NC          */
-void op_d1(void) { POP( de );                                                                                     } /* POP  DE          */
+void op_d1(void) { POP_de();                                                                                     } /* POP  DE          */
 void op_d2(void) { JP_COND( !(F & CF) );                                                                          } /* JP   NC,a        */
 void op_d3(void) { unsigned n = ARG() | (A << 8); OUT( n, A ); WZ_L = ((n & 0xff) + 1) & 0xff;  WZ_H = A; } /* OUT  (n),A       */
 void op_d4(void) { CALL_COND( !(F & CF), 0xd4 );                                                                  } /* CALL NC,a        */
-void op_d5(void) { PUSH( de );                                                                                    } /* PUSH DE          */
+void op_d5(void) { PUSH_de();                                                                                    } /* PUSH DE          */
 void op_d6(void) { SUB(ARG());                                                                                    } /* SUB  n           */
 void op_d7(void) { RST(0x10);                                                                                     } /* RST  2           */
 
@@ -3607,16 +3713,16 @@ void op_d9(void) { EXX();                                                       
 void op_da(void) { JP_COND( F & CF );                                                                             } /* JP   C,a         */
 void op_db(void) { unsigned n = ARG() | (A << 8); A = IN( n ); WZ = n + 1;                                        } /* IN   A,(n)       */
 void op_dc(void) { CALL_COND( F & CF, 0xdc );                                                                     } /* CALL C,a         */
-void op_dd(void) { R++; EXEC(dd,ROP());                                                                           } /* **** DD xx       */
+void op_dd(void) { R++; EXEC_dd(ROP());                                                                           } /* **** DD xx       */
 void op_de(void) { SBC(ARG());                                                                                    } /* SBC  A,n         */
 void op_df(void) { RST(0x18);                                                                                     } /* RST  3           */
 
 void op_e0(void) { RET_COND( !(F & PF), 0xe0 );                                                                   } /* RET  PO          */
-void op_e1(void) { POP( hl );                                                                                     } /* POP  HL          */
+void op_e1(void) { POP_hl();                                                                                     } /* POP  HL          */
 void op_e2(void) { JP_COND( !(F & PF) );                                                                          } /* JP   PO,a        */
-void op_e3(void) { EXSP( hl );                                                                                    } /* EX   HL,(SP)     */
+void op_e3(void) { EXSP_hl();                                                                                    } /* EX   HL,(SP)     */
 void op_e4(void) { CALL_COND( !(F & PF), 0xe4 );                                                                  } /* CALL PO,a        */
-void op_e5(void) { PUSH( hl );                                                                                    } /* PUSH HL          */
+void op_e5(void) { PUSH_hl();                                                                                    } /* PUSH HL          */
 void op_e6(void) { AND(ARG());                                                                                    } /* AND  n           */
 void op_e7(void) { RST(0x20);                                                                                     } /* RST  4           */
 
@@ -3625,16 +3731,16 @@ void op_e9(void) { PC = HL;                                                     
 void op_ea(void) { JP_COND( F & PF );                                                                             } /* JP   PE,a        */
 void op_eb(void) { EX_DE_HL();                                                                                      } /* EX   DE,HL       */
 void op_ec(void) { CALL_COND( F & PF, 0xec );                                                                     } /* CALL PE,a        */
-void op_ed(void) { R++; EXEC(ed,ROP());                                                                           } /* **** ED xx       */
+void op_ed(void) { R++; EXEC_ed(ROP());                                                                           } /* **** ED xx       */
 void op_ee(void) { XOR(ARG());                                                                                    } /* XOR  n           */
 void op_ef(void) { RST(0x28);                                                                                     } /* RST  5           */
 
 void op_f0(void) { RET_COND( !(F & SF), 0xf0 );                                                                   } /* RET  P           */
-void op_f1(void) { POP( af );                                                                                     } /* POP  AF          */
+void op_f1(void) { POP_af();                                                                                     } /* POP  AF          */
 void op_f2(void) { JP_COND( !(F & SF) );                                                                          } /* JP   P,a         */
 void op_f3(void) { IFF1 = IFF2 = 0;                                                                               } /* DI               */
 void op_f4(void) { CALL_COND( !(F & SF), 0xf4 );                                                                  } /* CALL P,a         */
-void op_f5(void) { PUSH( af );                                                                                    } /* PUSH AF          */
+void op_f5(void) { PUSH_af();                                                                                    } /* PUSH AF          */
 void op_f6(void) { OR(ARG());                                                                                     } /* OR   n           */
 void op_f7(void) { RST(0x30);                                                                                     } /* RST  6           */
 
@@ -3643,7 +3749,7 @@ void op_f9(void) { SP = HL;                                                     
 void op_fa(void) { JP_COND(F & SF);                                                                               } /* JP   M,a         */
 void op_fb(void) { EI();                                                                                            } /* EI               */
 void op_fc(void) { CALL_COND( F & SF, 0xfc );                                                                     } /* CALL M,a         */
-void op_fd(void) { R++; EXEC(fd,ROP());                                                                           } /* **** FD xx       */
+void op_fd(void) { R++; EXEC_fd(ROP());                                                                           } /* **** FD xx       */
 void op_fe(void) { CP(ARG());                                                                                     } /* CP   n           */
 void op_ff(void) { RST(0x38);                                                                                     } /* RST  7           */
 
@@ -3662,7 +3768,7 @@ static void take_interrupt(void)
   if( IM == 1 )
   {
     LOG(("Z80 #%d IM1 $0038\n",cpu_getactivecpu() ));
-    PUSH( pc );
+    PUSH_pc();
     PCD = 0x0038;
     /* RST $38 + 'interrupt latency' cycles */
     Z80.cycles += cc[Z80_TABLE_op][0xff] + cc[Z80_TABLE_ex][0xff];
@@ -3676,7 +3782,7 @@ static void take_interrupt(void)
     if( IM == 2 )
     {
       irq_vector = (irq_vector & 0xff) | (I << 8);
-      PUSH( pc );
+      PUSH_pc();
       RM16( irq_vector, &Z80.pc );
       LOG(("Z80 #%d IM2 [$%04x] = $%04x\n",cpu_getactivecpu() , irq_vector, PCD));
         /* CALL $xxxx + 'interrupt latency' cycles */
@@ -3691,7 +3797,7 @@ static void take_interrupt(void)
       switch (irq_vector & 0xff0000)
       {
         case 0xcd0000:  /* call */
-        PUSH( pc );
+        PUSH_pc();
         PCD = irq_vector & 0xffff;
            /* CALL $xxxx + 'interrupt latency' cycles */
         Z80.cycles += cc[Z80_TABLE_op][0xcd] + cc[Z80_TABLE_ex][0xff];
@@ -3702,7 +3808,7 @@ static void take_interrupt(void)
         Z80.cycles += cc[Z80_TABLE_op][0xc3] + cc[Z80_TABLE_ex][0xff];
           break;
         default:    /* rst (or other opcodes?) */
-        PUSH( pc );
+        PUSH_pc();
         PCD = irq_vector & 0x0038;
           /* RST $xx + 2 cycles */
         Z80.cycles += cc[Z80_TABLE_op][0xff] + cc[Z80_TABLE_ex][0xff];
@@ -3843,7 +3949,7 @@ void z80_run(unsigned int cycles)
 
     Z80.after_ei = FALSE;
     R++;
-    EXEC(op,ROP());
+    EXEC_op(ROP());
   }
 } 
 
@@ -3882,7 +3988,7 @@ void z80_set_nmi_line(unsigned int state)
     LEAVE_HALT;      /* Check if processor was halted */
 
     IFF1 = 0;
-    PUSH( pc );
+    PUSH_pc();
     PCD = 0x0066;
     WZ=PCD;
 
