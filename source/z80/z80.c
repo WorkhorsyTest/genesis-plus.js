@@ -1052,8 +1052,8 @@ void OUT(unsigned int port, unsigned char value) {
 /***************************************************************
  * Read a byte from given memory location
  ***************************************************************/
-unsigned char RM(unsigned int address) {
-	z80_readmem(address);
+unsigned char RM(unsigned int addr) {
+	return z80_readmem(addr);
 }
 
 /***************************************************************
@@ -3249,62 +3249,62 @@ void ed_40(void) { B = IN(BC); F = (F & CF) | SZP[B];                } /* IN   B
 void ed_41(void) { OUT(BC, B);                                       } /* OUT  (C),B   */
 void ed_42(void) { SBC16( bc );                                      } /* SBC  HL,BC   */
 void ed_43(void) { EA = ARG16(); WM16( EA, &Z80.bc ); WZ = EA+1;     } /* LD   (w),BC  */
-void ed_44(void) { NEG;                                              } /* NEG          */
-void ed_45(void) { RETN;                                             } /* RETN;        */
+void ed_44(void) { NEG();                                              } /* NEG          */
+void ed_45(void) { RETN();                                             } /* RETN;        */
 void ed_46(void) { IM = 0;                                           } /* IM   0       */
-void ed_47(void) { LD_I_A;                                           } /* LD   I,A     */
+void ed_47(void) { LD_I_A();                                           } /* LD   I,A     */
 
 void ed_48(void) { C = IN(BC); F = (F & CF) | SZP[C];                } /* IN   C,(C)   */
 void ed_49(void) { OUT(BC, C);                                       } /* OUT  (C),C   */
 void ed_4a(void) { ADC16( bc );                                      } /* ADC  HL,BC   */
 void ed_4b(void) { EA = ARG16(); RM16( EA, &Z80.bc ); WZ = EA+1;     } /* LD   BC,(w)  */
-void ed_4c(void) { NEG;                                              } /* NEG          */
-void ed_4d(void) { RETI;                                             } /* RETI         */
+void ed_4c(void) { NEG();                                              } /* NEG          */
+void ed_4d(void) { RETI();                                             } /* RETI         */
 void ed_4e(void) { IM = 0;                                           } /* IM   0       */
-void ed_4f(void) { LD_R_A;                                           } /* LD   R,A     */
+void ed_4f(void) { LD_R_A();                                           } /* LD   R,A     */
 
 void ed_50(void) { D = IN(BC); F = (F & CF) | SZP[D];                } /* IN   D,(C)   */
 void ed_51(void) { OUT(BC, D);                                       } /* OUT  (C),D   */
 void ed_52(void) { SBC16( de );                                      } /* SBC  HL,DE   */
 void ed_53(void) { EA = ARG16(); WM16( EA, &Z80.de ); WZ = EA+1;     } /* LD   (w),DE  */
-void ed_54(void) { NEG;                                              } /* NEG          */
-void ed_55(void) { RETN;                                             } /* RETN;        */
+void ed_54(void) { NEG();                                              } /* NEG          */
+void ed_55(void) { RETN();                                             } /* RETN;        */
 void ed_56(void) { IM = 1;                                           } /* IM   1       */
-void ed_57(void) { LD_A_I;                                           } /* LD   A,I     */
+void ed_57(void) { LD_A_I();                                           } /* LD   A,I     */
 
 void ed_58(void) { E = IN(BC); F = (F & CF) | SZP[E];                } /* IN   E,(C)   */
 void ed_59(void) { OUT(BC, E);                                       } /* OUT  (C),E   */
 void ed_5a(void) { ADC16( de );                                      } /* ADC  HL,DE   */
 void ed_5b(void) { EA = ARG16(); RM16( EA, &Z80.de ); WZ = EA+1;     } /* LD   DE,(w)  */
-void ed_5c(void) { NEG;                                              } /* NEG          */
-void ed_5d(void) { RETI;                                             } /* RETI         */
+void ed_5c(void) { NEG();                                              } /* NEG          */
+void ed_5d(void) { RETI();                                             } /* RETI         */
 void ed_5e(void) { IM = 2;                                           } /* IM   2       */
-void ed_5f(void) { LD_A_R;                                           } /* LD   A,R     */
+void ed_5f(void) { LD_A_R();                                           } /* LD   A,R     */
 
 void ed_60(void) { H = IN(BC); F = (F & CF) | SZP[H];                } /* IN   H,(C)   */
 void ed_61(void) { OUT(BC, H);                                       } /* OUT  (C),H   */
 void ed_62(void) { SBC16( hl );                                      } /* SBC  HL,HL   */
 void ed_63(void) { EA = ARG16(); WM16( EA, &Z80.hl ); WZ = EA+1;     } /* LD   (w),HL  */
-void ed_64(void) { NEG;                                              } /* NEG          */
-void ed_65(void) { RETN;                                             } /* RETN;        */
+void ed_64(void) { NEG();                                              } /* NEG          */
+void ed_65(void) { RETN();                                             } /* RETN;        */
 void ed_66(void) { IM = 0;                                           } /* IM   0       */
-void ed_67(void) { RRD;                                              } /* RRD  (HL)    */
+void ed_67(void) { RRD();                                              } /* RRD  (HL)    */
 
 void ed_68(void) { L = IN(BC); F = (F & CF) | SZP[L];                } /* IN   L,(C)   */
 void ed_69(void) { OUT(BC, L);                                       } /* OUT  (C),L   */
 void ed_6a(void) { ADC16( hl );                                      } /* ADC  HL,HL   */
 void ed_6b(void) { EA = ARG16(); RM16( EA, &Z80.hl ); WZ = EA+1;     } /* LD   HL,(w)  */
-void ed_6c(void) { NEG;                                              } /* NEG          */
-void ed_6d(void) { RETI;                                             } /* RETI         */
+void ed_6c(void) { NEG();                                              } /* NEG          */
+void ed_6d(void) { RETI();                                             } /* RETI         */
 void ed_6e(void) { IM = 0;                                           } /* IM   0       */
-void ed_6f(void) { RLD;                                              } /* RLD  (HL)    */
+void ed_6f(void) { RLD();                                              } /* RLD  (HL)    */
 
 void ed_70(void) { UINT8 res = IN(BC); F = (F & CF) | SZP[res];      } /* IN   0,(C)   */
 void ed_71(void) { OUT(BC, 0);                                       } /* OUT  (C),0   */
 void ed_72(void) { SBC16( sp );                                      } /* SBC  HL,SP   */
 void ed_73(void) { EA = ARG16(); WM16( EA, &Z80.sp ); WZ = EA+1;     } /* LD   (w),SP  */
-void ed_74(void) { NEG;                                              } /* NEG          */
-void ed_75(void) { RETN;                                             } /* RETN;        */
+void ed_74(void) { NEG();                                              } /* NEG          */
+void ed_75(void) { RETN();                                             } /* RETN;        */
 void ed_76(void) { IM = 1;                                           } /* IM   1       */
 void ed_77(void) { illegal_2();                                      } /* DB   ED,77   */
 
@@ -3312,8 +3312,8 @@ void ed_78(void) { A = IN(BC); F = (F & CF) | SZP[A]; WZ = BC+1;     } /* IN   E
 void ed_79(void) { OUT(BC, A); WZ = BC + 1;                          } /* OUT  (C),A   */
 void ed_7a(void) { ADC16( sp );                                      } /* ADC  HL,SP   */
 void ed_7b(void) { EA = ARG16(); RM16( EA, &Z80.sp ); WZ = EA+1; } /* LD   SP,(w)  */
-void ed_7c(void) { NEG;                                              } /* NEG          */
-void ed_7d(void) { RETI;                                             } /* RETI         */
+void ed_7c(void) { NEG();                                              } /* NEG          */
+void ed_7d(void) { RETI();                                             } /* RETI         */
 void ed_7e(void) { IM = 2;                                           } /* IM   2       */
 void ed_7f(void) { illegal_2();                                      } /* DB   ED,7F   */
 
@@ -3355,25 +3355,25 @@ void ed_9f(void) { illegal_2();                                      } /* DB   E
 
 void ed_a0(void) { LDI();                                              } /* LDI          */
 void ed_a1(void) { CPI();                                              } /* CPI          */
-void ed_a2(void) { INI;                                              } /* INI          */
-void ed_a3(void) { OUTI;                                             } /* OUTI         */
+void ed_a2(void) { INI();                                              } /* INI          */
+void ed_a3(void) { OUTI();                                             } /* OUTI         */
 void ed_a4(void) { illegal_2();                                      } /* DB   ED      */
 void ed_a5(void) { illegal_2();                                      } /* DB   ED      */
 void ed_a6(void) { illegal_2();                                      } /* DB   ED      */
 void ed_a7(void) { illegal_2();                                      } /* DB   ED      */
 
-void ed_a8(void) { LDD;                                              } /* LDD          */
-void ed_a9(void) { CPD;                                              } /* CPD          */
-void ed_aa(void) { IND;                                              } /* IND          */
-void ed_ab(void) { OUTD;                                             } /* OUTD         */
+void ed_a8(void) { LDD();                                              } /* LDD          */
+void ed_a9(void) { CPD();                                              } /* CPD          */
+void ed_aa(void) { IND();                                              } /* IND          */
+void ed_ab(void) { OUTD();                                             } /* OUTD         */
 void ed_ac(void) { illegal_2();                                      } /* DB   ED      */
 void ed_ad(void) { illegal_2();                                      } /* DB   ED      */
 void ed_ae(void) { illegal_2();                                      } /* DB   ED      */
 void ed_af(void) { illegal_2();                                      } /* DB   ED      */
 
-void ed_b0(void) { LDIR;                                             } /* LDIR         */
-void ed_b1(void) { CPIR;                                             } /* CPIR         */
-void ed_b2(void) { INIR;                                             } /* INIR         */
+void ed_b0(void) { LDIR();                                             } /* LDIR         */
+void ed_b1(void) { CPIR();                                             } /* CPIR         */
+void ed_b2(void) { INIR();                                             } /* INIR         */
 void ed_b3(void) { OTIR();                                             } /* OTIR         */
 void ed_b4(void) { illegal_2();                                      } /* DB   ED      */
 void ed_b5(void) { illegal_2();                                      } /* DB   ED      */
@@ -3472,16 +3472,16 @@ void op_03(void) { BC++;                                                        
 void op_04(void) { B = INC(B);                                                                                    } /* INC  B           */
 void op_05(void) { B = DEC(B);                                                                                    } /* DEC  B           */
 void op_06(void) { B = ARG();                                                                                     } /* LD   B,n         */
-void op_07(void) { RLCA;                                                                                          } /* RLCA             */
+void op_07(void) { RLCA();                                                                                          } /* RLCA             */
 
-void op_08(void) { EX_AF;                                                                                         } /* EX   AF,AF'      */
+void op_08(void) { EX_AF();                                                                                         } /* EX   AF,AF'      */
 void op_09(void) { ADD16(hl, bc);                                                                                 } /* ADD  HL,BC       */
 void op_0a(void) { A = RM( BC ); WZ=BC+1;                                                                         } /* LD   A,(BC)      */
 void op_0b(void) { BC--;                                                                                          } /* DEC  BC          */
 void op_0c(void) { C = INC(C);                                                                                    } /* INC  C           */
 void op_0d(void) { C = DEC(C);                                                                                    } /* DEC  C           */
 void op_0e(void) { C = ARG();                                                                                     } /* LD   C,n         */
-void op_0f(void) { RRCA;                                                                                          } /* RRCA             */
+void op_0f(void) { RRCA();                                                                                          } /* RRCA             */
 
 void op_10(void) { B--; JR_COND( B, 0x10 );                                                                       } /* DJNZ o           */
 void op_11(void) { DE = ARG16();                                                                                  } /* LD   DE,w        */
@@ -3490,7 +3490,7 @@ void op_13(void) { DE++;                                                        
 void op_14(void) { D = INC(D);                                                                                    } /* INC  D           */
 void op_15(void) { D = DEC(D);                                                                                    } /* DEC  D           */
 void op_16(void) { D = ARG();                                                                                     } /* LD   D,n         */
-void op_17(void) { RLA;                                                                                           } /* RLA              */
+void op_17(void) { RLA();                                                                                           } /* RLA              */
 
 void op_18(void) { JR();                                                                                          } /* JR   o           */
 void op_19(void) { ADD16(hl, de);                                                                                 } /* ADD  HL,DE       */
@@ -3499,7 +3499,7 @@ void op_1b(void) { DE--;                                                        
 void op_1c(void) { E = INC(E);                                                                                    } /* INC  E           */
 void op_1d(void) { E = DEC(E);                                                                                    } /* DEC  E           */
 void op_1e(void) { E = ARG();                                                                                     } /* LD   E,n         */
-void op_1f(void) { RRA;                                                                                           } /* RRA              */
+void op_1f(void) { RRA();                                                                                           } /* RRA              */
 
 void op_20(void) { JR_COND( !(F & ZF), 0x20 );                                                                    } /* JR   NZ,o        */
 void op_21(void) { HL = ARG16();                                                                                  } /* LD   HL,w        */
@@ -3508,7 +3508,7 @@ void op_23(void) { HL++;                                                        
 void op_24(void) { H = INC(H);                                                                                    } /* INC  H           */
 void op_25(void) { H = DEC(H);                                                                                    } /* DEC  H           */
 void op_26(void) { H = ARG();                                                                                     } /* LD   H,n         */
-void op_27(void) { DAA;                                                                                           } /* DAA              */
+void op_27(void) { DAA();                                                                                           } /* DAA              */
 
 void op_28(void) { JR_COND( F & ZF, 0x28 );                                                                       } /* JR   Z,o         */
 void op_29(void) { ADD16(hl, hl);                                                                                 } /* ADD  HL,HL       */
@@ -3597,7 +3597,7 @@ void op_72(void) { WM( HL, D );                                                 
 void op_73(void) { WM( HL, E );                                                                                   } /* LD   (HL),E      */
 void op_74(void) { WM( HL, H );                                                                                   } /* LD   (HL),H      */
 void op_75(void) { WM( HL, L );                                                                                   } /* LD   (HL),L      */
-void op_76(void) { ENTER_HALT;                                                                                    } /* HALT             */
+void op_76(void) { ENTER_HALT();                                                                                    } /* HALT             */
 void op_77(void) { WM( HL, A );                                                                                   } /* LD   (HL),A      */
 
 void op_78(void) { A = B;                                                                                         } /* LD   A,B         */
@@ -3757,7 +3757,7 @@ void op_ff(void) { RST(0x38);                                                   
 static void take_interrupt(void)
 {
   /* Check if processor was halted */
-  LEAVE_HALT;
+  LEAVE_HALT();
 
   /* Clear both interrupt flip flops */
   IFF1 = IFF2 = 0;
@@ -3985,7 +3985,7 @@ void z80_set_nmi_line(unsigned int state)
   if (Z80.nmi_state == CLEAR_LINE && state != CLEAR_LINE)
   {
     LOG(("Z80 #%d take NMI\n", cpu_getactivecpu()));
-    LEAVE_HALT;      /* Check if processor was halted */
+    LEAVE_HALT();      /* Check if processor was halted */
 
     IFF1 = 0;
     PUSH_pc();
