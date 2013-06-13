@@ -397,12 +397,12 @@ static void correct_errors( sms_ntsc_rgb_t color, sms_ntsc_rgb_t* out );
 
 #define RGB_PALETTE_OUT( rgb, out_ )\
 {\
-  unsigned char* out = (out_);\
+  u8* out = (out_);\
   sms_ntsc_rgb_t clamped = (rgb);\
   SMS_NTSC_CLAMP_( clamped, (8 - rgb_bits) );\
-  out [0] = (unsigned char) (clamped >> 21);\
-  out [1] = (unsigned char) (clamped >> 11);\
-  out [2] = (unsigned char) (clamped >>  1);\
+  out [0] = (u8) (clamped >> 21);\
+  out [1] = (u8) (clamped >> 11);\
+  out [2] = (u8) (clamped >>  1);\
 }
 
 /* blitter related */
@@ -422,14 +422,14 @@ static void correct_errors( sms_ntsc_rgb_t color, sms_ntsc_rgb_t* out );
 
 #if SMS_NTSC_OUT_DEPTH <= 16
   #if USHRT_MAX == 0xFFFF
-    typedef unsigned short sms_ntsc_out_t;
+    typedef u16 sms_ntsc_out_t;
   #else
     #error "Need 16-bit int type"
   #endif
 
 #else
   #if UINT_MAX == 0xFFFFFFFF
-    typedef unsigned int  sms_ntsc_out_t;
+    typedef u32  sms_ntsc_out_t;
   #elif ULONG_MAX == 0xFFFFFFFF
     typedef unsigned long sms_ntsc_out_t;
   #else

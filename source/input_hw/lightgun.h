@@ -42,10 +42,10 @@
 /* Input devices port handlers */
 extern void lightgun_reset(int index);
 extern void lightgun_refresh(int port);
-extern unsigned char phaser_1_read(void);
-extern unsigned char phaser_2_read(void);
-extern unsigned char menacer_read(void);
-extern unsigned char justifier_read(void);
-extern void justifier_write(unsigned char data, unsigned char mask);
+extern u8 phaser_1_read(void);
+extern u8 phaser_2_read(void);
+extern u8 menacer_read(void);
+extern u8 justifier_read(void);
+extern void justifier_write(u8 data, u8 mask);
 
 #endif

@@ -58,15 +58,15 @@
 
 typedef struct
 {
-  uint8 address_bits;     /* number of bits needed to address memory: 7, 8 or 16 */
-  uint16 size_mask;       /* depends on the max size of the memory (in bytes) */
-  uint16 pagewrite_mask;  /* depends on the maximal number of bytes that can be written in a single write cycle */
-  uint32 sda_in_adr;      /* 68000 memory address mapped to SDA_IN */
-  uint32 sda_out_adr;     /* 68000 memory address mapped to SDA_OUT */
-  uint32 scl_adr;         /* 68000 memory address mapped to SCL */
-  uint8 sda_in_bit;       /* bit offset for SDA_IN */
-  uint8 sda_out_bit;      /* bit offset for SDA_OUT */
-  uint8 scl_bit;          /* bit offset for SCL */
+  u8 address_bits;     /* number of bits needed to address memory: 7, 8 or 16 */
+  u16 size_mask;       /* depends on the max size of the memory (in bytes) */
+  u16 pagewrite_mask;  /* depends on the maximal number of bytes that can be written in a single write cycle */
+  u32 sda_in_adr;      /* 68000 memory address mapped to SDA_IN */
+  u32 sda_out_adr;     /* 68000 memory address mapped to SDA_OUT */
+  u32 scl_adr;         /* 68000 memory address mapped to SCL */
+  u8 sda_in_bit;       /* bit offset for SDA_IN */
+  u8 sda_out_bit;      /* bit offset for SDA_OUT */
+  u8 scl_bit;          /* bit offset for SCL */
 } T_CONFIG_I2C;
 
 typedef enum
@@ -83,14 +83,14 @@ typedef enum
 
 typedef struct
 {
-  uint8 sda;            /* current /SDA line state */
-  uint8 scl;            /* current /SCL line state */
-  uint8 old_sda;        /* previous /SDA line state */
-  uint8 old_scl;        /* previous /SCL line state */
-  uint8 cycles;         /* current operation cycle number (0-9) */
-  uint8 rw;             /* operation type (1:READ, 0:WRITE) */
-  uint16 slave_mask;    /* device address (shifted by the memory address width)*/
-  uint16 word_address;  /* memory address */
+  u8 sda;            /* current /SDA line state */
+  u8 scl;            /* current /SCL line state */
+  u8 old_sda;        /* previous /SDA line state */
+  u8 old_scl;        /* previous /SCL line state */
+  u8 cycles;         /* current operation cycle number (0-9) */
+  u8 rw;             /* operation type (1:READ, 0:WRITE) */
+  u16 slave_mask;    /* device address (shifted by the memory address width)*/
+  u16 word_address;  /* memory address */
   T_STATE_I2C state;    /* current operation state */
   T_CONFIG_I2C config;  /* EEPROM characteristics for this game */
 } T_EEPROM_I2C;
@@ -98,7 +98,7 @@ typedef struct
 typedef struct
 {
   char game_id[16];
-  uint16 chk;
+  u16 chk;
   T_CONFIG_I2C config;
 } T_GAME_ENTRY;
 
@@ -151,10 +151,10 @@ static const T_GAME_ENTRY database[GAME_CNT] =
 
 static T_EEPROM_I2C eeprom_i2c;
 
-static unsigned int eeprom_i2c_read_byte(unsigned int address);
-static unsigned int eeprom_i2c_read_word(unsigned int address);
-static void eeprom_i2c_write_byte(unsigned int address, unsigned int data);
-static void eeprom_i2c_write_word(unsigned int address, unsigned int data);
+static u32 eeprom_i2c_read_byte(u32 address);
+static u32 eeprom_i2c_read_word(u32 address);
+static void eeprom_i2c_write_byte(u32 address, u32 data);
+static void eeprom_i2c_write_word(u32 address, u32 data);
 
 void eeprom_i2c_init()
 {
@@ -468,7 +468,7 @@ static void eeprom_i2c_update(void)
         if (eeprom_i2c.cycles < 9)
         {
           /* Write DATA bits (max 64kBytes) */
-          uint16 sram_address = (eeprom_i2c.slave_mask | eeprom_i2c.word_address) & 0xFFFF;
+          u16 sram_address = (eeprom_i2c.slave_mask | eeprom_i2c.word_address) & 0xFFFF;
           if (eeprom_i2c.old_sda) sram.sram[sram_address] |= (1 << (8 - eeprom_i2c.cycles));
           else sram.sram[sram_address] &= ~(1 << (8 - eeprom_i2c.cycles));
 
@@ -491,9 +491,9 @@ static void eeprom_i2c_update(void)
   eeprom_i2c.old_sda = eeprom_i2c.sda;
 }
 
-static unsigned char eeprom_i2c_out(void)
+static u8 eeprom_i2c_out(void)
 {
-  uint8 sda_out = eeprom_i2c.sda;
+  u8 sda_out = eeprom_i2c.sda;
 
   /* EEPROM state */
   switch (eeprom_i2c.state)
@@ -503,7 +503,7 @@ static unsigned char eeprom_i2c_out(void)
       if (eeprom_i2c.cycles < 9)
       {
         /* Return DATA bits (max 64kBytes) */
-        uint16 sram_address = (eeprom_i2c.slave_mask | eeprom_i2c.word_address) & 0xffff;
+        u16 sram_address = (eeprom_i2c.slave_mask | eeprom_i2c.word_address) & 0xffff;
         sda_out = (sram.sram[sram_address] >> (8 - eeprom_i2c.cycles)) & 1;
 
         if (eeprom_i2c.cycles == 8)
@@ -535,7 +535,7 @@ static unsigned char eeprom_i2c_out(void)
   return (sda_out << eeprom_i2c.config.sda_out_bit);
 }
 
-static unsigned int eeprom_i2c_read_byte(unsigned int address)
+static u32 eeprom_i2c_read_byte(u32 address)
 {
   if (address == eeprom_i2c.config.sda_out_adr)
   {
@@ -545,7 +545,7 @@ static unsigned int eeprom_i2c_read_byte(unsigned int address)
   return READ_BYTE(cart.rom, address);
 }
 
-static unsigned int eeprom_i2c_read_word(unsigned int address)
+static u32 eeprom_i2c_read_word(u32 address)
 {
   if (address == eeprom_i2c.config.sda_out_adr)
   {
@@ -557,10 +557,10 @@ static unsigned int eeprom_i2c_read_word(unsigned int address)
     return eeprom_i2c_out();
   }
 
-  return *(uint16 *)(cart.rom + address);
+  return *(u16 *)(cart.rom + address);
 }
 
-static void eeprom_i2c_write_byte(unsigned int address, unsigned int data)
+static void eeprom_i2c_write_byte(u32 address, u32 data)
 {
   int do_update = 0;
 
@@ -585,7 +585,7 @@ static void eeprom_i2c_write_byte(unsigned int address, unsigned int data)
   m68k_unused_8_w(address, data);
 }
 
-static void eeprom_i2c_write_word(unsigned int address, unsigned int data)
+static void eeprom_i2c_write_word(u32 address, u32 data)
 {
   int do_update = 0;
 

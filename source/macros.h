@@ -25,11 +25,11 @@
 #else
 
 #define READ_BYTE(BASE, ADDR) (BASE)[ADDR]
-#define READ_WORD(BASE, ADDR) *(uint16 *)((BASE) + (ADDR))
-#define READ_WORD_LONG(BASE, ADDR) *(uint32 *)((BASE) + (ADDR))
+#define READ_WORD(BASE, ADDR) *(u16 *)((BASE) + (ADDR))
+#define READ_WORD_LONG(BASE, ADDR) *(u32 *)((BASE) + (ADDR))
 #define WRITE_BYTE(BASE, ADDR, VAL) (BASE)[ADDR] = VAL & 0xff
-#define WRITE_WORD(BASE, ADDR, VAL) *(uint16 *)((BASE) + (ADDR)) = VAL & 0xffff
-#define WRITE_WORD_LONG(BASE, ADDR, VAL) *(uint32 *)((BASE) + (ADDR)) = VAL & 0xffffffff
+#define WRITE_WORD(BASE, ADDR, VAL) *(u16 *)((BASE) + (ADDR)) = VAL & 0xffff
+#define WRITE_WORD_LONG(BASE, ADDR, VAL) *(u32 *)((BASE) + (ADDR)) = VAL & 0xffffffff
 #endif
 
 /* C89 compatibility */

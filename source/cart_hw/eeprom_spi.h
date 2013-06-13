@@ -41,7 +41,7 @@
 
 /* Function prototypes */
 extern void eeprom_spi_init();
-extern void eeprom_spi_write(unsigned char data);
-extern unsigned int eeprom_spi_read(unsigned int address);
+extern void eeprom_spi_write(u8 data);
+extern u32 eeprom_spi_read(u32 address);
 
 #endif

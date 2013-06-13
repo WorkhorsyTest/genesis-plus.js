@@ -17,8 +17,8 @@
 #include "ssp16.h"
 
 typedef struct {
-  unsigned char iram_rom[0x20000]; /* IRAM (0-0x7ff) and program ROM (0x800-0x1ffff) */
-  unsigned char dram[0x20000];
+  u8 iram_rom[0x20000]; /* IRAM (0-0x7ff) and program ROM (0x800-0x1ffff) */
+  u8 dram[0x20000];
   ssp1601_t ssp1601;
 } svp_t;
 
@@ -26,8 +26,8 @@ extern svp_t *svp;
 
 extern void svp_init(void);
 extern void svp_reset(void);
-extern void svp_write_dram(uint32 address, uint32 data);
-extern uint32 svp_read_cell_1(uint32 address);
-extern uint32 svp_read_cell_2(uint32 address);
+extern void svp_write_dram(u32 address, u32 data);
+extern u32 svp_read_cell_1(u32 address);
+extern u32 svp_read_cell_2(u32 address);
 
 #endif

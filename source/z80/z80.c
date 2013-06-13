@@ -207,24 +207,24 @@ u32 cpu_readop_arg(u32 a) {
 
 Z80_Regs Z80;
 
-uint8 *z80_readmap[64];
-uint8 *z80_writemap[64];
+u8 *z80_readmap[64];
+u8 *z80_writemap[64];
 
-void (*z80_writemem)(u32 address, uint8 data);
-uint8 (*z80_readmem)(u32 address);
-void (*z80_writeport)(u32 port, uint8 data);
-uint8 (*z80_readport)(u32 port);
+void (*z80_writemem)(u32 address, u8 data);
+u8 (*z80_readmem)(u32 address);
+void (*z80_writeport)(u32 port, u8 data);
+u8 (*z80_readport)(u32 port);
 
 static u32 EA;
 
-static uint8 SZ[256];       /* zero and sign flags */
-static uint8 SZ_BIT[256];   /* zero, sign and parity/overflow (=zero) flags for BIT opcode */
-static uint8 SZP[256];      /* zero, sign and parity flags */
-static uint8 SZHV_inc[256]; /* zero, sign, half carry and overflow flags INC r8 */
-static uint8 SZHV_dec[256]; /* zero, sign, half carry and overflow flags DEC r8 */
+static u8 SZ[256];       /* zero and sign flags */
+static u8 SZ_BIT[256];   /* zero, sign and parity/overflow (=zero) flags for BIT opcode */
+static u8 SZP[256];      /* zero, sign and parity flags */
+static u8 SZHV_inc[256]; /* zero, sign, half carry and overflow flags INC r8 */
+static u8 SZHV_dec[256]; /* zero, sign, half carry and overflow flags DEC r8 */
 
-static uint8 SZHVC_add[2*256*256]; /* flags for ADD opcode */
-static uint8 SZHVC_sub[2*256*256]; /* flags for SUB opcode */
+static u8 SZHVC_add[2*256*256]; /* flags for ADD opcode */
+static u8 SZHVC_sub[2*256*256]; /* flags for SUB opcode */
 
 static const u16 cc_op[0x100] = {
    4*15,10*15, 7*15, 6*15, 4*15, 4*15, 7*15, 4*15, 4*15,11*15, 7*15, 6*15, 4*15, 4*15, 7*15, 4*15,
@@ -974,44 +974,44 @@ void BURNODD(s32 cycles, s32 opcodes, s32 cyclesum)
 /***************************************************************
  * adjust cycle count by n T-states
  ***************************************************************/
-void CC_op(uint8 opcode) { Z80.cycles += cc[Z80_TABLE_op][opcode]; }
-void CC_cb(uint8 opcode) { Z80.cycles += cc[Z80_TABLE_cb][opcode]; }
-void CC_dd(uint8 opcode) { Z80.cycles += cc[Z80_TABLE_dd][opcode]; }
-void CC_ed(uint8 opcode) { Z80.cycles += cc[Z80_TABLE_ed][opcode]; }
-void CC_fd(uint8 opcode) { Z80.cycles += cc[Z80_TABLE_fd][opcode]; }
-void CC_xy(uint8 opcode) { Z80.cycles += cc[Z80_TABLE_xy][opcode]; }
-void CC_xycb(uint8 opcode) { Z80.cycles += cc[Z80_TABLE_xycb][opcode]; }
-void CC_ex(uint8 opcode) { Z80.cycles += cc[Z80_TABLE_ex][opcode]; }
+void CC_op(u8 opcode) { Z80.cycles += cc[Z80_TABLE_op][opcode]; }
+void CC_cb(u8 opcode) { Z80.cycles += cc[Z80_TABLE_cb][opcode]; }
+void CC_dd(u8 opcode) { Z80.cycles += cc[Z80_TABLE_dd][opcode]; }
+void CC_ed(u8 opcode) { Z80.cycles += cc[Z80_TABLE_ed][opcode]; }
+void CC_fd(u8 opcode) { Z80.cycles += cc[Z80_TABLE_fd][opcode]; }
+void CC_xy(u8 opcode) { Z80.cycles += cc[Z80_TABLE_xy][opcode]; }
+void CC_xycb(u8 opcode) { Z80.cycles += cc[Z80_TABLE_xycb][opcode]; }
+void CC_ex(u8 opcode) { Z80.cycles += cc[Z80_TABLE_ex][opcode]; }
 
 /***************************************************************
  * execute an opcode
  ***************************************************************/
-void EXEC_op(uint8 opcode) {
+void EXEC_op(u8 opcode) {
   CC_op(opcode);
   (*Z80op[opcode])();
 }
 
-void EXEC_cb(uint8 opcode) {
+void EXEC_cb(u8 opcode) {
   CC_cb(opcode);
   (*Z80cb[opcode])();
 }
 
-void EXEC_dd(uint8 opcode) {
+void EXEC_dd(u8 opcode) {
   CC_dd(opcode);
   (*Z80dd[opcode])();
 }
 
-void EXEC_ed(uint8 opcode) {
+void EXEC_ed(u8 opcode) {
   CC_ed(opcode);
   (*Z80ed[opcode])();
 }
 
-void EXEC_fd(uint8 opcode) {
+void EXEC_fd(u8 opcode) {
   CC_fd(opcode);
   (*Z80fd[opcode])();
 }
 
-void EXEC_xycb(uint8 opcode) {
+void EXEC_xycb(u8 opcode) {
   CC_xycb(opcode);
   (*Z80xycb[opcode])();
 }
@@ -1038,28 +1038,28 @@ void LEAVE_HALT() {
 /***************************************************************
  * Input a byte from given I/O port
  ***************************************************************/
-uint8 IN(u32 port) {
+u8 IN(u32 port) {
 	return z80_readport(port);
 }
 
 /***************************************************************
  * Output a byte to given I/O port
  ***************************************************************/
-void OUT(u32 port, uint8 value) {
+void OUT(u32 port, u8 value) {
 	z80_writeport(port, value);
 }
 
 /***************************************************************
  * Read a byte from given memory location
  ***************************************************************/
-uint8 RM(u32 addr) {
+u8 RM(u32 addr) {
 	return z80_readmem(addr);
 }
 
 /***************************************************************
  * Write a byte to given memory location
  ***************************************************************/
-void WM(u32 address, uint8 value) {
+void WM(u32 address, u8 value) {
 	z80_writemem(address, value);
 }
 
@@ -1086,7 +1086,7 @@ void WM16( u32 addr, PAIR *r )
  * reading opcodes. In case of system with memory mapped I/O,
  * this function can be used to greatly speed up emulation
  ***************************************************************/
-uint8 ROP(void)
+u8 ROP(void)
 {
   u32 pc = PCD;
   PC++;
@@ -1099,7 +1099,7 @@ uint8 ROP(void)
  * support systems that use different encoding mechanisms for
  * opcodes and opcode arguments
  ***************************************************************/
-uint8 ARG(void)
+u8 ARG(void)
 {
   u32 pc = PCD;
   PC++;
@@ -1235,7 +1235,7 @@ void JR() {
 /***************************************************************
  * JR_COND
  ***************************************************************/
-void JR_COND(bool cond, uint8 opcode) {
+void JR_COND(bool cond, u8 opcode) {
   if (cond)
   {
     JR();
@@ -1257,7 +1257,7 @@ void CALL() {
 /***************************************************************
  * CALL_COND
  ***************************************************************/
-void CALL_COND(bool cond, uint8 opcode) {
+void CALL_COND(bool cond, u8 opcode) {
   if (cond)
   {
     EA = ARG16();
@@ -1275,7 +1275,7 @@ void CALL_COND(bool cond, uint8 opcode) {
 /***************************************************************
  * RET_COND
  ***************************************************************/
-void RET_COND(bool cond, uint8 opcode) {
+void RET_COND(bool cond, u8 opcode) {
   if (cond)
   {
     POP_pc();
@@ -1338,7 +1338,7 @@ void LD_A_I() {
 /***************************************************************
  * RST
  ***************************************************************/
-void RST(uint8 addr) {
+void RST(u8 addr) {
   PUSH_pc();
   PCD = addr;
   WZ = PC;
@@ -1347,19 +1347,19 @@ void RST(uint8 addr) {
 /***************************************************************
  * INC  r8
  ***************************************************************/
-uint8 INC(uint8 value)
+u8 INC(u8 value)
 {
-  uint8 res = value + 1;
+  u8 res = value + 1;
   F = (F & CF) | SZHV_inc[res];
-  return (uint8)res;
+  return (u8)res;
 }
 
 /***************************************************************
  * DEC  r8
  ***************************************************************/
-uint8 DEC(uint8 value)
+u8 DEC(u8 value)
 {
-  uint8 res = value - 1;
+  u8 res = value - 1;
   F = (F & CF) | SZHV_dec[res];
   return res;
 }
@@ -1385,8 +1385,8 @@ void RRCA() {
  * RLA
  ***************************************************************/
 void RLA() {
-  uint8 res = (A << 1) | (F & CF);
-  uint8 c = (A & 0x80) ? CF : 0;
+  u8 res = (A << 1) | (F & CF);
+  u8 c = (A & 0x80) ? CF : 0;
   F = (F & (SF | ZF | PF)) | c | (res & (YF | XF));
   A = res;
 }
@@ -1395,8 +1395,8 @@ void RLA() {
  * RRA
  ***************************************************************/
 void RRA() {
-  uint8 res = (A >> 1) | (F << 7);
-  uint8 c = (A & 0x01) ? CF : 0;
+  u8 res = (A >> 1) | (F << 7);
+  u8 c = (A & 0x01) ? CF : 0;
   F = (F & (SF | ZF | PF)) | c | (res & (YF | XF));
   A = res;
 }
@@ -1405,7 +1405,7 @@ void RRA() {
  * RRD
  ***************************************************************/
 void RRD() {
-  uint8 n = RM(HL);
+  u8 n = RM(HL);
   WZ = HL+1;
   WM( HL, (n >> 4) | (A << 4) );
   A = (A & 0xf0) | (n & 0x0f);
@@ -1416,7 +1416,7 @@ void RRD() {
  * RLD
  ***************************************************************/
 void RLD() {
-  uint8 n = RM(HL);
+  u8 n = RM(HL);
   WZ = HL+1;
   WM( HL, (n << 4) | (A & 0x0f) );
   A = (A & 0xf0) | (n >> 4);
@@ -1426,9 +1426,9 @@ void RLD() {
 /***************************************************************
  * ADD  A,n
  ***************************************************************/
-void ADD(uint8 value) {
+void ADD(u8 value) {
   u32 ah = AFD & 0xff00;
-  u32 res = (uint8)((ah >> 8) + value);
+  u32 res = (u8)((ah >> 8) + value);
   F = SZHVC_add[ah | res];
   A = res;
 }
@@ -1436,9 +1436,9 @@ void ADD(uint8 value) {
 /***************************************************************
  * ADC  A,n
  ***************************************************************/
-void ADC(uint8 value) {
+void ADC(u8 value) {
   u32 ah = AFD & 0xff00, c = AFD & 1;
-  u32 res = (uint8)((ah >> 8) + value + c);
+  u32 res = (u8)((ah >> 8) + value + c);
   F = SZHVC_add[(c << 16) | ah | res];
   A = res;
 }
@@ -1446,9 +1446,9 @@ void ADC(uint8 value) {
 /***************************************************************
  * SUB  n
  ***************************************************************/
-void SUB(uint8 value) {
+void SUB(u8 value) {
   u32 ah = AFD & 0xff00;
-  u32 res = (uint8)((ah >> 8) - value);
+  u32 res = (u8)((ah >> 8) - value);
   F = SZHVC_sub[ah | res];
   A = res;
 }
@@ -1456,9 +1456,9 @@ void SUB(uint8 value) {
 /***************************************************************
  * SBC  A,n
  ***************************************************************/
-void SBC(uint8 value) {
+void SBC(u8 value) {
   u32 ah = AFD & 0xff00, c = AFD & 1;
-  u32 res = (uint8)((ah >> 8) - value - c);
+  u32 res = (u8)((ah >> 8) - value - c);
   F = SZHVC_sub[(c<<16) | ah | res];
   A = res;
 }
@@ -1467,7 +1467,7 @@ void SBC(uint8 value) {
  * NEG
  ***************************************************************/
 void NEG() {
-  uint8 value = A;
+  u8 value = A;
   A = 0;
   SUB(value);
 }
@@ -1476,7 +1476,7 @@ void NEG() {
  * DAA
  ***************************************************************/
 void DAA() {
-  uint8 a = A;
+  u8 a = A;
   if (F & NF) {
     if ((F&HF) | ((A&0xf)>9)) a-=6;
     if ((F&CF) | (A>0x99)) a-=0x60;
@@ -1492,7 +1492,7 @@ void DAA() {
 /***************************************************************
  * AND  n
  ***************************************************************/
-void AND(uint8 value) {
+void AND(u8 value) {
   A &= value;
   F = SZP[A] | HF;
 }
@@ -1500,7 +1500,7 @@ void AND(uint8 value) {
 /***************************************************************
  * OR  n
  ***************************************************************/
-void OR(uint8 value) {
+void OR(u8 value) {
   A |= value;
   F = SZP[A];
 }
@@ -1508,7 +1508,7 @@ void OR(uint8 value) {
 /***************************************************************
  * XOR  n
  ***************************************************************/
-void XOR(uint8 value) {
+void XOR(u8 value) {
   A ^= value;
   F = SZP[A];
 }
@@ -1516,10 +1516,10 @@ void XOR(uint8 value) {
 /***************************************************************
  * CP  n
  ***************************************************************/
-void CP(uint8 value) {
+void CP(u8 value) {
   u32 val = value;
   u32 ah = AFD & 0xff00;
-  u32 res = (uint8)((ah >> 8) - val);
+  u32 res = (u8)((ah >> 8) - val);
   F = (SZHVC_sub[ah | res] & ~(YF | XF)) | (val & (YF | XF));
 }
 
@@ -1627,7 +1627,7 @@ void EXSP_hl()
 /***************************************************************
  * RLC  r8
  ***************************************************************/
-uint8 RLC(uint8 value)
+u8 RLC(u8 value)
 {
   u32 res = value;
   u32 c = (res & 0x80) ? CF : 0;
@@ -1639,7 +1639,7 @@ uint8 RLC(uint8 value)
 /***************************************************************
  * RRC  r8
  ***************************************************************/
-uint8 RRC(uint8 value)
+u8 RRC(u8 value)
 {
   u32 res = value;
   u32 c = (res & 0x01) ? CF : 0;
@@ -1651,7 +1651,7 @@ uint8 RRC(uint8 value)
 /***************************************************************
  * RL  r8
  ***************************************************************/
-uint8 RL(uint8 value)
+u8 RL(u8 value)
 {
   u32 res = value;
   u32 c = (res & 0x80) ? CF : 0;
@@ -1663,7 +1663,7 @@ uint8 RL(uint8 value)
 /***************************************************************
  * RR  r8
  ***************************************************************/
-uint8 RR(uint8 value)
+u8 RR(u8 value)
 {
   u32 res = value;
   u32 c = (res & 0x01) ? CF : 0;
@@ -1675,7 +1675,7 @@ uint8 RR(uint8 value)
 /***************************************************************
  * SLA  r8
  ***************************************************************/
-uint8 SLA(uint8 value)
+u8 SLA(u8 value)
 {
   u32 res = value;
   u32 c = (res & 0x80) ? CF : 0;
@@ -1687,7 +1687,7 @@ uint8 SLA(uint8 value)
 /***************************************************************
  * SRA  r8
  ***************************************************************/
-uint8 SRA(uint8 value)
+u8 SRA(u8 value)
 {
   u32 res = value;
   u32 c = (res & 0x01) ? CF : 0;
@@ -1699,7 +1699,7 @@ uint8 SRA(uint8 value)
 /***************************************************************
  * SLL  r8
  ***************************************************************/
-uint8 SLL(uint8 value)
+u8 SLL(u8 value)
 {
   u32 res = value;
   u32 c = (res & 0x80) ? CF : 0;
@@ -1711,7 +1711,7 @@ uint8 SLL(uint8 value)
 /***************************************************************
  * SRL  r8
  ***************************************************************/
-uint8 SRL(uint8 value)
+u8 SRL(u8 value)
 {
   u32 res = value;
   u32 c = (res & 0x01) ? CF : 0;
@@ -1742,7 +1742,7 @@ uint8 SRL(uint8 value)
 /***************************************************************
  * RES  bit,r8
  ***************************************************************/
-uint8 RES(uint8 bit, uint8 value)
+u8 RES(u8 bit, u8 value)
 {
   return value & ~(1<<bit);
 }
@@ -1750,7 +1750,7 @@ uint8 RES(uint8 bit, uint8 value)
 /***************************************************************
  * SET  bit,r8
  ***************************************************************/
-uint8 SET(uint8 bit, uint8 value)
+u8 SET(u8 bit, u8 value)
 {
   return value | (1<<bit);
 }
@@ -1759,7 +1759,7 @@ uint8 SET(uint8 bit, uint8 value)
  * LDI
  ***************************************************************/
 void LDI() {
-  uint8 io = RM(HL);
+  u8 io = RM(HL);
   WM( DE, io );
   F &= SF | ZF | CF;
   if( (A + io) & 0x02 ) F |= YF; /* bit 1 -> flag 5 */
@@ -1772,8 +1772,8 @@ void LDI() {
  * CPI
  ***************************************************************/
 void CPI() {
-  uint8 val = RM(HL);
-  uint8 res = A - val;
+  u8 val = RM(HL);
+  u8 res = A - val;
   WZ++;
   HL++; BC--;
   F = (F & CF) | (SZ[res]&~(YF|XF)) | ((A^val^res)&HF) | NF;
@@ -1788,7 +1788,7 @@ void CPI() {
  ***************************************************************/
 void INI() {
   u32 t;
-  uint8 io = IN(BC);
+  u8 io = IN(BC);
   WZ = BC + 1;
   CC_ex(0xa2);
   B--;
@@ -1798,7 +1798,7 @@ void INI() {
   t = (u32)((C + 1) & 0xff) + (u32)io;
   if( io & SF ) F |= NF;
   if( t & 0x100 ) F |= HF | CF;
-  F |= SZP[(uint8)(t & 0x07) ^ B] & PF;
+  F |= SZP[(u8)(t & 0x07) ^ B] & PF;
 }
 
 /***************************************************************
@@ -1806,7 +1806,7 @@ void INI() {
  ***************************************************************/
 void OUTI() {
   u32 t;
-  uint8 io = RM(HL);
+  u8 io = RM(HL);
   B--;
   WZ = BC + 1;
   OUT( BC, io );
@@ -1815,14 +1815,14 @@ void OUTI() {
   t = (u32)L + (u32)io;
   if( io & SF ) F |= NF;
   if( t & 0x100 ) F |= HF | CF;
-  F |= SZP[(uint8)(t & 0x07) ^ B] & PF;
+  F |= SZP[(u8)(t & 0x07) ^ B] & PF;
 }
 
 /***************************************************************
  * LDD
  ***************************************************************/
 void LDD() {
-  uint8 io = RM(HL);
+  u8 io = RM(HL);
   WM( DE, io );
   F &= SF | ZF | CF;
   if( (A + io) & 0x02 ) F |= YF; /* bit 1 -> flag 5 */
@@ -1835,8 +1835,8 @@ void LDD() {
  * CPD
  ***************************************************************/
 void CPD() {
-  uint8 val = RM(HL);
-  uint8 res = A - val;
+  u8 val = RM(HL);
+  u8 res = A - val;
   WZ--;
   HL--; BC--;
   F = (F & CF) | (SZ[res]&~(YF|XF)) | ((A^val^res)&HF) | NF;
@@ -1851,7 +1851,7 @@ void CPD() {
  ***************************************************************/
 void IND() {
   u32 t;
-  uint8 io = IN(BC);
+  u8 io = IN(BC);
   WZ = BC - 1;
   CC_ex(0xaa);
   B--;
@@ -1861,7 +1861,7 @@ void IND() {
   t = ((u32)(C - 1) & 0xff) + (u32)io;
   if( io & SF ) F |= NF;
   if( t & 0x100 ) F |= HF | CF;
-  F |= SZP[(uint8)(t & 0x07) ^ B] & PF;
+  F |= SZP[(u8)(t & 0x07) ^ B] & PF;
 }
 
 /***************************************************************
@@ -1869,7 +1869,7 @@ void IND() {
  ***************************************************************/
 void OUTD() {
   u32 t;
-  uint8 io = RM(HL);
+  u8 io = RM(HL);
   B--;
   WZ = BC - 1;
   OUT( BC, io );
@@ -1878,7 +1878,7 @@ void OUTD() {
   t = (u32)L + (u32)io;
   if( io & SF ) F |= NF;
   if( t & 0x100 ) F |= HF | CF;
-  F |= SZP[(uint8)(t & 0x07) ^ B] & PF;
+  F |= SZP[(u8)(t & 0x07) ^ B] & PF;
 }
 
 /***************************************************************
@@ -3299,7 +3299,7 @@ void ed_6d(void) { RETI();                                             } /* RETI
 void ed_6e(void) { IM = 0;                                           } /* IM   0       */
 void ed_6f(void) { RLD();                                              } /* RLD  (HL)    */
 
-void ed_70(void) { uint8 res = IN(BC); F = (F & CF) | SZP[res];      } /* IN   0,(C)   */
+void ed_70(void) { u8 res = IN(BC); F = (F & CF) | SZP[res];      } /* IN   0,(C)   */
 void ed_71(void) { OUT(BC, 0);                                       } /* OUT  (C),0   */
 void ed_72(void) { SBC16( sp );                                      } /* SBC  HL,SP   */
 void ed_73(void) { EA = ARG16(); WM16( EA, &Z80.sp ); WZ = EA+1;     } /* LD   (w),SP  */
@@ -3827,10 +3827,10 @@ void z80_init(const void *config, s32 (*irqcallback)(s32))
   s32 i, p;
 
   s32 oldval, newval, val;
-  uint8 *padd = &SZHVC_add[  0*256];
-  uint8 *padc = &SZHVC_add[256*256];
-  uint8 *psub = &SZHVC_sub[  0*256];
-  uint8 *psbc = &SZHVC_sub[256*256];
+  u8 *padd = &SZHVC_add[  0*256];
+  u8 *padc = &SZHVC_add[256*256];
+  u8 *psub = &SZHVC_sub[  0*256];
+  u8 *psbc = &SZHVC_sub[256*256];
   for (oldval = 0; oldval < 256; oldval++)
   {
     for (newval = 0; newval < 256; newval++)

@@ -41,7 +41,7 @@
 
 /* Function prototypes */
 extern void terebi_oekaki_reset(void);
-extern unsigned short terebi_oekaki_read(void);
-extern void terebi_oekaki_write(unsigned char data);
+extern u16 terebi_oekaki_read(void);
+extern void terebi_oekaki_write(u8 data);
 
 #endif

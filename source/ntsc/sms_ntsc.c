@@ -85,7 +85,7 @@ void sms_ntsc_init( sms_ntsc_t* ntsc, sms_ntsc_setup_t const* setup )
 }
 
 #ifndef CUSTOM_BLITTER
-void sms_ntsc_blit( sms_ntsc_t const* ntsc, SMS_NTSC_IN_T const* table, unsigned char* input,
+void sms_ntsc_blit( sms_ntsc_t const* ntsc, SMS_NTSC_IN_T const* table, u8* input,
                     int in_width, int vline)
 {
   int const chunk_count = in_width / sms_ntsc_in_chunk;

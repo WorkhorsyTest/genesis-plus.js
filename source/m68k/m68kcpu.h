@@ -521,7 +521,7 @@
 /* ----------------------------- Read / Write ----------------------------- */
 
 /* Read data immediately following the PC */
-#define m68k_read_immediate_16(address) *(uint16 *)(m68ki_cpu.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff))
+#define m68k_read_immediate_16(address) *(u16 *)(m68ki_cpu.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff))
 #define m68k_read_immediate_32(address) (m68k_read_immediate_16(address) << 16) | (m68k_read_immediate_16(address+2))
 
 /* Read data relative to the PC */
@@ -564,7 +564,7 @@
 /* ======================================================================== */
 
 /* Used by shift & rotate instructions */
-static const uint8 m68ki_shift_8_table[65] =
+static const u8 m68ki_shift_8_table[65] =
 {
   0x00, 0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff, 0xff, 0xff, 0xff,
   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -574,7 +574,7 @@ static const uint8 m68ki_shift_8_table[65] =
   0xff, 0xff, 0xff, 0xff, 0xff
 };
 
-static const uint16 m68ki_shift_16_table[65] =
+static const u16 m68ki_shift_16_table[65] =
 {
   0x0000, 0x8000, 0xc000, 0xe000, 0xf000, 0xf800, 0xfc00, 0xfe00, 0xff00,
   0xff80, 0xffc0, 0xffe0, 0xfff0, 0xfff8, 0xfffc, 0xfffe, 0xffff, 0xffff,
@@ -605,7 +605,7 @@ static const uint m68ki_shift_32_table[65] =
 /* Number of clock cycles to use for exception processing.
  * I used 4 for any vectors that are undocumented for processing times.
  */
-static const uint16 m68ki_exception_cycle_table[256] =
+static const u16 m68ki_exception_cycle_table[256] =
 {
      40*MUL, /*  0: Reset - Initial Stack Pointer                      */
       4*MUL, /*  1: Reset - Initial Program Counter                    */
@@ -883,7 +883,7 @@ INLINE uint m68ki_read_16_fc(uint address, uint fc)
   
   temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
   if (temp->read16) return (*temp->read16)(ADDRESS_68K(address));
-  else return *(uint16 *)(temp->base + ((address) & 0xffff));
+  else return *(u16 *)(temp->base + ((address) & 0xffff));
 }
 
 INLINE uint m68ki_read_32_fc(uint address, uint fc)
@@ -918,7 +918,7 @@ INLINE void m68ki_write_16_fc(uint address, uint fc, uint value)
 
   temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
   if (temp->write16) (*temp->write16)(ADDRESS_68K(address),value);
-  else *(uint16 *)(temp->base + ((address) & 0xffff)) = value;
+  else *(u16 *)(temp->base + ((address) & 0xffff)) = value;
 }
 
 INLINE void m68ki_write_32_fc(uint address, uint fc, uint value)
@@ -930,11 +930,11 @@ INLINE void m68ki_write_32_fc(uint address, uint fc, uint value)
 
   temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
   if (temp->write16) (*temp->write16)(ADDRESS_68K(address),value>>16);
-  else *(uint16 *)(temp->base + ((address) & 0xffff)) = value >> 16;
+  else *(u16 *)(temp->base + ((address) & 0xffff)) = value >> 16;
 
   temp = &m68ki_cpu.memory_map[((address + 2)>>16)&0xff];
   if (temp->write16) (*temp->write16)(ADDRESS_68K(address+2),value&0xffff);
-  else *(uint16 *)(temp->base + ((address + 2) & 0xffff)) = value;
+  else *(u16 *)(temp->base + ((address + 2) & 0xffff)) = value;
 }
 
 
@@ -1075,15 +1075,15 @@ INLINE void m68ki_push_16(uint value)
 {
   REG_SP = MASK_OUT_ABOVE_32(REG_SP - 2);
   /*m68ki_write_16(REG_SP, value);*/
-  *(uint16 *)(m68ki_cpu.memory_map[(REG_SP>>16)&0xff].base + (REG_SP & 0xffff)) = value;
+  *(u16 *)(m68ki_cpu.memory_map[(REG_SP>>16)&0xff].base + (REG_SP & 0xffff)) = value;
 }
 
 INLINE void m68ki_push_32(uint value)
 {
   REG_SP = MASK_OUT_ABOVE_32(REG_SP - 4);
   /*m68ki_write_32(REG_SP, value);*/
-  *(uint16 *)(m68ki_cpu.memory_map[(REG_SP>>16)&0xff].base + (REG_SP & 0xffff)) = value >> 16;
-  *(uint16 *)(m68ki_cpu.memory_map[((REG_SP + 2)>>16)&0xff].base + ((REG_SP + 2) & 0xffff)) = value & 0xffff;
+  *(u16 *)(m68ki_cpu.memory_map[(REG_SP>>16)&0xff].base + (REG_SP & 0xffff)) = value >> 16;
+  *(u16 *)(m68ki_cpu.memory_map[((REG_SP + 2)>>16)&0xff].base + ((REG_SP + 2) & 0xffff)) = value & 0xffff;
 }
 
 INLINE uint m68ki_pull_16(void)

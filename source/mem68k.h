@@ -41,37 +41,37 @@
 #define _MEM68K_H_
 
 /* unused areas */
-extern unsigned int m68k_read_bus_8(unsigned int address);
-extern unsigned int m68k_read_bus_16(unsigned int address);
-extern void m68k_unused_8_w(unsigned int address, unsigned int data);
-extern void m68k_unused_16_w(unsigned int address, unsigned int data);
+extern u32 m68k_read_bus_8(u32 address);
+extern u32 m68k_read_bus_16(u32 address);
+extern void m68k_unused_8_w(u32 address, u32 data);
+extern void m68k_unused_16_w(u32 address, u32 data);
 
 /* illegal areas */
-extern unsigned int m68k_lockup_r_8(unsigned int address);
-extern unsigned int m68k_lockup_r_16(unsigned int address);
-extern void m68k_lockup_w_8(unsigned int address, unsigned int data);
-extern void m68k_lockup_w_16(unsigned int address, unsigned int data);
+extern u32 m68k_lockup_r_8(u32 address);
+extern u32 m68k_lockup_r_16(u32 address);
+extern void m68k_lockup_w_8(u32 address, u32 data);
+extern void m68k_lockup_w_16(u32 address, u32 data);
 
 /* Z80 bus */
-extern unsigned int z80_read_byte(unsigned int address);
-extern unsigned int z80_read_word(unsigned int address);
-extern void z80_write_byte(unsigned int address, unsigned int data);
-extern void z80_write_word(unsigned int address, unsigned int data);
+extern u32 z80_read_byte(u32 address);
+extern u32 z80_read_word(u32 address);
+extern void z80_write_byte(u32 address, u32 data);
+extern void z80_write_word(u32 address, u32 data);
 
 /* I/O & Control registers */
-extern unsigned int ctrl_io_read_byte(unsigned int address);
-extern unsigned int ctrl_io_read_word(unsigned int address);
-extern void ctrl_io_write_byte(unsigned int address, unsigned int data);
-extern void ctrl_io_write_word(unsigned int address, unsigned int data);
+extern u32 ctrl_io_read_byte(u32 address);
+extern u32 ctrl_io_read_word(u32 address);
+extern void ctrl_io_write_byte(u32 address, u32 data);
+extern void ctrl_io_write_word(u32 address, u32 data);
 
 /* VDP */
-extern unsigned int vdp_read_byte(unsigned int address);
-extern unsigned int vdp_read_word(unsigned int address);
-extern void vdp_write_byte(unsigned int address, unsigned int data);
-extern void vdp_write_word(unsigned int address, unsigned int data);
+extern u32 vdp_read_byte(u32 address);
+extern u32 vdp_read_word(u32 address);
+extern void vdp_write_byte(u32 address, u32 data);
+extern void vdp_write_word(u32 address, u32 data);
 
 /* PICO */
-extern unsigned int pico_read_byte(unsigned int address);
-extern unsigned int pico_read_word(unsigned int address);
+extern u32 pico_read_byte(u32 address);
+extern u32 pico_read_word(u32 address);
 
 #endif /* _MEM68K_H_ */

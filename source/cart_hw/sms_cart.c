@@ -59,20 +59,20 @@
 
 typedef struct
 {
-  uint32 crc;
-  uint8 g_3d;
-  uint8 fm;
-  uint8 peripheral;
-  uint8 mapper;
-  uint8 system;
-  uint8 region;
+  u32 crc;
+  u8 g_3d;
+  u8 fm;
+  u8 peripheral;
+  u8 mapper;
+  u8 system;
+  u8 region;
 } rominfo_t;
 
 typedef struct
 {
-  uint8 fcr[4];
-  uint8 mapper;
-  uint8 pages;
+  u8 fcr[4];
+  u8 mapper;
+  u8 pages;
 } romhw_t;
 
 static const rominfo_t game_list[GAME_DATABASE_CNT] =
@@ -335,40 +335,40 @@ static romhw_t bios_rom;
 /* Current slot */
 static struct
 {
-  uint8 *rom;
-  uint8 *fcr;
-  uint8 mapper;
-  uint8 pages;
+  u8 *rom;
+  u8 *fcr;
+  u8 mapper;
+  u8 pages;
 } slot;
 
 /* Function prototypes */
 static void mapper_reset(void);
-static void mapper_8k_w(int offset, unsigned int data);
-static void mapper_16k_w(int offset, unsigned int data);
-static void write_mapper_none(unsigned int address, unsigned char data);
-static void write_mapper_sega(unsigned int address, unsigned char data);
-static void write_mapper_codies(unsigned int address, unsigned char data);
-static void write_mapper_korea(unsigned int address, unsigned char data);
-static void write_mapper_korea_8k(unsigned int address, unsigned char data);
-static void write_mapper_korea_16k(unsigned int address, unsigned char data);
-static void write_mapper_msx(unsigned int address, unsigned char data);
-static void write_mapper_multi(unsigned int address, unsigned char data);
-static void write_mapper_93c46(unsigned int address, unsigned char data);
-static void write_mapper_terebi(unsigned int address, unsigned char data);
-static unsigned char read_mapper_93c46(unsigned int address);
-static unsigned char read_mapper_terebi(unsigned int address);
-static unsigned char read_mapper_korea_8k(unsigned int address);
-static unsigned char read_mapper_default(unsigned int address);
+static void mapper_8k_w(int offset, u32 data);
+static void mapper_16k_w(int offset, u32 data);
+static void write_mapper_none(u32 address, u8 data);
+static void write_mapper_sega(u32 address, u8 data);
+static void write_mapper_codies(u32 address, u8 data);
+static void write_mapper_korea(u32 address, u8 data);
+static void write_mapper_korea_8k(u32 address, u8 data);
+static void write_mapper_korea_16k(u32 address, u8 data);
+static void write_mapper_msx(u32 address, u8 data);
+static void write_mapper_multi(u32 address, u8 data);
+static void write_mapper_93c46(u32 address, u8 data);
+static void write_mapper_terebi(u32 address, u8 data);
+static u8 read_mapper_93c46(u32 address);
+static u8 read_mapper_terebi(u32 address);
+static u8 read_mapper_korea_8k(u32 address);
+static u8 read_mapper_default(u32 address);
 
 void sms_cart_init(void)
 {
   int i;
 
   /* game CRC */
-  uint32 crc = crc32(0, cart.rom, cart.romsize);
+  u32 crc = crc32(0, cart.rom, cart.romsize);
 
   /* use Master System controller by default */
-  uint8 device = SYSTEM_MS_GAMEPAD;
+  u8 device = SYSTEM_MS_GAMEPAD;
 
   /* unmapped memory return $FF on read (mapped to unused cartridge areas $510000-$5103FF & $510400-$5107FF) */
   memset(cart.rom + 0x510000, 0xFF, 0x800);
@@ -593,7 +593,7 @@ void sms_cart_reset(void)
   }
 }
 
-void sms_cart_switch(uint8 mode)
+void sms_cart_switch(u8 mode)
 {
   /* by default, disable cartridge & BIOS ROM */
   slot.pages = 0;
@@ -669,7 +669,7 @@ int sms_cart_region_detect(void)
   int i;
 
   /* compute CRC */
-  uint32 crc = crc32(0, cart.rom, cart.romsize);
+  u32 crc = crc32(0, cart.rom, cart.romsize);
 
   /* Turma da Mônica em: O Resgate & Wonder Boy III enable FM support on japanese hardware only */
   if (config.ym2413 && ((crc == 0x22CCA9BB) || (crc == 0x679E1676)))
@@ -697,14 +697,14 @@ int sms_cart_region_detect(void)
   return REGION_USA;
 }
 
-int sms_cart_context_save(uint8 *state)
+int sms_cart_context_save(u8 *state)
 {
   int bufferptr = 0;
   save_param(slot.fcr, 4);
   return bufferptr;
 }
 
-int sms_cart_context_load(uint8 *state)
+int sms_cart_context_load(u8 *state)
 {
   int bufferptr = 0;
   load_param(slot.fcr, 4);
@@ -885,12 +885,12 @@ static void mapper_reset(void)
   }
 }
 
-static void mapper_8k_w(int offset, unsigned int data)
+static void mapper_8k_w(int offset, u32 data)
 {
   int i;
 
   /* cartridge ROM page (8k) */
-  uint8 page = data % slot.pages;
+  u8 page = data % slot.pages;
   
   /* Save frame control register data */
   slot.fcr[offset] = data;
@@ -941,12 +941,12 @@ static void mapper_8k_w(int offset, unsigned int data)
 #endif
 }
     
-static void mapper_16k_w(int offset, unsigned int data)
+static void mapper_16k_w(int offset, u32 data)
 {
   int i;
 
   /* cartridge ROM page (16k) */
-  uint8 page = data % slot.pages;
+  u8 page = data % slot.pages;
 
   /* page index increment (SEGA mapper only) */
   if ((slot.fcr[0] & 0x03) && (slot.mapper == MAPPER_SEGA))
@@ -1085,12 +1085,12 @@ static void mapper_16k_w(int offset, unsigned int data)
 #endif
 }
 
-static void write_mapper_none(unsigned int address, unsigned char data)
+static void write_mapper_none(u32 address, u8 data)
 {
   z80_writemap[address >> 10][address & 0x03FF] = data;
 }
 
-static void write_mapper_sega(unsigned int address, unsigned char data)
+static void write_mapper_sega(u32 address, u8 data)
 {
   if (address >= 0xFFFC)
   {
@@ -1100,7 +1100,7 @@ static void write_mapper_sega(unsigned int address, unsigned char data)
   z80_writemap[address >> 10][address & 0x03FF] = data;
 }
 
-static void write_mapper_codies(unsigned int address, unsigned char data)
+static void write_mapper_codies(u32 address, u8 data)
 {
   if (address == 0x0000)
   {
@@ -1123,7 +1123,7 @@ static void write_mapper_codies(unsigned int address, unsigned char data)
   z80_writemap[address >> 10][address & 0x03FF] = data;
 }
 
-static void write_mapper_multi(unsigned int address, unsigned char data)
+static void write_mapper_multi(u32 address, u8 data)
 {
   if (address == 0x3FFE)
   {
@@ -1146,7 +1146,7 @@ static void write_mapper_multi(unsigned int address, unsigned char data)
   z80_writemap[address >> 10][address & 0x03FF] = data;
 }
 
-static void write_mapper_korea(unsigned int address, unsigned char data)
+static void write_mapper_korea(u32 address, u8 data)
 {
   if (address == 0xA000)
   {
@@ -1157,7 +1157,7 @@ static void write_mapper_korea(unsigned int address, unsigned char data)
   z80_writemap[address >> 10][address & 0x03FF] = data;
 }
 
-static void write_mapper_msx(unsigned int address, unsigned char data)
+static void write_mapper_msx(u32 address, u8 data)
 {
   if (address <= 0x0003)
   {
@@ -1168,7 +1168,7 @@ static void write_mapper_msx(unsigned int address, unsigned char data)
   z80_writemap[address >> 10][address & 0x03FF] = data;
 }
 
-static void write_mapper_korea_8k(unsigned int address, unsigned char data)
+static void write_mapper_korea_8k(u32 address, u8 data)
 {
   if (address == 0x4000)
   {
@@ -1208,7 +1208,7 @@ static void write_mapper_korea_8k(unsigned int address, unsigned char data)
   z80_writemap[address >> 10][address & 0x03FF] = data;
 }
 
-static void write_mapper_korea_16k(unsigned int address, unsigned char data)
+static void write_mapper_korea_16k(u32 address, u8 data)
 {
   if (address == 0x4000)
   {
@@ -1231,7 +1231,7 @@ static void write_mapper_korea_16k(unsigned int address, unsigned char data)
   z80_writemap[address >> 10][address & 0x03FF] = data;
 }
 
-static void write_mapper_93c46(unsigned int address, unsigned char data)
+static void write_mapper_93c46(u32 address, u8 data)
 {
   /* EEPROM serial input */
   if ((address == 0x8000) && eeprom_93c.enabled)
@@ -1262,7 +1262,7 @@ static void write_mapper_93c46(unsigned int address, unsigned char data)
   z80_writemap[address >> 10][address & 0x03FF] = data;
 }
 
-static void write_mapper_terebi(unsigned int address, unsigned char data)
+static void write_mapper_terebi(u32 address, u8 data)
 {
   if (address == 0x6000)
   {
@@ -1273,7 +1273,7 @@ static void write_mapper_terebi(unsigned int address, unsigned char data)
   z80_writemap[address >> 10][address & 0x03FF] = data;
 }
 
-static unsigned char read_mapper_93c46(unsigned int address)
+static u8 read_mapper_93c46(u32 address)
 {
   if ((address == 0x8000) && eeprom_93c.enabled)
   {
@@ -1283,7 +1283,7 @@ static unsigned char read_mapper_93c46(unsigned int address)
   return z80_readmap[address >> 10][address & 0x03FF];
 }
 
-static unsigned char read_mapper_terebi(unsigned int address)
+static u8 read_mapper_terebi(u32 address)
 {
   if (address == 0x8000)
   {
@@ -1298,12 +1298,12 @@ static unsigned char read_mapper_terebi(unsigned int address)
   return z80_readmap[address >> 10][address & 0x03FF];
 }
 
-static unsigned char read_mapper_korea_8k(unsigned int address)
+static u8 read_mapper_korea_8k(u32 address)
 {
-  unsigned char data = z80_readmap[address >> 10][address & 0x03FF];
+  u8 data = z80_readmap[address >> 10][address & 0x03FF];
 
   /* 16k page */
-  unsigned char page = address >> 14;
+  u8 page = address >> 14;
 
   /* $4000-$7FFFF and $8000-$BFFF area are protected */
   if (((page == 1) && (slot.fcr[2] & 0x80)) || ((page == 2) && (slot.fcr[0] & 0x80)))
@@ -1318,7 +1318,7 @@ static unsigned char read_mapper_korea_8k(unsigned int address)
   return data;
 }
 
-static unsigned char read_mapper_default(unsigned int address)
+static u8 read_mapper_default(u32 address)
 {
   return z80_readmap[address >> 10][address & 0x03FF];
 }

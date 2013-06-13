@@ -68,12 +68,12 @@ To implement the basic configuration:
   work with your compiler. (They are set for gcc)
 
 - In your host program, implement the following functions:
-    unsigned int  m68k_read_memory_8(unsigned int address);
-    unsigned int  m68k_read_memory_16(unsigned int address);
-    unsigned int  m68k_read_memory_32(unsigned int address);
-    void m68k_write_memory_8(unsigned int address, unsigned int value);
-    void m68k_write_memory_16(unsigned int address, unsigned int value);
-    void m68k_write_memory_32(unsigned int address, unsigned int value);
+    u32  m68k_read_memory_8(u32 address);
+    u32  m68k_read_memory_16(u32 address);
+    u32  m68k_read_memory_32(u32 address);
+    void m68k_write_memory_8(u32 address, u32 value);
+    void m68k_write_memory_16(u32 address, u32 value);
+    void m68k_write_memory_32(u32 address, u32 value);
 
 - In your host program, be sure to call m68k_pulse_reset() once before calling
   any of the other functions as this initializes the core.
@@ -137,12 +137,12 @@ To enable separate reads:
 - In m68kconf.h, turn on M68K_SEPARATE_READS.
 
 - In your host program, implement the following functions:
-    unsigned int  m68k_read_immediate_16(unsigned int address);
-    unsigned int  m68k_read_immediate_32(unsigned int address);
+    u32  m68k_read_immediate_16(u32 address);
+    u32  m68k_read_immediate_32(u32 address);
 
-    unsigned int  m68k_read_pcrelative_8(unsigned int address);
-    unsigned int  m68k_read_pcrelative_16(unsigned int address);
-    unsigned int  m68k_read_pcrelative_32(unsigned int address);
+    u32  m68k_read_pcrelative_8(u32 address);
+    u32  m68k_read_pcrelative_16(u32 address);
+    u32  m68k_read_pcrelative_32(u32 address);
 
 - If you need to know the current PC (for banking and such), set
   M68K_MONITOR_PC to OPT_SPECIFY_HANDLER, and set M68K_SET_PC_CALLBACK(A) to

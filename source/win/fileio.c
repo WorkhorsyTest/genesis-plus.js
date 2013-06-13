@@ -45,7 +45,7 @@
 
 static int check_zip(char *filename);
 
-int load_archive(char *filename, unsigned char *buffer, int maxsize, char *extension)
+int load_archive(char *filename, u8 *buffer, int maxsize, char *extension)
 {
   int size = 0;
   
@@ -148,7 +148,7 @@ int load_archive(char *filename, unsigned char *buffer, int maxsize, char *exten
 */
 static int check_zip(char *filename)
 {
-  uint8 buf[2];
+  u8 buf[2];
   FILE *fd = fopen(filename, "rb");
   if(!fd) return (0);
   fread(buf, 2, 1, fd);

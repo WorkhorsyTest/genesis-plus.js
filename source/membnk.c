@@ -44,7 +44,7 @@
   machine lock up.
 */
 
-unsigned int zbank_unused_r(unsigned int address)
+u32 zbank_unused_r(u32 address)
 {
 #ifdef LOGERROR
   error("Z80 bank unused read %06X (%x)\n", address, Z80.pc.d);
@@ -52,14 +52,14 @@ unsigned int zbank_unused_r(unsigned int address)
   return 0xFF;
 }
 
-void zbank_unused_w(unsigned int address, unsigned int data)
+void zbank_unused_w(u32 address, u32 data)
 {
 #ifdef LOGERROR
   error("Z80 bank unused write %06X = %02X (%x)\n", address, data, Z80.pc.d);
 #endif
 }
 
-unsigned int zbank_lockup_r(unsigned int address)
+u32 zbank_lockup_r(u32 address)
 {
 #ifdef LOGERROR
   error("Z80 bank lockup read %06X (%x)\n", address, Z80.pc.d);
@@ -72,7 +72,7 @@ unsigned int zbank_lockup_r(unsigned int address)
   return 0xFF;
 }
 
-void zbank_lockup_w(unsigned int address, unsigned int data)
+void zbank_lockup_w(u32 address, u32 data)
 {
 #ifdef LOGERROR
   error("Z80 bank lockup write %06X = %02X (%x)\n", address, data, Z80.pc.d);
@@ -85,7 +85,7 @@ void zbank_lockup_w(unsigned int address, unsigned int data)
 }
 
 /* I/O & Control registers */
-unsigned int zbank_read_ctrl_io(unsigned int address)
+u32 zbank_read_ctrl_io(u32 address)
 {
   switch ((address >> 8) & 0xFF)
   {
@@ -111,7 +111,7 @@ unsigned int zbank_read_ctrl_io(unsigned int address)
     {
       if (cart.hw.time_r)
       {
-        unsigned int data = cart.hw.time_r(address);
+        u32 data = cart.hw.time_r(address);
         if (address & 1)
         {
           return (data & 0xFF);
@@ -147,7 +147,7 @@ unsigned int zbank_read_ctrl_io(unsigned int address)
   }
 }
 
-void zbank_write_ctrl_io(unsigned int address, unsigned int data)
+void zbank_write_ctrl_io(u32 address, u32 data)
 {
   switch ((address >> 8) & 0xFF)
   {
@@ -222,7 +222,7 @@ void zbank_write_ctrl_io(unsigned int address, unsigned int data)
 
 
 /* VDP */
-unsigned int zbank_read_vdp(unsigned int address)
+u32 zbank_read_vdp(u32 address)
 {
   switch (address & 0xFD)
   {
@@ -273,7 +273,7 @@ unsigned int zbank_read_vdp(unsigned int address)
   }
 }
 
-void zbank_write_vdp(unsigned int address, unsigned int data)
+void zbank_write_vdp(u32 address, u32 data)
 {
   switch (address & 0xFC)
   {

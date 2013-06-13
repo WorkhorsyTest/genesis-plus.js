@@ -42,19 +42,19 @@
 #ifndef _MEMZ80_H_
 #define _MEMZ80_H_
 
-extern unsigned char z80_memory_r(unsigned int address);
-extern void z80_memory_w(unsigned int address, unsigned char data);
-extern unsigned char z80_unused_port_r(unsigned int port);
-extern void z80_unused_port_w(unsigned int port, unsigned char data);
-extern unsigned char z80_md_port_r(unsigned int port);
-extern void z80_md_port_w(unsigned int port, unsigned char data);
-extern unsigned char z80_gg_port_r(unsigned int port);
-extern void z80_gg_port_w(unsigned int port, unsigned char data);
-extern unsigned char z80_ms_port_r(unsigned int port);
-extern void z80_ms_port_w(unsigned int port, unsigned char data);
-extern unsigned char z80_m3_port_r(unsigned int port);
-extern void z80_m3_port_w(unsigned int port, unsigned char data);
-extern unsigned char z80_sg_port_r(unsigned int port);
-extern void z80_sg_port_w(unsigned int port, unsigned char data);
+extern u8 z80_memory_r(u32 address);
+extern void z80_memory_w(u32 address, u8 data);
+extern u8 z80_unused_port_r(u32 port);
+extern void z80_unused_port_w(u32 port, u8 data);
+extern u8 z80_md_port_r(u32 port);
+extern void z80_md_port_w(u32 port, u8 data);
+extern u8 z80_gg_port_r(u32 port);
+extern void z80_gg_port_w(u32 port, u8 data);
+extern u8 z80_ms_port_r(u32 port);
+extern void z80_ms_port_w(u32 port, u8 data);
+extern u8 z80_m3_port_r(u32 port);
+extern void z80_m3_port_w(u32 port, u8 data);
+extern u8 z80_sg_port_r(u32 port);
+extern void z80_sg_port_w(u32 port, u8 data);
 
 #endif /* _MEMZ80_H_ */

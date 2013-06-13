@@ -55,22 +55,22 @@ typedef union
 
 /* Global variables */
 extern external_t ext;
-extern uint8 boot_rom[0x800];
-extern uint8 work_ram[0x10000];
-extern uint8 zram[0x2000];
-extern uint32 zbank;
-extern uint8 zstate;
-extern uint8 pico_current;
+extern u8 boot_rom[0x800];
+extern u8 work_ram[0x10000];
+extern u8 zram[0x2000];
+extern u32 zbank;
+extern u8 zstate;
+extern u8 pico_current;
 
 /* Function prototypes */
 extern void gen_init(void);
 extern void gen_reset(int hard_reset);
-extern void gen_tmss_w(unsigned int offset, unsigned int data);
-extern void gen_bankswitch_w(unsigned int data);
-extern unsigned int gen_bankswitch_r(void);
-extern void gen_zbusreq_w(unsigned int state, unsigned int cycles);
-extern void gen_zreset_w(unsigned int state, unsigned int cycles);
-extern void gen_zbank_w(unsigned int state);
+extern void gen_tmss_w(u32 offset, u32 data);
+extern void gen_bankswitch_w(u32 data);
+extern u32 gen_bankswitch_r(void);
+extern void gen_zbusreq_w(u32 state, u32 cycles);
+extern void gen_zreset_w(u32 state, u32 cycles);
+extern void gen_zbank_w(u32 state);
 extern int z80_irq_callback(int param);
 
 #endif /* _GEN_H_ */

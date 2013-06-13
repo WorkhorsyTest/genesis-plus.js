@@ -40,8 +40,8 @@
 
 static struct
 {
-  uint8 axis;
-  uint8 busy;
+  u8 axis;
+  u8 busy;
 } tablet;
 
 void terebi_oekaki_reset(void)
@@ -52,9 +52,9 @@ void terebi_oekaki_reset(void)
   tablet.busy = 1;
 }
 
-unsigned short terebi_oekaki_read(void)
+u16 terebi_oekaki_read(void)
 {
-  uint16 data = (tablet.busy << 15) | input.analog[0][tablet.axis];
+  u16 data = (tablet.busy << 15) | input.analog[0][tablet.axis];
 
   if (!(input.pad[0] & INPUT_B))
   {
@@ -67,7 +67,7 @@ unsigned short terebi_oekaki_read(void)
   return data;
 }
 
-void terebi_oekaki_write(unsigned char data)
+void terebi_oekaki_write(u8 data)
 {
   /* X (1) or Y (0) axis */
   tablet.axis = (data & 1) ^ 1;

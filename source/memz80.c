@@ -47,14 +47,14 @@
 /*  machine lock up.                                                        */
 /*--------------------------------------------------------------------------*/
 
-INLINE void z80_unused_w(unsigned int address, unsigned char data)
+INLINE void z80_unused_w(u32 address, u8 data)
 {
 #ifdef LOGERROR
   error("Z80 unused write %04X = %02X (%x)\n", address, data, Z80.pc.w.l);
 #endif
 }
 
-INLINE unsigned char z80_unused_r(unsigned int address)
+INLINE u8 z80_unused_r(u32 address)
 {
 #ifdef LOGERROR
   error("Z80 unused read %04X (%x)\n", address, Z80.pc.w.l);
@@ -62,7 +62,7 @@ INLINE unsigned char z80_unused_r(unsigned int address)
   return 0xFF;
 }
 
-INLINE void z80_lockup_w(unsigned int address, unsigned char data)
+INLINE void z80_lockup_w(u32 address, u8 data)
 {
 #ifdef LOGERROR
   error("Z80 lockup write %04X = %02X (%x)\n", address, data, Z80.pc.w.l);
@@ -74,7 +74,7 @@ INLINE void z80_lockup_w(unsigned int address, unsigned char data)
   }
 }
 
-INLINE unsigned char z80_lockup_r(unsigned int address)
+INLINE u8 z80_lockup_r(u32 address)
 {
 #ifdef LOGERROR
   error("Z80 lockup read %04X (%x)\n", address, Z80.pc.w.l);
@@ -92,7 +92,7 @@ INLINE unsigned char z80_lockup_r(unsigned int address)
 /*  Z80 Memory handlers (Genesis mode)                                      */
 /*--------------------------------------------------------------------------*/
 
-unsigned char z80_memory_r(unsigned int address)
+u8 z80_memory_r(u32 address)
 {
   switch((address >> 13) & 7)
   {
@@ -129,7 +129,7 @@ unsigned char z80_memory_r(unsigned int address)
 }
 
 
-void z80_memory_w(unsigned int address, unsigned char data)
+void z80_memory_w(u32 address, u8 data)
 {
   switch((address >> 13) & 7)
   {
@@ -194,20 +194,20 @@ void z80_memory_w(unsigned int address, unsigned char data)
 /*                                                                          */
 /*--------------------------------------------------------------------------*/
 
-unsigned char z80_unused_port_r(unsigned int port)
+u8 z80_unused_port_r(u32 port)
 {
 #if LOGERROR
   error("Z80 unused read from port %04X (%x)\n", port, Z80.pc.w.l);
 #endif
   if (system_hw == SYSTEM_SMS)
   {
-    unsigned int address = (Z80.pc.w.l - 1) & 0xFFFF;
+    u32 address = (Z80.pc.w.l - 1) & 0xFFFF;
     return z80_readmap[address >> 10][address & 0x3FF];
   }
   return 0xFF;
 }
 
-void z80_unused_port_w(unsigned int port, unsigned char data)
+void z80_unused_port_w(u32 port, u8 data)
 {
 #if LOGERROR
   error("Z80 unused write to port %04X = %02X (%x)\n", port, data, Z80.pc.w.l);
@@ -218,7 +218,7 @@ void z80_unused_port_w(unsigned int port, unsigned char data)
 /* MegaDrive / Genesis port handlers (Master System compatibility mode)     */
 /*--------------------------------------------------------------------------*/
 
-void z80_md_port_w(unsigned int port, unsigned char data)
+void z80_md_port_w(u32 port, u8 data)
 {
   switch (port & 0xC1)
   {
@@ -263,7 +263,7 @@ void z80_md_port_w(unsigned int port, unsigned char data)
   }
 }
 
-unsigned char z80_md_port_r(unsigned int port)
+u8 z80_md_port_r(u32 port)
 {
   switch (port & 0xC1)
   {
@@ -312,7 +312,7 @@ unsigned char z80_md_port_r(unsigned int port)
 /* Game Gear port handlers                                                  */
 /*--------------------------------------------------------------------------*/
 
-void z80_gg_port_w(unsigned int port, unsigned char data)
+void z80_gg_port_w(u32 port, u8 data)
 {
   switch(port & 0xC1)
   {
@@ -364,7 +364,7 @@ void z80_gg_port_w(unsigned int port, unsigned char data)
   }
 }
 
-unsigned char z80_gg_port_r(unsigned int port)
+u8 z80_gg_port_r(u32 port)
 {
   switch(port & 0xC1)
   {
@@ -423,7 +423,7 @@ unsigned char z80_gg_port_r(unsigned int port)
 /* Master System port handlers                                              */
 /*--------------------------------------------------------------------------*/
 
-void z80_ms_port_w(unsigned int port, unsigned char data)
+void z80_ms_port_w(u32 port, u8 data)
 {
   switch (port & 0xC1)
   {
@@ -467,7 +467,7 @@ void z80_ms_port_w(unsigned int port, unsigned char data)
   }
 }
 
-unsigned char z80_ms_port_r(unsigned int port)
+u8 z80_ms_port_r(u32 port)
 {
   switch (port & 0xC1)
   {
@@ -529,7 +529,7 @@ unsigned char z80_ms_port_r(unsigned int port)
 /* Mark III port handlers                                                   */
 /*--------------------------------------------------------------------------*/
 
-void z80_m3_port_w(unsigned int port, unsigned char data)
+void z80_m3_port_w(u32 port, u8 data)
 {
   switch (port & 0xC1)
   {
@@ -573,7 +573,7 @@ void z80_m3_port_w(unsigned int port, unsigned char data)
   }
 }
 
-unsigned char z80_m3_port_r(unsigned int port)
+u8 z80_m3_port_r(u32 port)
 {
   switch (port & 0xC1)
   {
@@ -623,7 +623,7 @@ unsigned char z80_m3_port_r(unsigned int port)
 /* SG-1000 port handlers                                                     */
 /*--------------------------------------------------------------------------*/
 
-void z80_sg_port_w(unsigned int port, unsigned char data)
+void z80_sg_port_w(u32 port, u8 data)
 {
   switch(port & 0xC1)
   {
@@ -654,7 +654,7 @@ void z80_sg_port_w(unsigned int port, unsigned char data)
   }
 }
 
-unsigned char z80_sg_port_r(unsigned int port)
+u8 z80_sg_port_r(u32 port)
 {
   switch (port & 0xC1)
   {

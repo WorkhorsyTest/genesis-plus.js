@@ -46,22 +46,22 @@ static int fm_last[2];
 static int *fm_ptr;
 
 /* Cycle-accurate FM samples */
-static uint32 fm_cycles_ratio;
-static uint32 fm_cycles_start;
-static uint32 fm_cycles_count;
+static u32 fm_cycles_ratio;
+static u32 fm_cycles_start;
+static u32 fm_cycles_count;
 
 /* YM chip function pointers */
 static void (*YM_Reset)(void);
 static void (*YM_Update)(int *buffer, int length);
-static void (*YM_Write)(unsigned int a, unsigned int v);
+static void (*YM_Write)(u32 a, u32 v);
 
 /* Run FM chip until required M-cycles */
-INLINE void fm_update(unsigned int cycles)
+INLINE void fm_update(u32 cycles)
 {
   if (cycles > fm_cycles_count)
   {
     /* number of samples to run */
-    unsigned int samples = (cycles - fm_cycles_count + fm_cycles_ratio - 1) / fm_cycles_ratio;
+    u32 samples = (cycles - fm_cycles_count + fm_cycles_ratio - 1) / fm_cycles_ratio;
 
     /* run FM chip to sample buffer */
     YM_Update(fm_ptr, samples);
@@ -121,7 +121,7 @@ void sound_reset(void)
   fm_cycles_start = fm_cycles_count = 0;
 }
 
-int sound_update(unsigned int cycles)
+int sound_update(u32 cycles)
 {
   int delta, preamp, time, l, r, *ptr;
 
@@ -202,7 +202,7 @@ int sound_update(unsigned int cycles)
   return blip_samples_avail(snd.blips[0][0]);
 }
 
-int sound_context_save(uint8 *state)
+int sound_context_save(u8 *state)
 {
   int bufferptr = 0;
   
@@ -222,7 +222,7 @@ int sound_context_save(uint8 *state)
   return bufferptr;
 }
 
-int sound_context_load(uint8 *state)
+int sound_context_load(u8 *state)
 {
   int bufferptr = 0;
 
@@ -243,7 +243,7 @@ int sound_context_load(uint8 *state)
   return bufferptr;
 }
 
-void fm_reset(unsigned int cycles)
+void fm_reset(u32 cycles)
 {
   /* synchronize FM chip with CPU */
   fm_update(cycles);
@@ -252,7 +252,7 @@ void fm_reset(unsigned int cycles)
   YM_Reset();
 }
 
-void fm_write(unsigned int cycles, unsigned int address, unsigned int data)
+void fm_write(u32 cycles, u32 address, u32 data)
 {
   /* synchronize FM chip with CPU (on data port write only) */
   if (address & 1)
@@ -264,7 +264,7 @@ void fm_write(unsigned int cycles, unsigned int address, unsigned int data)
   YM_Write(address, data);
 }
 
-unsigned int fm_read(unsigned int cycles, unsigned int address)
+u32 fm_read(u32 cycles, u32 address)
 {
   /* synchronize FM chip with CPU */
   fm_update(cycles);

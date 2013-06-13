@@ -192,7 +192,7 @@
 #include "shared.h"
 
 
-#define u32 unsigned int
+#define u32 u32
 
 /*#define USE_DEBUGGER*/
 
@@ -218,9 +218,9 @@
 
 #define IJind  (((op>>6)&4)|(op&3))
 
-#define GET_PC() (PC - (unsigned short *)svp->iram_rom)
-#define GET_PPC_OFFS() ((unsigned int)PC - (unsigned int)svp->iram_rom - 2)
-#define SET_PC(d) PC = (unsigned short *)svp->iram_rom + d
+#define GET_PC() (PC - (u16 *)svp->iram_rom)
+#define GET_PPC_OFFS() ((u32)PC - (u32)svp->iram_rom - 2)
+#define SET_PC(d) PC = (u16 *)svp->iram_rom + d
 
 #define REG_READ(r) (((r) <= 4) ? ssp->gr[r].byte.h : read_handlers[r]())
 #define REG_WRITE(r,d) { \
@@ -340,7 +340,7 @@
 
 
 static ssp1601_t *ssp = NULL;
-static unsigned short *PC;
+static u16 *PC;
 static int g_cycles;
 
 #ifdef USE_DEBUGGER
@@ -417,8 +417,8 @@ static void write_PC(u32 d)
 /* 7 */
 static u32 read_P(void)
 {
-  int m1 = (signed short)rX;
-  int m2 = (signed short)rY;
+  int m1 = (s16)rX;
+  int m2 = (s16)rY;
   rP.v = (m1 * m2 * 2);
   return rP.byte.h;
 }
@@ -488,7 +488,7 @@ static u32 pm_io(int reg, int write, u32 d)
 #ifdef LOG_SVP
     #define CADDR ((((mode<<16)&0x7f0000)|addr)<<1)
 #endif
-    unsigned short *dram = (unsigned short *)svp->dram;
+    u16 *dram = (u16 *)svp->dram;
     if (write)
     {
       /*int mode = ssp->pmac_write[reg]&0xffff;
@@ -531,7 +531,7 @@ static u32 pm_io(int reg, int write, u32 d)
           elprintf(EL_SVP|EL_ANOMALY, "ssp FIXME: invalid IRAM addr: %04x", addr<<1);
         elprintf(EL_SVP, "ssp IRAM w [%06x] %04x (inc %i)", (addr<<1)&0x7ff, d, inc >> 16);
 #endif
-        ((unsigned short *)svp->iram_rom)[addr&0x3ff] = d;
+        ((u16 *)svp->iram_rom)[addr&0x3ff] = d;
         ssp->pmac[1][reg] += inc;
       }
 #ifdef LOG_SVP
@@ -553,14 +553,14 @@ static u32 pm_io(int reg, int write, u32 d)
       {
 #ifdef LOG_SVP
         elprintf(EL_SVP, "ssp ROM  r [%06x] %04x", CADDR,
-          ((unsigned short *)cart.rom)[addr|((mode&0xf)<<16)]);
+          ((u16 *)cart.rom)[addr|((mode&0xf)<<16)]);
 #endif
-        /*if ((signed int)ssp->pmac_read[reg] >> 16 == -1) ssp->pmac_read[reg]++;
+        /*if ((s32)ssp->pmac_read[reg] >> 16 == -1) ssp->pmac_read[reg]++;
         ssp->pmac_read[reg] += 1<<16;*/
-        if ((signed int)(ssp->pmac[0][reg] & 0xffff) == -1) ssp->pmac[0][reg] += 1<<16;
+        if ((s32)(ssp->pmac[0][reg] & 0xffff) == -1) ssp->pmac[0][reg] += 1<<16;
         ssp->pmac[0][reg] ++;
         
-        d = ((unsigned short *)cart.rom)[addr|((mode&0xf)<<16)];
+        d = ((u16 *)cart.rom)[addr|((mode&0xf)<<16)];
       }
       else if ((mode & 0x47ff) == 0x0018) /* DRAM */
       {
@@ -836,7 +836,7 @@ static u32 ptr1_read_(int ri, int isj2, int modi3)
 {
   /* int t = (op&3) | ((op>>6)&4) | ((op<<1)&0x18); */
   u32 mask, add = 0, t = ri | isj2 | modi3;
-  unsigned char *rp = NULL;
+  u8 *rp = NULL;
   switch (t)
   {
     /* mod=0 (00) */
@@ -968,7 +968,7 @@ static u32 ptr2_read(int op)
       return 0;
   }
 
-  return ((unsigned short *)svp->iram_rom)[mv];
+  return ((u16 *)svp->iram_rom)[mv];
 }
 
 
@@ -1017,7 +1017,7 @@ static void debug_dump_mem(void)
 static void debug_dump2file(const char *fname, void *mem, int len)
 {
   FILE *f = fopen(fname, "wb");
-  unsigned short *p = mem;
+  u16 *p = mem;
   int i;
   if (f) {
     for (i = 0; i < len/2; i++) p[i] = (p[i]<<8) | (p[i]>>8);
@@ -1032,7 +1032,7 @@ static void debug_dump2file(const char *fname, void *mem, int len)
 
 static int bpts[10] = { 0, };
 
-static void debug(unsigned int pc, unsigned int op)
+static void debug(u32 pc, u32 op)
 {
   static char buffo[64] = {0,};
   char buff[64] = {0,};
@@ -1157,7 +1157,7 @@ void ssp1601_run(int cycles)
       }
 
       /* ld d, (a) */
-      case 0x25: tmpv = ((unsigned short *)svp->iram_rom)[rA]; REG_WRITE((op & 0xf0) >> 4, tmpv); break;
+      case 0x25: tmpv = ((u16 *)svp->iram_rom)[rA]; REG_WRITE((op & 0xf0) >> 4, tmpv); break;
 
       /* bra cond, addr */
       case 0x26: {
@@ -1174,10 +1174,10 @@ void ssp1601_run(int cycles)
         COND_CHECK
         if (cond) {
           switch (op & 7) {
-            case 2: rA32 = (signed int)rA32 >> 1; break; /* shr (arithmetic) */
+            case 2: rA32 = (s32)rA32 >> 1; break; /* shr (arithmetic) */
             case 3: rA32 <<= 1; break; /* shl */
-            case 6: rA32 = -(signed int)rA32; break; /* neg */
-            case 7: if ((int)rA32 < 0) rA32 = -(signed int)rA32; break; /* abs */
+            case 6: rA32 = -(s32)rA32; break; /* neg */
+            case 7: if ((int)rA32 < 0) rA32 = -(s32)rA32; break; /* abs */
             default:
 #ifdef LOG_SVP
               elprintf(EL_SVP|EL_ANOMALY, "ssp FIXME: unhandled mod %i @ %04x",

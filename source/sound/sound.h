@@ -43,11 +43,11 @@
 /* Function prototypes */
 extern void sound_init(void);
 extern void sound_reset(void);
-extern int sound_context_save(uint8 *state);
-extern int sound_context_load(uint8 *state);
-extern int sound_update(unsigned int cycles);
-extern void fm_reset(unsigned int cycles);
-extern void fm_write(unsigned int cycles, unsigned int address, unsigned int data);
-extern unsigned int fm_read(unsigned int cycles, unsigned int address);
+extern int sound_context_save(u8 *state);
+extern int sound_context_load(u8 *state);
+extern int sound_update(u32 cycles);
+extern void fm_reset(u32 cycles);
+extern void fm_write(u32 cycles, u32 address, u32 data);
+extern u32 fm_read(u32 cycles, u32 address);
 
 #endif /* _SOUND_H_ */

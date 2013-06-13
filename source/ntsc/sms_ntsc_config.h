@@ -19,7 +19,7 @@
 handle things however it wants. */
 
 /* Type of input pixel values (fixed to 16-bit)*/
-#define SMS_NTSC_IN_T unsigned short
+#define SMS_NTSC_IN_T u16
 
 /* Each raw pixel input value is passed through this. You might want to mask
 the pixel index if you use the high bits as flags, etc. */

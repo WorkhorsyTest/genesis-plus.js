@@ -42,12 +42,12 @@
 
 static struct
 {
-  uint8 State;
-  uint8 Counter;
-  uint8 Timeout;
+  u8 State;
+  u8 Counter;
+  u8 Timeout;
 } gamepad[MAX_DEVICES];
 
-static uint8 pad_index;
+static u8 pad_index;
 
 
 void gamepad_reset(int port)
@@ -71,16 +71,16 @@ void gamepad_refresh(int port)
   }
 }
 
-INLINE unsigned char gamepad_read(int port)
+INLINE u8 gamepad_read(int port)
 {
   /* bit 7 is latched, returns current TH state */
-  unsigned int data = (gamepad[port].State & 0x40) | 0x3F;
+  u32 data = (gamepad[port].State & 0x40) | 0x3F;
 
   /* pad value */
-  unsigned int val = input.pad[port];
+  u32 val = input.pad[port];
 
   /* get current step (TH state) */
-  unsigned int step = gamepad[port].Counter | ((data >> 6) & 1);
+  u32 step = gamepad[port].Counter | ((data >> 6) & 1);
 
   switch (step)
   {
@@ -142,7 +142,7 @@ INLINE unsigned char gamepad_read(int port)
   return data;
 }
 
-INLINE void gamepad_write(int port, unsigned char data, unsigned char mask)
+INLINE void gamepad_write(int port, u8 data, u8 mask)
 {
   /* update bits set as output only */
   data = (gamepad[port].State & ~mask) | (data & mask);
@@ -166,22 +166,22 @@ INLINE void gamepad_write(int port, unsigned char data, unsigned char mask)
 /*  Default ports handlers                                                  */
 /*--------------------------------------------------------------------------*/
 
-unsigned char gamepad_1_read(void)
+u8 gamepad_1_read(void)
 {
   return gamepad_read(0);
 }
 
-unsigned char gamepad_2_read(void)
+u8 gamepad_2_read(void)
 {
   return gamepad_read(4);
 }
 
-void gamepad_1_write(unsigned char data, unsigned char mask)
+void gamepad_1_write(u8 data, u8 mask)
 {
   gamepad_write(0, data, mask);
 }
 
-void gamepad_2_write(unsigned char data, unsigned char mask)
+void gamepad_2_write(u8 data, u8 mask)
 {
   gamepad_write(4, data, mask);
 }
@@ -190,7 +190,7 @@ void gamepad_2_write(unsigned char data, unsigned char mask)
 /*  4-WayPlay ports handler                                                 */
 /*--------------------------------------------------------------------------*/
 
-unsigned char wayplay_1_read(void)
+u8 wayplay_1_read(void)
 {
   if (pad_index < 4)
   {
@@ -201,12 +201,12 @@ unsigned char wayplay_1_read(void)
   return 0x70;
 }
 
-unsigned char wayplay_2_read(void)
+u8 wayplay_2_read(void)
 {
   return 0x7F;
 }
 
-void wayplay_1_write(unsigned char data, unsigned char mask)
+void wayplay_1_write(u8 data, u8 mask)
 {
   if (pad_index < 4)
   {
@@ -214,7 +214,7 @@ void wayplay_1_write(unsigned char data, unsigned char mask)
   }
 }
 
-void wayplay_2_write(unsigned char data, unsigned char mask)
+void wayplay_2_write(u8 data, u8 mask)
 {
   if ((mask & 0x70) == 0x70)
   {
@@ -227,13 +227,13 @@ void wayplay_2_write(unsigned char data, unsigned char mask)
 /*  J-Cart memory handlers                                                  */
 /*--------------------------------------------------------------------------*/
 
-unsigned int jcart_read(unsigned int address)
+u32 jcart_read(u32 address)
 {
    /* TH2 output read is fixed to zero (fixes Micro Machines 2) */
    return ((gamepad_read(5) & 0x7F) | ((gamepad_read(6) & 0x3F) << 8));
 }
 
-void jcart_write(unsigned int address, unsigned int data)
+void jcart_write(u32 address, u32 data)
 {
   gamepad_write(5, (data & 1) << 6, 0x40);
   gamepad_write(6, (data & 1) << 6, 0x40);

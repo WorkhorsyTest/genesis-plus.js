@@ -43,8 +43,8 @@
 #define _RENDER_H_
 
 /* Global variables */
-extern uint8 object_count;
-extern uint16 spr_col;
+extern u8 object_count;
+extern u16 spr_col;
 
 /* Function prototypes */
 extern void render_init(void);
@@ -52,7 +52,7 @@ extern void render_reset(void);
 extern void render_line(int line);
 extern void blank_line(int line, int offset, int width);
 extern void remap_line(int line);
-extern void window_clip(unsigned int data, unsigned int sw);
+extern void window_clip(u32 data, u32 sw);
 extern void render_bg_m0(int line, int width);
 extern void render_bg_m1(int line, int width);
 extern void render_bg_m1x(int line, int width);
@@ -76,8 +76,8 @@ extern void parse_satb_m4(int line);
 extern void parse_satb_m5(int line);
 extern void update_bg_pattern_cache_m4(int index);
 extern void update_bg_pattern_cache_m5(int index);
-extern void color_update_m4(int index, unsigned int data);
-extern void color_update_m5(int index, unsigned int data);
+extern void color_update_m4(int index, u32 data);
+extern void color_update_m5(int index, u32 data);
 
 /* Function pointers */
 extern void (*render_bg)(int line, int width);

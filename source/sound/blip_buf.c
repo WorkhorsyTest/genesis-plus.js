@@ -343,7 +343,7 @@ static short const bl_step [phase_count + 1] [half_width] =
 {    0,   43, -115,  350, -488, 1136, -914, 5861}
 };
 
-/* Shifting by pre_shift allows calculation using unsigned int rather than
+/* Shifting by pre_shift allows calculation using u32 rather than
 possibly-wider fixed_t. On 32-bit platforms, this is likely more efficient.
 And by having pre_shift 32, a 32-bit platform can easily do the shift by
 simply ignoring the low half. */

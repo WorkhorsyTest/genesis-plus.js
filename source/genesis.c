@@ -42,14 +42,14 @@
 #include "shared.h"
 
 external_t ext;           /* External Hardware (Cartridge, CD unit, ...) */
-uint8 boot_rom[0x800];    /* Genesis BOOT ROM   */
-uint8 work_ram[0x10000];  /* 68K RAM  */
-uint8 zram[0x2000];       /* Z80 RAM  */
-uint32 zbank;             /* Z80 bank window address */
-uint8 zstate;             /* Z80 bus state (d0 = BUSACK, d1 = /RESET) */
-uint8 pico_current;       /* PICO current page */
+u8 boot_rom[0x800];    /* Genesis BOOT ROM   */
+u8 work_ram[0x10000];  /* 68K RAM  */
+u8 zram[0x2000];       /* Z80 RAM  */
+u32 zbank;             /* Z80 bank window address */
+u8 zstate;             /* Z80 bus state (d0 = BUSACK, d1 = /RESET) */
+u8 pico_current;       /* PICO current page */
 
-static uint8 tmss[4];     /* TMSS security register */
+static u8 tmss[4];     /* TMSS security register */
 
 /*--------------------------------------------------------------------------*/
 /* Init, reset, shutdown functions                                          */
@@ -240,7 +240,7 @@ void gen_reset(int hard_reset)
   }
 
   /* 68k & Z80 could be anywhere in VDP frame (Bonkers, Eternal Champions, X-Men 2) */
-  m68k.cycles = Z80.cycles = (uint32)((MCYCLES_PER_LINE * lines_per_frame) * ((double)rand() / (double)RAND_MAX));
+  m68k.cycles = Z80.cycles = (u32)((MCYCLES_PER_LINE * lines_per_frame) * ((double)rand() / (double)RAND_MAX));
 
   /* 68k cycles should be a multiple of 7 */
   m68k.cycles = (m68k.cycles / 7) * 7;
@@ -360,7 +360,7 @@ void gen_reset(int hard_reset)
 /*  OS ROM / TMSS register control functions (Genesis mode)              */
 /*-----------------------------------------------------------------------*/
 
-void gen_tmss_w(unsigned int offset, unsigned int data)
+void gen_tmss_w(u32 offset, u32 data)
 {
   int i;
 
@@ -394,7 +394,7 @@ void gen_tmss_w(unsigned int offset, unsigned int data)
   }
 }
 
-void gen_bankswitch_w(unsigned int data)
+void gen_bankswitch_w(u32 data)
 {
   /* check if BOOT ROM is loaded */
   if (system_bios & SYSTEM_MD)
@@ -412,7 +412,7 @@ void gen_bankswitch_w(unsigned int data)
   }
 }
 
-unsigned int gen_bankswitch_r(void)
+u32 gen_bankswitch_r(void)
 {
   /* check if BOOT ROM is loaded */
   if (system_bios & SYSTEM_MD)
@@ -428,7 +428,7 @@ unsigned int gen_bankswitch_r(void)
 /* Z80 Bus controller chip functions (Genesis mode)                      */
 /* ----------------------------------------------------------------------*/
 
-void gen_zbusreq_w(unsigned int data, unsigned int cycles)
+void gen_zbusreq_w(u32 data, u32 cycles)
 {
   if (data)  /* !ZBUSREQ asserted */
   {
@@ -468,7 +468,7 @@ void gen_zbusreq_w(unsigned int data, unsigned int cycles)
   }
 }
 
-void gen_zreset_w(unsigned int data, unsigned int cycles)
+void gen_zreset_w(u32 data, u32 cycles)
 {
   if (data)  /* !ZRESET released */
   {
@@ -527,7 +527,7 @@ void gen_zreset_w(unsigned int data, unsigned int cycles)
   }
 }
 
-void gen_zbank_w (unsigned int data)
+void gen_zbank_w (u32 data)
 {
   zbank = ((zbank >> 1) | ((data & 1) << 23)) & 0xFF8000;
 }

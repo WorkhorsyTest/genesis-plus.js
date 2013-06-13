@@ -86,7 +86,7 @@ void md_ntsc_init( md_ntsc_t* ntsc, md_ntsc_setup_t const* setup )
 }
 
 #ifndef CUSTOM_BLITTER
-void md_ntsc_blit( md_ntsc_t const* ntsc, MD_NTSC_IN_T const* table, unsigned char* input,
+void md_ntsc_blit( md_ntsc_t const* ntsc, MD_NTSC_IN_T const* table, u8* input,
                    int in_width, int vline)
 {
   int const chunk_count = in_width / md_ntsc_in_chunk - 1;

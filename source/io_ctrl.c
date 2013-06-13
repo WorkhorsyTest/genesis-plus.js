@@ -49,21 +49,21 @@
 #include "paddle.h"
 #include "sportspad.h"
 
-uint8 io_reg[0x10];
+u8 io_reg[0x10];
 
-uint8 region_code = REGION_USA;
+u8 region_code = REGION_USA;
 
 static struct port_t
 {
-  void (*data_w)(unsigned char data, unsigned char mask);
-  unsigned char (*data_r)(void);
+  void (*data_w)(u8 data, u8 mask);
+  u8 (*data_r)(void);
 } port[3];
 
-static void dummy_write(unsigned char data, unsigned char mask)
+static void dummy_write(u8 data, u8 mask)
 {
 }
 
-static unsigned char dummy_read(void)
+static u8 dummy_read(void)
 {
   return 0x7F;
 }
@@ -314,7 +314,7 @@ void io_reset(void)
  *                                                                           *
  *****************************************************************************/
 
-void io_68k_write(unsigned int offset, unsigned int data)
+void io_68k_write(u32 offset, u32 data)
 {
   switch (offset)
   {
@@ -362,7 +362,7 @@ void io_68k_write(unsigned int offset, unsigned int data)
   }
 }
 
-unsigned int io_68k_read(unsigned int offset)
+u32 io_68k_read(u32 offset)
 {
   switch(offset)
   {
@@ -370,8 +370,8 @@ unsigned int io_68k_read(unsigned int offset)
     case 0x02:  /* Port B Data */
     case 0x03:  /* Port C Data */
     {
-      unsigned int mask = 0x80 | io_reg[offset + 3];
-      unsigned int data = port[offset-1].data_r();
+      u32 mask = 0x80 | io_reg[offset + 3];
+      u32 data = port[offset-1].data_r();
       return (io_reg[offset] & mask) | (data & ~mask);
     }
 
@@ -388,7 +388,7 @@ unsigned int io_68k_read(unsigned int offset)
  *                                                                           *
  *****************************************************************************/
 
-void io_z80_write(unsigned int offset, unsigned int data, unsigned int cycles)
+void io_z80_write(u32 offset, u32 data, u32 cycles)
 {
   if (offset)
   {
@@ -443,13 +443,13 @@ void io_z80_write(unsigned int offset, unsigned int data, unsigned int cycles)
   }
 }
 
-unsigned int io_z80_read(unsigned int offset)
+u32 io_z80_read(u32 offset)
 {
   /* Read port A & port B input data */
-  unsigned int data = (port[0].data_r()) | (port[1].data_r() << 8);
+  u32 data = (port[0].data_r()) | (port[1].data_r() << 8);
 
   /* I/O control register value */
-  unsigned int ctrl = io_reg[0x0F];
+  u32 ctrl = io_reg[0x0F];
 
   /* I/O ports */
   if (offset)
@@ -525,7 +525,7 @@ unsigned int io_z80_read(unsigned int offset)
  *                                                                           *
  *****************************************************************************/
 
-void io_gg_write(unsigned int offset, unsigned int data)
+void io_gg_write(u32 offset, u32 data)
 {
   switch (offset)
   {
@@ -555,7 +555,7 @@ void io_gg_write(unsigned int offset, unsigned int data)
   }
 }
 
-unsigned int io_gg_read(unsigned int offset)
+u32 io_gg_read(u32 offset)
 {
   switch (offset)
   {

@@ -55,11 +55,11 @@
 #endif
 
 #if M68K_USE_64_BIT
-//#define sint64 signed   long long
-//#define uint64 unsigned long long
+//#define s64 signed   long long
+//#define u64 unsigned long long
 #else
-//#define sint64 s32
-//#define uint64 u32
+//#define s64 s32
+//#define u64 u32
 #endif /* M68K_USE_64_BIT */
 
 
@@ -68,10 +68,10 @@
 /*#if UCHAR_MAX == 0xff*/
   #define MAKE_INT_8(A) (s8)(A)
 /*#else
-  #undef  sint8
-  #define sint8  signed   int
-  #undef  uint8
-  #define uint8  unsigned int
+  #undef  s8
+  #define s8  signed   int
+  #undef  u8
+  #define u8  u32
   INLINE sint MAKE_INT_8(uint value)
   {
     return (value & 0x80) ? value | ~0xff : value & 0xff;
@@ -83,10 +83,10 @@
 /*#if USHRT_MAX == 0xffff*/
   #define MAKE_INT_16(A) (s16)(A)
 /*#else
-  #undef  sint16
-  #define sint16 signed   int
-  #undef  uint16
-  #define uint16 unsigned int
+  #undef  s16
+  #define s16 signed   int
+  #undef  u16
+  #define u16 u32
   INLINE sint MAKE_INT_16(uint value)
   {
     return (value & 0x8000) ? value | ~0xffff : value & 0xffff;
@@ -98,10 +98,10 @@
 /*#if UINT_MAX == 0xffffffff*/
   #define MAKE_INT_32(A) (s32)(A)
 /*#else
-  #undef  sint32
-  #define sint32  signed   int
-  #undef  uint32
-  #define uint32  unsigned int
+  #undef  s32
+  #define s32  signed   int
+  #undef  u32
+  #define u32  u32
   INLINE sint MAKE_INT_32(uint value)
   {
     return (value & 0x80000000) ? value | ~0xffffffff : value & 0xffffffff;

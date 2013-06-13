@@ -41,9 +41,9 @@
 
 /* Function prototypes */
 extern void activator_reset(int index);
-extern unsigned char activator_1_read(void);
-extern unsigned char activator_2_read(void);
-extern void activator_1_write(unsigned char data, unsigned char mask);
-extern void activator_2_write(unsigned char data, unsigned char mask);
+extern u8 activator_1_read(void);
+extern u8 activator_2_read(void);
+extern void activator_1_write(u8 data, u8 mask);
+extern void activator_2_write(u8 data, u8 mask);
 
 #endif

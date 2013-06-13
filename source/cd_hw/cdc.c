@@ -294,7 +294,7 @@ s32 cdc_decoder_update(u32 header)
   return 0;
 }
 
-void cdc_reg_w(unsigned char data)
+void cdc_reg_w(u8 data)
 {
 #ifdef LOG_CDC
   error("CDC register %X write 0x%04x (%X)\n", scd.regs[0x04>>1].byte.l & 0x0F, data, s68k.pc);
@@ -538,7 +538,7 @@ void cdc_reg_w(unsigned char data)
   }
 }
 
-unsigned char cdc_reg_r(void)
+u8 cdc_reg_r(void)
 {
   switch (scd.regs[0x04>>1].byte.l & 0x0F)
   {
@@ -629,7 +629,7 @@ unsigned char cdc_reg_r(void)
   }
 }
 
-unsigned short cdc_host_r(void)
+u16 cdc_host_r(void)
 {
   /* check if data is available */
   if (!(cdc.ifstat & BIT_DTEN))

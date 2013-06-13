@@ -54,96 +54,96 @@
 }
 
 /* VDP context */
-uint8 sat[0x400];     /* Internal copy of sprite attribute table */
-uint8 vram[0x10000];  /* Video RAM (64K x 8-bit) */
-uint8 cram[0x80];     /* On-chip color RAM (64 x 9-bit) */
-uint8 vsram[0x80];    /* On-chip vertical scroll RAM (40 x 11-bit) */
-uint8 reg[0x20];      /* Internal VDP registers (23 x 8-bit) */
-uint8 hint_pending;   /* 0= Line interrupt is pending */
-uint8 vint_pending;   /* 1= Frame interrupt is pending */
-uint16 status;        /* VDP status flags */
-uint32 dma_length;    /* DMA remaining length */
+u8 sat[0x400];     /* Internal copy of sprite attribute table */
+u8 vram[0x10000];  /* Video RAM (64K x 8-bit) */
+u8 cram[0x80];     /* On-chip color RAM (64 x 9-bit) */
+u8 vsram[0x80];    /* On-chip vertical scroll RAM (40 x 11-bit) */
+u8 reg[0x20];      /* Internal VDP registers (23 x 8-bit) */
+u8 hint_pending;   /* 0= Line interrupt is pending */
+u8 vint_pending;   /* 1= Frame interrupt is pending */
+u16 status;        /* VDP status flags */
+u32 dma_length;    /* DMA remaining length */
 
 /* Global variables */
-uint16 ntab;                      /* Name table A base address */
-uint16 ntbb;                      /* Name table B base address */
-uint16 ntwb;                      /* Name table W base address */
-uint16 satb;                      /* Sprite attribute table base address */
-uint16 hscb;                      /* Horizontal scroll table base address */
-uint8 bg_name_dirty[0x800];       /* 1= This pattern is dirty */
-uint16 bg_name_list[0x800];       /* List of modified pattern indices */
-uint16 bg_list_index;             /* # of modified patterns in list */
-uint8 hscroll_mask;               /* Horizontal Scrolling line mask */
-uint8 playfield_shift;            /* Width of planes A, B (in bits) */
-uint8 playfield_col_mask;         /* Playfield column mask */
-uint16 playfield_row_mask;        /* Playfield row mask */
-uint16 vscroll;                   /* Latched vertical scroll value */
-uint8 odd_frame;                  /* 1: odd field, 0: even field */
-uint8 im2_flag;                   /* 1= Interlace mode 2 is being used */
-uint8 interlaced;                 /* 1: Interlaced mode 1 or 2 */
-uint8 vdp_pal;                    /* 1: PAL , 0: NTSC (default) */
-uint16 v_counter;                 /* Vertical counter */
-uint16 vc_max;                    /* Vertical counter overflow value */
-uint16 lines_per_frame;           /* PAL: 313 lines, NTSC: 262 lines */
-int32 fifo_write_cnt;             /* VDP writes fifo count */
-uint32 fifo_lastwrite;            /* last VDP write cycle */
-uint32 hvc_latch;                 /* latched HV counter */
-const uint8 *hctab;               /* pointer to H Counter table */
+u16 ntab;                      /* Name table A base address */
+u16 ntbb;                      /* Name table B base address */
+u16 ntwb;                      /* Name table W base address */
+u16 satb;                      /* Sprite attribute table base address */
+u16 hscb;                      /* Horizontal scroll table base address */
+u8 bg_name_dirty[0x800];       /* 1= This pattern is dirty */
+u16 bg_name_list[0x800];       /* List of modified pattern indices */
+u16 bg_list_index;             /* # of modified patterns in list */
+u8 hscroll_mask;               /* Horizontal Scrolling line mask */
+u8 playfield_shift;            /* Width of planes A, B (in bits) */
+u8 playfield_col_mask;         /* Playfield column mask */
+u16 playfield_row_mask;        /* Playfield row mask */
+u16 vscroll;                   /* Latched vertical scroll value */
+u8 odd_frame;                  /* 1: odd field, 0: even field */
+u8 im2_flag;                   /* 1= Interlace mode 2 is being used */
+u8 interlaced;                 /* 1: Interlaced mode 1 or 2 */
+u8 vdp_pal;                    /* 1: PAL , 0: NTSC (default) */
+u16 v_counter;                 /* Vertical counter */
+u16 vc_max;                    /* Vertical counter overflow value */
+u16 lines_per_frame;           /* PAL: 313 lines, NTSC: 262 lines */
+s32 fifo_write_cnt;             /* VDP writes fifo count */
+u32 fifo_lastwrite;            /* last VDP write cycle */
+u32 hvc_latch;                 /* latched HV counter */
+const u8 *hctab;               /* pointer to H Counter table */
 
 /* Function pointers */
-void (*vdp_68k_data_w)(unsigned int data);
-void (*vdp_z80_data_w)(unsigned int data);
-unsigned int (*vdp_68k_data_r)(void);
-unsigned int (*vdp_z80_data_r)(void);
+void (*vdp_68k_data_w)(u32 data);
+void (*vdp_z80_data_w)(u32 data);
+u32 (*vdp_68k_data_r)(void);
+u32 (*vdp_z80_data_r)(void);
 
 /* Function prototypes */
-static void vdp_68k_data_w_m4(unsigned int data);
-static void vdp_68k_data_w_m5(unsigned int data);
-static unsigned int vdp_68k_data_r_m4(void);
-static unsigned int vdp_68k_data_r_m5(void);
-static void vdp_z80_data_w_m4(unsigned int data);
-static void vdp_z80_data_w_m5(unsigned int data);
-static unsigned int vdp_z80_data_r_m4(void);
-static unsigned int vdp_z80_data_r_m5(void);
-static void vdp_z80_data_w_ms(unsigned int data);
-static void vdp_z80_data_w_gg(unsigned int data);
-static void vdp_z80_data_w_sg(unsigned int data);
-static void vdp_bus_w(unsigned int data);
-static void vdp_fifo_update(unsigned int cycles);
-static void vdp_reg_w(unsigned int r, unsigned int d, unsigned int cycles);
-static void vdp_dma_68k_ext(unsigned int length);
-static void vdp_dma_68k_ram(unsigned int length);
-static void vdp_dma_68k_io(unsigned int length);
-static void vdp_dma_copy(unsigned int length);
-static void vdp_dma_fill(unsigned int length);
+static void vdp_68k_data_w_m4(u32 data);
+static void vdp_68k_data_w_m5(u32 data);
+static u32 vdp_68k_data_r_m4(void);
+static u32 vdp_68k_data_r_m5(void);
+static void vdp_z80_data_w_m4(u32 data);
+static void vdp_z80_data_w_m5(u32 data);
+static u32 vdp_z80_data_r_m4(void);
+static u32 vdp_z80_data_r_m5(void);
+static void vdp_z80_data_w_ms(u32 data);
+static void vdp_z80_data_w_gg(u32 data);
+static void vdp_z80_data_w_sg(u32 data);
+static void vdp_bus_w(u32 data);
+static void vdp_fifo_update(u32 cycles);
+static void vdp_reg_w(u32 r, u32 d, u32 cycles);
+static void vdp_dma_68k_ext(u32 length);
+static void vdp_dma_68k_ram(u32 length);
+static void vdp_dma_68k_io(u32 length);
+static void vdp_dma_copy(u32 length);
+static void vdp_dma_fill(u32 length);
 
 /* Tables that define the playfield layout */
-static const uint8 hscroll_mask_table[] = { 0x00, 0x07, 0xF8, 0xFF };
-static const uint8 shift_table[]        = { 6, 7, 0, 8 };
-static const uint8 col_mask_table[]     = { 0x0F, 0x1F, 0x0F, 0x3F };
-static const uint16 row_mask_table[]    = { 0x0FF, 0x1FF, 0x2FF, 0x3FF };
+static const u8 hscroll_mask_table[] = { 0x00, 0x07, 0xF8, 0xFF };
+static const u8 shift_table[]        = { 6, 7, 0, 8 };
+static const u8 col_mask_table[]     = { 0x0F, 0x1F, 0x0F, 0x3F };
+static const u16 row_mask_table[]    = { 0x0FF, 0x1FF, 0x2FF, 0x3FF };
 
-static uint8 border;          /* Border color index */
-static uint8 pending;         /* Pending write flag */
-static uint8 code;            /* Code register */
-static uint8 dma_type;        /* DMA mode */
-static uint16 addr;           /* Address register */
-static uint16 addr_latch;     /* Latched A15, A14 of address */
-static uint16 sat_base_mask;  /* Base bits of SAT */
-static uint16 sat_addr_mask;  /* Index bits of SAT */
-static uint16 dma_src;        /* DMA source address */
-static uint16 dmafill;        /* DMA Fill setup */
-static uint32 dma_endCycles;  /* 68k cycles to DMA end */
-static uint32 fifo_latency;   /* CPU access latency */
+static u8 border;          /* Border color index */
+static u8 pending;         /* Pending write flag */
+static u8 code;            /* Code register */
+static u8 dma_type;        /* DMA mode */
+static u16 addr;           /* Address register */
+static u16 addr_latch;     /* Latched A15, A14 of address */
+static u16 sat_base_mask;  /* Base bits of SAT */
+static u16 sat_addr_mask;  /* Index bits of SAT */
+static u16 dma_src;        /* DMA source address */
+static u16 dmafill;        /* DMA Fill setup */
+static u32 dma_endCycles;  /* 68k cycles to DMA end */
+static u32 fifo_latency;   /* CPU access latency */
 static int cached_write;      /* 2nd part of 32-bit CTRL port write (Genesis mode) or LSB of CRAM data (Game Gear mode) */
-static uint16 fifo[4];        /* FIFO buffer */
+static u16 fifo[4];        /* FIFO buffer */
 
  /* set Z80 or 68k interrupt lines */
-static void (*set_irq_line)(unsigned int level);
-static void (*set_irq_line_delay)(unsigned int level);
+static void (*set_irq_line)(u32 level);
+static void (*set_irq_line_delay)(u32 level);
 
 /* Vertical counter overflow values (see hvc.h) */
-static const uint16 vc_table[4][2] = 
+static const u16 vc_table[4][2] = 
 {
   /* NTSC, PAL */
   {0xDA , 0xF2},  /* Mode 4 (192 lines) */
@@ -153,7 +153,7 @@ static const uint16 vc_table[4][2] =
 };
 
 /* DMA Timings (number of access slots per line) */
-static const uint8 dma_timing[2][2] =
+static const u8 dma_timing[2][2] =
 {
 /* H32, H40 */
   {16 , 18},  /* active display */
@@ -161,7 +161,7 @@ static const uint8 dma_timing[2][2] =
 };
 
 /* DMA processing functions (set by VDP register 23 high nibble) */
-static void (*const dma_func[16])(unsigned int length) =
+static void (*const dma_func[16])(u32 length) =
 {
   /* 0x0-0x3 : DMA from 68k bus $000000-$7FFFFF (external area) */
   vdp_dma_68k_ext,vdp_dma_68k_ext,vdp_dma_68k_ext,vdp_dma_68k_ext,
@@ -399,7 +399,7 @@ void vdp_reset(void)
   color_update_m4(0x40, 0x00);
 }
 
-int vdp_context_save(uint8 *state)
+int vdp_context_save(u8 *state)
 {
   int bufferptr = 0;
 
@@ -423,10 +423,10 @@ int vdp_context_save(uint8 *state)
   return bufferptr;
 }
 
-int vdp_context_load(uint8 *state)
+int vdp_context_load(u8 *state)
 {
   int i, bufferptr = 0;
-  uint8 temp_reg[0x20];
+  u8 temp_reg[0x20];
 
   load_param(sat, sizeof(sat));
   load_param(vram, sizeof(vram));
@@ -494,10 +494,10 @@ int vdp_context_load(uint8 *state)
     bg_list_index = 0x800;
 
     /* reinitialize palette */
-    color_update_m5(0, *(uint16 *)&cram[border << 1]);
+    color_update_m5(0, *(u16 *)&cram[border << 1]);
     for(i = 1; i < 0x40; i++)
     {
-      color_update_m5(i, *(uint16 *)&cram[i << 1]);
+      color_update_m5(i, *(u16 *)&cram[i << 1]);
     }
   }
   else
@@ -508,9 +508,9 @@ int vdp_context_load(uint8 *state)
     /* reinitialize palette */
     for(i = 0; i < 0x20; i ++)
     {
-      color_update_m4(i, *(uint16 *)&cram[i << 1]);
+      color_update_m4(i, *(u16 *)&cram[i << 1]);
     }
-    color_update_m4(0x40, *(uint16 *)&cram[(0x10 | (border & 0x0F)) << 1]);
+    color_update_m4(0x40, *(u16 *)&cram[(0x10 | (border & 0x0F)) << 1]);
   }
 
   /* invalidate cache */
@@ -528,7 +528,7 @@ int vdp_context_load(uint8 *state)
 /* DMA update function                                                      */
 /*--------------------------------------------------------------------------*/
 
-void vdp_dma_update(unsigned int cycles)
+void vdp_dma_update(u32 cycles)
 {
   int dma_cycles, dma_bytes;
 
@@ -558,7 +558,7 @@ void vdp_dma_update(unsigned int cycles)
    The above transfer counts are all in bytes, unless the destination is
    CRAM or VSRAM for a 68K > VDP transfer, in which case it is in words.
   */
-  unsigned int rate = dma_timing[(status & 8) || !(reg[1] & 0x40)][reg[12] & 1];
+  u32 rate = dma_timing[(status & 8) || !(reg[1] & 0x40)][reg[12] & 1];
 
   /* Adjust for 68k bus DMA to VRAM (one word = 2 access) or DMA Copy (one read + one write = 2 access) */
   rate = rate >> (dma_type & 1);
@@ -627,7 +627,7 @@ void vdp_dma_update(unsigned int cycles)
     if (!dma_length)
     {
       /* DMA source address registers are incremented during DMA */
-      uint16 end = reg[21] + (reg[22] << 8) + reg[19] + (reg[20] << 8);
+      u16 end = reg[21] + (reg[22] << 8) + reg[19] + (reg[20] << 8);
       reg[21] = end & 0xff;
       reg[22] = end >> 8;
 
@@ -649,7 +649,7 @@ void vdp_dma_update(unsigned int cycles)
 /* Control port access functions                                            */
 /*--------------------------------------------------------------------------*/
 
-void vdp_68k_ctrl_w(unsigned int data)
+void vdp_68k_ctrl_w(u32 data)
 {
   /* Check pending flag */
   if (pending == 0)
@@ -786,7 +786,7 @@ void vdp_68k_ctrl_w(unsigned int data)
 }
 
 /* Mega Drive VDP control port specific (MS compatibility mode) */
-void vdp_z80_ctrl_w(unsigned int data)
+void vdp_z80_ctrl_w(u32 data)
 {
   switch (pending)
   {
@@ -899,7 +899,7 @@ void vdp_z80_ctrl_w(unsigned int data)
 }
 
 /* Master System & Game Gear VDP control port specific */
-void vdp_sms_ctrl_w(unsigned int data)
+void vdp_sms_ctrl_w(u32 data)
 {
   if(pending == 0)
   {
@@ -1093,9 +1093,9 @@ void vdp_sms_ctrl_w(unsigned int data)
           /* reinitialize palette */
           for(i = 0; i < 0x20; i ++)
           {
-            color_update_m4(i, *(uint16 *)&cram[i << 1]);
+            color_update_m4(i, *(u16 *)&cram[i << 1]);
           }
-          color_update_m4(0x40, *(uint16 *)&cram[(0x10 | (border & 0x0F)) << 1]);
+          color_update_m4(0x40, *(u16 *)&cram[(0x10 | (border & 0x0F)) << 1]);
         }
       }
     }
@@ -1103,7 +1103,7 @@ void vdp_sms_ctrl_w(unsigned int data)
 }
 
 /* TMS9918 (SG-1000) VDP control port specific */
-void vdp_tms_ctrl_w(unsigned int data)
+void vdp_tms_ctrl_w(u32 data)
 {
   if(pending == 0)
   {
@@ -1217,9 +1217,9 @@ void vdp_tms_ctrl_w(unsigned int data)
    * 9  Write FIFO empty
    * 10 - 15  Open Bus
    */
-unsigned int vdp_68k_ctrl_r(unsigned int cycles)
+u32 vdp_68k_ctrl_r(u32 cycles)
 {
-  unsigned int temp;
+  u32 temp;
 
   /* Update FIFO flags */
   vdp_fifo_update(cycles);
@@ -1258,9 +1258,9 @@ unsigned int vdp_68k_ctrl_r(unsigned int cycles)
   return (temp);
 }
 
-unsigned int vdp_z80_ctrl_r(unsigned int cycles)
+u32 vdp_z80_ctrl_r(u32 cycles)
 {
-  unsigned int temp;
+  u32 temp;
 
   /* Cycle-accurate SOVR & VINT flags */
   int line = (lines_per_frame + (cycles / MCYCLES_PER_LINE) - 1) % lines_per_frame;
@@ -1332,7 +1332,7 @@ unsigned int vdp_z80_ctrl_r(unsigned int cycles)
     else
     {
       /* COL flag is set at the pixel it occurs */
-      uint8 hc = hctab[(cycles + SMS_CYCLE_OFFSET + 15) % MCYCLES_PER_LINE];
+      u8 hc = hctab[(cycles + SMS_CYCLE_OFFSET + 15) % MCYCLES_PER_LINE];
       if ((hc < (spr_col & 0xff)) || (hc > 0xf3))
       {
         status |= 0x20;
@@ -1357,10 +1357,10 @@ unsigned int vdp_z80_ctrl_r(unsigned int cycles)
 /* HV Counters                                                              */
 /*--------------------------------------------------------------------------*/
 
-unsigned int vdp_hvc_r(unsigned int cycles)
+u32 vdp_hvc_r(u32 cycles)
 {
   int vc;
-  unsigned int temp = hvc_latch;
+  u32 temp = hvc_latch;
 
   /* Check if HVC is frozen */
   if (!temp)
@@ -1417,7 +1417,7 @@ unsigned int vdp_hvc_r(unsigned int cycles)
 /* Test registers                                                           */
 /*--------------------------------------------------------------------------*/
 
-void vdp_test_w(unsigned int data)
+void vdp_test_w(u32 data)
 {
 #ifdef LOGERROR
   error("Unused VDP Write 0x%x (%08x)\n", data, m68k_get_reg(M68K_REG_PC));
@@ -1477,7 +1477,7 @@ int vdp_68k_irq_ack(int int_level)
 /* VDP registers update function                                            */
 /*--------------------------------------------------------------------------*/
 
-static void vdp_reg_w(unsigned int r, unsigned int d, unsigned int cycles)
+static void vdp_reg_w(u32 r, u32 d, u32 cycles)
 {
 #ifdef LOGVDP
   error("[%d(%d)][%d(%d)] VDP register %d write -> 0x%x (%x)\n", v_counter, cycles/MCYCLES_PER_LINE-1, cycles, cycles%MCYCLES_PER_LINE, r, d, m68k_get_reg(M68K_REG_PC));
@@ -1526,10 +1526,10 @@ static void vdp_reg_w(unsigned int r, unsigned int d, unsigned int cycles)
           if (reg[1] & 0x04)
           {
             /* Mode 5 */
-            color_update_m5(0x00, *(uint16 *)&cram[border << 1]);
+            color_update_m5(0x00, *(u16 *)&cram[border << 1]);
             for (i = 1; i < 0x40; i++)
             {
-              color_update_m5(i, *(uint16 *)&cram[i << 1]);
+              color_update_m5(i, *(u16 *)&cram[i << 1]);
             }
           }
           else
@@ -1537,9 +1537,9 @@ static void vdp_reg_w(unsigned int r, unsigned int d, unsigned int cycles)
             /* Mode 4 */
             for (i = 0; i < 0x20; i++)
             {
-              color_update_m4(i, *(uint16 *)&cram[i << 1]);
+              color_update_m4(i, *(u16 *)&cram[i << 1]);
             }
-            color_update_m4(0x40, *(uint16 *)&cram[(0x10 | (border & 0x0F)) << 1]);
+            color_update_m4(0x40, *(u16 *)&cram[(0x10 | (border & 0x0F)) << 1]);
           }
         }
       }
@@ -1697,10 +1697,10 @@ static void vdp_reg_w(unsigned int r, unsigned int d, unsigned int cycles)
             }
 
             /* Reset color palette */
-            color_update_m5(0x00, *(uint16 *)&cram[border << 1]);
+            color_update_m5(0x00, *(u16 *)&cram[border << 1]);
             for (i = 1; i < 0x40; i++)
             {
-              color_update_m5(i, *(uint16 *)&cram[i << 1]);
+              color_update_m5(i, *(u16 *)&cram[i << 1]);
             }
 
             /* Mode 5 bus access */
@@ -1746,9 +1746,9 @@ static void vdp_reg_w(unsigned int r, unsigned int d, unsigned int cycles)
             /* Reset color palette */
             for (i = 0; i < 0x20; i++)
             {
-              color_update_m4(i, *(uint16 *)&cram[i << 1]);
+              color_update_m4(i, *(u16 *)&cram[i << 1]);
             }
-            color_update_m4(0x40, *(uint16 *)&cram[(0x10 | (border & 0x0F)) << 1]);
+            color_update_m4(0x40, *(u16 *)&cram[(0x10 | (border & 0x0F)) << 1]);
 
             /* Mode 4 bus access */
             vdp_68k_data_w = vdp_68k_data_w_m4;
@@ -1867,12 +1867,12 @@ static void vdp_reg_w(unsigned int r, unsigned int d, unsigned int cycles)
         if (reg[1] & 4)
         {
           /* Mode 5 */
-          color_update_m5(0x00, *(uint16 *)&cram[d << 1]);
+          color_update_m5(0x00, *(u16 *)&cram[d << 1]);
         }
         else
         {
           /* Mode 4 */
-          color_update_m4(0x40, *(uint16 *)&cram[(0x10 | (d & 0x0F)) << 1]);
+          color_update_m4(0x40, *(u16 *)&cram[(0x10 | (d & 0x0F)) << 1]);
         }
 
         /* Backdrop color modified during HBLANK (Road Rash 1,2,3)*/
@@ -1938,10 +1938,10 @@ static void vdp_reg_w(unsigned int r, unsigned int d, unsigned int cycles)
       {
         /* Reset color palette */
         int i;
-        color_update_m5(0x00, *(uint16 *)&cram[border << 1]);
+        color_update_m5(0x00, *(u16 *)&cram[border << 1]);
         for (i = 1; i < 0x40; i++)
         {
-          color_update_m5(i, *(uint16 *)&cram[i << 1]);
+          color_update_m5(i, *(u16 *)&cram[i << 1]);
         }
 
         /* Update sprite rendering function */
@@ -2059,7 +2059,7 @@ static void vdp_reg_w(unsigned int r, unsigned int d, unsigned int cycles)
 /* FIFO update function (Genesis mode only)                                 */
 /*--------------------------------------------------------------------------*/
 
-static void vdp_fifo_update(unsigned int cycles)
+static void vdp_fifo_update(u32 cycles)
 {
   if (fifo_write_cnt > 0)
   {
@@ -2093,7 +2093,7 @@ static void vdp_fifo_update(unsigned int cycles)
 /* Internal 16-bit data bus access function (Mode 5 only)                   */
 /*--------------------------------------------------------------------------*/
 
-static void vdp_bus_w(unsigned int data)
+static void vdp_bus_w(u32 data)
 {
   /* Check destination code */
   switch (code & 0x0F)
@@ -2104,7 +2104,7 @@ static void vdp_bus_w(unsigned int data)
       int index = addr & 0xFFFE;
 
       /* Pointer to VRAM */
-      uint16 *p = (uint16 *)&vram[index];
+      u16 *p = (u16 *)&vram[index];
 
       /* Byte-swap data if A0 is set */
       if (addr & 1)
@@ -2116,7 +2116,7 @@ static void vdp_bus_w(unsigned int data)
       if ((index & sat_base_mask) == satb)
       {
         /* Update internal SAT */
-        *(uint16 *) &sat[index & sat_addr_mask] = data;
+        *(u16 *) &sat[index & sat_addr_mask] = data;
       }
 
       /* Only write unique data to VRAM */
@@ -2140,7 +2140,7 @@ static void vdp_bus_w(unsigned int data)
     case 0x03:  /* CRAM */
     {
       /* Pointer to CRAM 9-bit word */
-      uint16 *p = (uint16 *)&cram[addr & 0x7E];
+      u16 *p = (u16 *)&cram[addr & 0x7E];
 
       /* Pack 16-bit bus data (BBB0GGG0RRR0) to 9-bit CRAM data (BBBGGGRRR) */
       data = ((data & 0xE00) >> 3) | ((data & 0x0E0) >> 2) | ((data & 0x00E) >> 1);
@@ -2182,7 +2182,7 @@ static void vdp_bus_w(unsigned int data)
 
     case 0x05:  /* VSRAM */
     {
-      *(uint16 *)&vsram[addr & 0x7E] = data;
+      *(u16 *)&vsram[addr & 0x7E] = data;
 
       /* 2-cell Vscroll mode */
       if (reg[11] & 0x04)
@@ -2218,7 +2218,7 @@ static void vdp_bus_w(unsigned int data)
 /* 68k data port access functions (Genesis mode)                            */
 /*--------------------------------------------------------------------------*/
 
-static void vdp_68k_data_w_m4(unsigned int data)
+static void vdp_68k_data_w_m4(u32 data)
 {
   /* Clear pending flag */
   pending = 0;
@@ -2256,7 +2256,7 @@ static void vdp_68k_data_w_m4(unsigned int data)
     int index = addr & 0x1F;
 
     /* Pointer to CRAM 9-bit word */
-    uint16 *p = (uint16 *)&cram[index << 1];
+    u16 *p = (u16 *)&cram[index << 1];
 
     /* Pack 16-bit data (xxx000BBGGRR) to 9-bit CRAM data (xxxBBGGRR) */
     data = ((data & 0xE00) >> 3) | (data & 0x3F);
@@ -2283,7 +2283,7 @@ static void vdp_68k_data_w_m4(unsigned int data)
     int index = ((addr << 1) & 0x3FC) | ((addr & 0x200) >> 8) | (addr & 0x3C00);
 
     /* Pointer to VRAM */
-    uint16 *p = (uint16 *)&vram[index];
+    u16 *p = (u16 *)&vram[index];
 
     /* Byte-swap data if A0 is set */
     if (addr & 1)
@@ -2308,7 +2308,7 @@ static void vdp_68k_data_w_m4(unsigned int data)
   addr += (reg[15] + 1);
 }
 
-static void vdp_68k_data_w_m5(unsigned int data)
+static void vdp_68k_data_w_m5(u32 data)
 {
   /* Clear pending flag */
   pending = 0;
@@ -2363,7 +2363,7 @@ static void vdp_68k_data_w_m5(unsigned int data)
   }
 }
 
-static unsigned int vdp_68k_data_r_m4(void)
+static u32 vdp_68k_data_r_m4(void)
 {
   /* VRAM address (interleaved format) */
   int index = ((addr << 1) & 0x3FC) | ((addr & 0x200) >> 8) | (addr & 0x3C00);
@@ -2375,12 +2375,12 @@ static unsigned int vdp_68k_data_r_m4(void)
   addr += (reg[15] + 1);
 
   /* Read VRAM data */
-  return *(uint16 *) &vram[index];
+  return *(u16 *) &vram[index];
 }
 
-static unsigned int vdp_68k_data_r_m5(void)
+static u32 vdp_68k_data_r_m5(void)
 {
-  uint16 data = 0;
+  u16 data = 0;
 
   /* Clear pending flag */
   pending = 0;
@@ -2390,7 +2390,7 @@ static unsigned int vdp_68k_data_r_m5(void)
     case 0x00: /* VRAM */
     {
       /* Read data */
-      data = *(uint16 *)&vram[addr & 0xFFFE];
+      data = *(u16 *)&vram[addr & 0xFFFE];
 
 #ifdef LOGVDP
       error("[%d(%d)][%d(%d)] VRAM 0x%x read -> 0x%x (%x)\n", v_counter, m68k.cycles/MCYCLES_PER_LINE-1, m68k.cycles, m68k.cycles%MCYCLES_PER_LINE, addr, data, m68k_get_reg(M68K_REG_PC));
@@ -2401,7 +2401,7 @@ static unsigned int vdp_68k_data_r_m5(void)
     case 0x04: /* VSRAM */
     {
       /* Read data */
-      data = *(uint16 *)&vsram[addr & 0x7E];
+      data = *(u16 *)&vsram[addr & 0x7E];
 
 #ifdef LOGVDP
       error("[%d(%d)][%d(%d)] VSRAM 0x%x read -> 0x%x (%x)\n", v_counter, m68k.cycles/MCYCLES_PER_LINE-1, m68k.cycles, m68k.cycles%MCYCLES_PER_LINE, addr, data, m68k_get_reg(M68K_REG_PC));
@@ -2412,7 +2412,7 @@ static unsigned int vdp_68k_data_r_m5(void)
     case 0x08: /* CRAM */
     {
       /* Read data */
-      data = *(uint16 *)&cram[addr & 0x7E];
+      data = *(u16 *)&cram[addr & 0x7E];
 
       /* Unpack 9-bit CRAM data (BBBGGGRRR) to 16-bit bus data (BBB0GGG0RRR0) */
       data = ((data & 0x1C0) << 3) | ((data & 0x038) << 2) | ((data & 0x007) << 1);
@@ -2426,7 +2426,7 @@ static unsigned int vdp_68k_data_r_m5(void)
     case 0x0c: /* undocumented 8-bit VRAM read (cf. http://gendev.spritesmind.net/forum/viewtopic.php?t=790) */
     {
       /* Read data (MSB forced to zero) */
-      data = *(uint16 *)&vram[addr & 0xFFFE] & 0xff;
+      data = *(u16 *)&vram[addr & 0xFFFE] & 0xff;
 
 #ifdef LOGVDP
       error("[%d(%d)][%d(%d)] 8-bit VRAM 0x%x read -> 0x%x (%x)\n", v_counter, m68k.cycles/MCYCLES_PER_LINE-1, m68k.cycles, m68k.cycles%MCYCLES_PER_LINE, addr, data, m68k_get_reg(M68K_REG_PC));
@@ -2456,7 +2456,7 @@ static unsigned int vdp_68k_data_r_m5(void)
 /* Z80 data port access functions (Master System compatibility mode)        */
 /*--------------------------------------------------------------------------*/
 
-static void vdp_z80_data_w_m4(unsigned int data)
+static void vdp_z80_data_w_m4(u32 data)
 {
   /* Clear pending flag */
   pending = 0;
@@ -2468,7 +2468,7 @@ static void vdp_z80_data_w_m4(unsigned int data)
     int index = addr & 0x1F;
 
     /* Pointer to CRAM word */
-    uint16 *p = (uint16 *)&cram[index << 1];
+    u16 *p = (u16 *)&cram[index << 1];
 
     /* Check if CRAM data is being modified */
     if (data != *p)
@@ -2508,7 +2508,7 @@ static void vdp_z80_data_w_m4(unsigned int data)
   addr += (reg[15] + 1);
 }
 
-static void vdp_z80_data_w_m5(unsigned int data)
+static void vdp_z80_data_w_m5(u32 data)
 {
   /* Clear pending flag */
   pending = 0;
@@ -2545,7 +2545,7 @@ static void vdp_z80_data_w_m5(unsigned int data)
     case 0x03:  /* CRAM */
     {
       /* Pointer to CRAM word */
-      uint16 *p = (uint16 *)&cram[addr & 0x7E];
+      u16 *p = (u16 *)&cram[addr & 0x7E];
 
       /* Pack 8-bit value into 9-bit CRAM data */
       if (addr & 1)
@@ -2616,10 +2616,10 @@ static void vdp_z80_data_w_m5(unsigned int data)
   }
 }
 
-static unsigned int vdp_z80_data_r_m4(void)
+static u32 vdp_z80_data_r_m4(void)
 {
   /* Read buffer */
-  unsigned int data = fifo[0];
+  u32 data = fifo[0];
 
   /* Clear pending flag */
   pending = 0;
@@ -2634,9 +2634,9 @@ static unsigned int vdp_z80_data_r_m4(void)
   return data;
 }
 
-static unsigned int vdp_z80_data_r_m5(void)
+static u32 vdp_z80_data_r_m5(void)
 {
-  unsigned int data = 0;
+  u32 data = 0;
 
   /* Clear pending flag */
   pending = 0;
@@ -2660,7 +2660,7 @@ static unsigned int vdp_z80_data_r_m5(void)
     case 0x08: /* CRAM */
     {
       /* Read CRAM data */
-      data = *(uint16 *)&cram[addr & 0x7E];
+      data = *(u16 *)&cram[addr & 0x7E];
 
       /* Unpack 9-bit CRAM data (BBBGGGRRR) to 16-bit data (BBB0GGG0RRR0) */
       data = ((data & 0x1C0) << 3) | ((data & 0x038) << 2) | ((data & 0x007) << 1);
@@ -2688,7 +2688,7 @@ static unsigned int vdp_z80_data_r_m5(void)
 /* VDP specific data port access functions (Master System, Game Gear, SG-1000) */
 /*-----------------------------------------------------------------------------*/
 
-static void vdp_z80_data_w_ms(unsigned int data)
+static void vdp_z80_data_w_ms(u32 data)
 {
   /* Clear pending flag */
   pending = 0;
@@ -2726,7 +2726,7 @@ static void vdp_z80_data_w_ms(unsigned int data)
     int index = addr & 0x1F;
 
     /* Pointer to CRAM word */
-    uint16 *p = (uint16 *)&cram[index << 1];
+    u16 *p = (u16 *)&cram[index << 1];
 
     /* Check if CRAM data is being modified */
     if (data != *p)
@@ -2755,7 +2755,7 @@ static void vdp_z80_data_w_ms(unsigned int data)
   addr++;
 }
 
-static void vdp_z80_data_w_gg(unsigned int data)
+static void vdp_z80_data_w_gg(u32 data)
 {
   /* Clear pending flag */
   pending = 0;
@@ -2791,7 +2791,7 @@ static void vdp_z80_data_w_gg(unsigned int data)
     if (addr & 1)
     {
       /* Pointer to CRAM word */
-      uint16 *p = (uint16 *)&cram[addr & 0x3E];
+      u16 *p = (u16 *)&cram[addr & 0x3E];
 
       /* 12-bit data word */
       data = (data << 8) | cached_write;
@@ -2832,7 +2832,7 @@ static void vdp_z80_data_w_gg(unsigned int data)
   addr++;
 }
 
-static void vdp_z80_data_w_sg(unsigned int data)
+static void vdp_z80_data_w_sg(u32 data)
 {
   /* VRAM address */
   int index = addr & 0x3FFF;
@@ -2862,12 +2862,12 @@ static void vdp_z80_data_w_sg(unsigned int data)
 /*--------------------------------------------------------------------------*/
 
 /* DMA from 68K bus: $000000-$7FFFFF (external area) */
-static void vdp_dma_68k_ext(unsigned int length)
+static void vdp_dma_68k_ext(u32 length)
 {
-  uint16 data;
+  u16 data;
 
   /* 68k bus source address */
-  uint32 source = (reg[23] << 17) | (dma_src << 1);
+  u32 source = (reg[23] << 17) | (dma_src << 1);
 
   do
   {
@@ -2878,7 +2878,7 @@ static void vdp_dma_68k_ext(unsigned int length)
     }
     else
     {
-      data = *(uint16 *)(m68k.memory_map[source>>16].base + (source & 0xFFFF));
+      data = *(u16 *)(m68k.memory_map[source>>16].base + (source & 0xFFFF));
     }
  
     /* Increment source address */
@@ -2897,17 +2897,17 @@ static void vdp_dma_68k_ext(unsigned int length)
 }
 
 /* DMA from 68K bus: $800000-$FFFFFF (internal area) except I/O area */
-static void vdp_dma_68k_ram(unsigned int length)
+static void vdp_dma_68k_ram(u32 length)
 {
-  uint16 data;
+  u16 data;
 
   /* 68k bus source address */
-  uint32 source = (reg[23] << 17) | (dma_src << 1);
+  u32 source = (reg[23] << 17) | (dma_src << 1);
 
   do
   {
     /* access Work-RAM by default  */
-    data = *(uint16 *)(work_ram + (source & 0xFFFF));
+    data = *(u16 *)(work_ram + (source & 0xFFFF));
    
     /* Increment source address */
     source += 2;
@@ -2925,12 +2925,12 @@ static void vdp_dma_68k_ram(unsigned int length)
 }
 
 /* DMA from 68K bus: $A00000-$A1FFFF (I/O area) specific */
-static void vdp_dma_68k_io(unsigned int length)
+static void vdp_dma_68k_io(u32 length)
 {
-  uint16 data;
+  u16 data;
 
   /* 68k bus source address */
-  uint32 source = (reg[23] << 17) | (dma_src << 1);
+  u32 source = (reg[23] << 17) | (dma_src << 1);
 
   do
   {
@@ -2939,7 +2939,7 @@ static void vdp_dma_68k_io(unsigned int length)
     {
       /* Return $FFFF only when the Z80 isn't hogging the Z-bus.
       (e.g. Z80 isn't reset and 68000 has the bus) */
-      data = ((zstate ^ 3) ? *(uint16 *)(work_ram + (source & 0xFFFF)) : 0xFFFF);
+      data = ((zstate ^ 3) ? *(u16 *)(work_ram + (source & 0xFFFF)) : 0xFFFF);
     }
 
     /* The I/O chip and work RAM try to drive the data bus which results 
@@ -2954,7 +2954,7 @@ static void vdp_dma_68k_io(unsigned int length)
     /* All remaining locations access work RAM */
     else
     {
-      data = *(uint16 *)(work_ram + (source & 0xFFFF));
+      data = *(u16 *)(work_ram + (source & 0xFFFF));
     }
 
     /* Increment source address */
@@ -2973,16 +2973,16 @@ static void vdp_dma_68k_io(unsigned int length)
 }
 
 /*  VRAM Copy (TODO: check if CRAM or VSRAM copy is possible) */
-static void vdp_dma_copy(unsigned int length)
+static void vdp_dma_copy(u32 length)
 {
   /* VRAM read/write operation only */
   if ((code & 0x1E) == 0x10)
   {
     int name;
-    uint8 data;
+    u8 data;
     
     /* VRAM source address */
-    uint16 source = dma_src;
+    u16 source = dma_src;
 
     do
     {
@@ -3016,13 +3016,13 @@ static void vdp_dma_copy(unsigned int length)
 }
 
 /* VRAM Fill (TODO: check if CRAM or VSRAM fill is possible) */
-static void vdp_dma_fill(unsigned int length)
+static void vdp_dma_fill(u32 length)
 {
   /* VRAM write operation only (Williams Greatest Hits after soft reset) */
   if ((code & 0x1F) == 0x01)
   {
     int name;
-    uint8 data = dmafill;
+    u8 data = dmafill;
 
     do
     {

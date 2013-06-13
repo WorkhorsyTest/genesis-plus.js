@@ -40,9 +40,9 @@
 
 static struct
 {
-  uint8 State;
-  uint8 Counter;
-  uint8 Latency;
+  u8 State;
+  u8 Counter;
+  u8 Latency;
 } xe_a1p;
 
 void xe_a1p_reset(void)
@@ -55,9 +55,9 @@ void xe_a1p_reset(void)
   xe_a1p.Latency = 0;
 }
 
-unsigned char xe_a1p_read()
+u8 xe_a1p_read()
 {
-  unsigned int temp = 0x40;
+  u32 temp = 0x40;
 
   /* Left Stick X & Y analog values (bidirectional) */
   int x = input.analog[0][0];
@@ -67,10 +67,10 @@ unsigned char xe_a1p_read()
   int z = input.analog[1][0];
 
   /* Buttons status (active low) */
-  uint16 pad = ~input.pad[0];
+  u16 pad = ~input.pad[0];
 
   /* Current internal cycle (0-7) */
-  unsigned int cycle = xe_a1p.Counter & 7;
+  u32 cycle = xe_a1p.Counter & 7;
 
   /* Current 4-bit data cycle */
   /* There are eight internal data cycle for each 5 acquisition sequence */
@@ -127,7 +127,7 @@ unsigned char xe_a1p_read()
   return temp;
 }
 
-void xe_a1p_write(unsigned char data, unsigned char mask)
+void xe_a1p_write(u8 data, u8 mask)
 {
   /* update bits set as output only */
   data = (xe_a1p.State & ~mask) | (data & mask);

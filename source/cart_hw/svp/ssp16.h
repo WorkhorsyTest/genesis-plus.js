@@ -30,14 +30,14 @@ enum {
 
 typedef union
 {
-  unsigned int v;
+  u32 v;
   struct {
 #ifdef LSB_FIRST
-  unsigned short l;
-  unsigned short h;
+  u16 l;
+  u16 h;
 #else
-  unsigned short h;
-  unsigned short l;
+  u16 h;
+  u16 l;
 #endif
   } byte;
 } ssp_reg_t;
@@ -45,22 +45,22 @@ typedef union
 typedef struct
 {
   union {
-    unsigned short RAM[256*2];  /* 2 internal RAM banks */
+    u16 RAM[256*2];  /* 2 internal RAM banks */
     struct {
-      unsigned short RAM0[256];
-      unsigned short RAM1[256];
+      u16 RAM0[256];
+      u16 RAM1[256];
     } bank;
   } mem;
   ssp_reg_t gr[16];  /* general registers */
   union {
-    unsigned char r[8];  /* BANK pointers */
+    u8 r[8];  /* BANK pointers */
     struct {
-      unsigned char r0[4];
-      unsigned char r1[4];
+      u8 r0[4];
+      u8 r1[4];
     } bank;
   } ptr;
-  unsigned short stack[6];
-  unsigned int pmac[2][6];  /* read/write modes/addrs for PM0-PM5 */
+  u16 stack[6];
+  u32 pmac[2][6];  /* read/write modes/addrs for PM0-PM5 */
   #define SSP_PMC_HAVE_ADDR  0x0001 /* address written to PMAC, waiting for mode */
   #define SSP_PMC_SET        0x0002 /* PMAC is set */
   #define SSP_HANG           0x1000 /* 68000 hangs SVP */
@@ -68,8 +68,8 @@ typedef struct
   #define SSP_WAIT_30FE06    0x4000 /* ssp tight loops on 30FE08 to become non-zero */
   #define SSP_WAIT_30FE08    0x8000 /* same for 30FE06 */
   #define SSP_WAIT_MASK      0xf000
-  unsigned int emu_status;
-  unsigned int pad[30];
+  u32 emu_status;
+  u32 pad[30];
 } ssp1601_t;
 
 

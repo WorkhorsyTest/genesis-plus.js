@@ -40,10 +40,10 @@
 
 static struct
 {
-  uint8 State;
-  uint8 Counter;
-  uint8 Wait;
-  uint8 Port;
+  u8 State;
+  u8 Counter;
+  u8 Wait;
+  u8 Port;
 } mouse;
 
 void mouse_reset(int port)
@@ -56,9 +56,9 @@ void mouse_reset(int port)
   mouse.Port = port;
 }
 
-unsigned char mouse_read()
+u8 mouse_read()
 {
-  unsigned int temp = 0x00;
+  u32 temp = 0x00;
   int x = input.analog[mouse.Port][0];
   int y = input.analog[mouse.Port][1];
 
@@ -128,7 +128,7 @@ unsigned char mouse_read()
   return temp;
 }
 
-void mouse_write(unsigned char data, unsigned char mask)
+void mouse_write(u8 data, u8 mask)
 {
   /* update bits set as output only */
   data = (mouse.State & ~mask) | (data & mask);

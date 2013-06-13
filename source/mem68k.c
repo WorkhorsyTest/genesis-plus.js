@@ -43,7 +43,7 @@
 /* Unused areas (return open bus data, i.e prefetched instruction word)     */
 /*--------------------------------------------------------------------------*/
 
-unsigned int m68k_read_bus_8(unsigned int address)
+u32 m68k_read_bus_8(u32 address)
 {
 #ifdef LOGERROR
   error("Unused read8 %08X (%08X)\n", address, m68k_get_reg(M68K_REG_PC));
@@ -52,24 +52,24 @@ unsigned int m68k_read_bus_8(unsigned int address)
   return READ_BYTE(m68k.memory_map[((address)>>16)&0xff].base, (address) & 0xffff);
 }
 
-unsigned int m68k_read_bus_16(unsigned int address)
+u32 m68k_read_bus_16(u32 address)
 {
 #ifdef LOGERROR
   error("Unused read16 %08X (%08X)\n", address, m68k_get_reg(M68K_REG_PC));
 #endif
   address = m68k.pc;
-  return *(uint16 *)(m68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff));
+  return *(u16 *)(m68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff));
 }
 
 
-void m68k_unused_8_w(unsigned int address, unsigned int data)
+void m68k_unused_8_w(u32 address, u32 data)
 {
 #ifdef LOGERROR
   error("Unused write8 %08X = %02X (%08X)\n", address, data, m68k_get_reg(M68K_REG_PC));
 #endif
 }
 
-void m68k_unused_16_w(unsigned int address, unsigned int data)
+void m68k_unused_16_w(u32 address, u32 data)
 {
 #ifdef LOGERROR
   error("Unused write16 %08X = %04X (%08X)\n", address, data, m68k_get_reg(M68K_REG_PC));
@@ -81,7 +81,7 @@ void m68k_unused_16_w(unsigned int address, unsigned int data)
 /* Illegal areas (cause system to lock-up since !DTACK is not returned)     */
 /*--------------------------------------------------------------------------*/
 
-void m68k_lockup_w_8 (unsigned int address, unsigned int data)
+void m68k_lockup_w_8 (u32 address, u32 data)
 {
 #ifdef LOGERROR
   error ("Lockup %08X = %02X (%08X)\n", address, data, m68k_get_reg(M68K_REG_PC));
@@ -93,7 +93,7 @@ void m68k_lockup_w_8 (unsigned int address, unsigned int data)
   }
 }
 
-void m68k_lockup_w_16 (unsigned int address, unsigned int data)
+void m68k_lockup_w_16 (u32 address, u32 data)
 {
 #ifdef LOGERROR
   error ("Lockup %08X = %04X (%08X)\n", address, data, m68k_get_reg(M68K_REG_PC));
@@ -105,7 +105,7 @@ void m68k_lockup_w_16 (unsigned int address, unsigned int data)
   }
 }
 
-unsigned int m68k_lockup_r_8 (unsigned int address)
+u32 m68k_lockup_r_8 (u32 address)
 { 
 #ifdef LOGERROR
   error ("Lockup %08X.b (%08X)\n", address, m68k_get_reg(M68K_REG_PC));
@@ -119,7 +119,7 @@ unsigned int m68k_lockup_r_8 (unsigned int address)
   return READ_BYTE(m68k.memory_map[((address)>>16)&0xff].base, (address) & 0xffff);
 }
 
-unsigned int m68k_lockup_r_16 (unsigned int address)
+u32 m68k_lockup_r_16 (u32 address)
 {
 #ifdef LOGERROR
   error ("Lockup %08X.w (%08X)\n", address, m68k_get_reg(M68K_REG_PC));
@@ -130,7 +130,7 @@ unsigned int m68k_lockup_r_16 (unsigned int address)
     m68k.cycles = m68k.cycle_end;
   }
   address = m68k.pc;
-  return *(uint16 *)(m68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff));
+  return *(u16 *)(m68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff));
 }
 
 
@@ -138,7 +138,7 @@ unsigned int m68k_lockup_r_16 (unsigned int address)
 /* Z80 bus (accessed through I/O chip)                                      */
 /*--------------------------------------------------------------------------*/
 
-unsigned int z80_read_byte(unsigned int address)
+u32 z80_read_byte(u32 address)
 {
   switch ((address >> 13) & 3)
   {
@@ -164,13 +164,13 @@ unsigned int z80_read_byte(unsigned int address)
   }
 }
 
-unsigned int z80_read_word(unsigned int address)
+u32 z80_read_word(u32 address)
 {
-  unsigned int data = z80_read_byte(address);
+  u32 data = z80_read_byte(address);
   return (data | (data << 8));
 }
 
-void z80_write_byte(unsigned int address, unsigned int data)
+void z80_write_byte(u32 address, u32 data)
 {
   switch ((address >> 13) & 3)
   {
@@ -213,7 +213,7 @@ void z80_write_byte(unsigned int address, unsigned int data)
   }
 }
 
-void z80_write_word(unsigned int address, unsigned int data)
+void z80_write_word(u32 address, u32 data)
 {
   z80_write_byte(address, data >> 8);
 }
@@ -244,7 +244,7 @@ static void m68k_poll_detect(reg)
         {
           m68k.pc -= 2;
         }
-        while (m68k.ir != *(uint16 *)(m68k.memory_map[(m68k.pc>>16)&0xff].base + (m68k.pc & 0xffff)));
+        while (m68k.ir != *(u16 *)(m68k.memory_map[(m68k.pc>>16)&0xff].base + (m68k.pc & 0xffff)));
       }
       return;
     }
@@ -263,7 +263,7 @@ static void m68k_poll_detect(reg)
 static void m68k_poll_sync(reg)
 {
   /* relative SUB-CPU cycle counter */
-  unsigned int cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;
+  u32 cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;
 
   /* sync SUB-CPU with MAIN-CPU */
   if (!s68k.stopped && (s68k.cycles < cycles))
@@ -289,7 +289,7 @@ static void m68k_poll_sync(reg)
   s68k.poll.detected &= ~(3 << reg);
 }
 
-unsigned int ctrl_io_read_byte(unsigned int address)
+u32 ctrl_io_read_byte(u32 address)
 {
   switch ((address >> 8) & 0xFF)
   {
@@ -330,7 +330,7 @@ unsigned int ctrl_io_read_byte(unsigned int address)
       if (system_hw == SYSTEM_MCD)
       {
         /* register index ($A12000-A1203F mirrored up to $A120FF) */
-        uint8 index = address & 0x3f;
+        u8 index = address & 0x3f;
 
         /* Memory Mode */
         if (index == 0x03)
@@ -343,7 +343,7 @@ unsigned int ctrl_io_read_byte(unsigned int address)
         if (index == 0x0f)
         {
           /* relative SUB-CPU cycle counter */
-          unsigned int cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;
+          u32 cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;
 
           /* sync SUB-CPU with MAIN-CPU (Dracula Unleashed w/ Sega CD Model 2 OS ROM) */
           if (!s68k.stopped && (s68k.cycles < cycles))
@@ -382,7 +382,7 @@ unsigned int ctrl_io_read_byte(unsigned int address)
     {
       if (cart.hw.time_r)
       {
-        unsigned int data = cart.hw.time_r(address);
+        u32 data = cart.hw.time_r(address);
         if (address & 1)
         {
           return (data & 0xFF);
@@ -396,7 +396,7 @@ unsigned int ctrl_io_read_byte(unsigned int address)
     {
       if ((config.bios & 1) && (address & 1))
       {
-        unsigned int data = gen_bankswitch_r() & 1;
+        u32 data = gen_bankswitch_r() & 1;
 
         /* Unused bits return prefetched bus data */
         address = m68k.pc;
@@ -423,7 +423,7 @@ unsigned int ctrl_io_read_byte(unsigned int address)
   }
 }
 
-unsigned int ctrl_io_read_word(unsigned int address)
+u32 ctrl_io_read_word(u32 address)
 {
   switch ((address >> 8) & 0xFF)
   {
@@ -431,7 +431,7 @@ unsigned int ctrl_io_read_word(unsigned int address)
     {
       if (!(address & 0xE0))
       {
-        unsigned int data = io_68k_read((address >> 1) & 0x0F);
+        u32 data = io_68k_read((address >> 1) & 0x0F);
         return (data << 8 | data);
       }
       return m68k_read_bus_16(address); 
@@ -446,11 +446,11 @@ unsigned int ctrl_io_read_word(unsigned int address)
       if (zstate == 3)
       {
         /* D8 is cleared */
-        return (*(uint16 *)(m68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff)) & 0xFEFF);
+        return (*(u16 *)(m68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff)) & 0xFEFF);
       }
 
       /* D8 is set */
-      return (*(uint16 *)(m68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff)) | 0x0100);
+      return (*(u16 *)(m68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff)) | 0x0100);
     }
 
     case 0x20:  /* MEGA-CD */
@@ -461,7 +461,7 @@ unsigned int ctrl_io_read_word(unsigned int address)
       if (system_hw == SYSTEM_MCD)
       {
         /* register index ($A12000-A1203F mirrored up to $A120FF) */
-        uint8 index = address & 0x3f;
+        u8 index = address & 0x3f;
 
         /* Memory Mode */
         if (index == 0x02)
@@ -479,14 +479,14 @@ unsigned int ctrl_io_read_word(unsigned int address)
         /* H-INT vector (word access only ?) */
         if (index == 0x06)
         {
-          return *(uint16 *)(m68k.memory_map[0].base + 0x72);
+          return *(u16 *)(m68k.memory_map[0].base + 0x72);
         }
 
         /* Stopwatch counter (word read access only ?) */
         if (index == 0x0c)
         {
           /* relative SUB-CPU cycle counter */
-          unsigned int cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;
+          u32 cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;
 
           /* cycle-accurate counter value */
           return (scd.regs[0x0c>>1].w + ((cycles - scd.stopwatch) / TIMERS_SCYCLES_RATIO)) & 0xfff;
@@ -527,7 +527,7 @@ unsigned int ctrl_io_read_word(unsigned int address)
 
       if ((address & 0xFF) == 4)
       {
-        unsigned int data = svp->ssp1601.gr[SSP_PM0].byte.h;
+        u32 data = svp->ssp1601.gr[SSP_PM0].byte.h;
         svp->ssp1601.gr[SSP_PM0].byte.h &= ~1;
         return data;
       }
@@ -552,7 +552,7 @@ unsigned int ctrl_io_read_word(unsigned int address)
   }
 }
 
-void ctrl_io_write_byte(unsigned int address, unsigned int data)
+void ctrl_io_write_byte(u32 address, u32 data)
 {
   switch ((address >> 8) & 0xFF)
   {
@@ -609,7 +609,7 @@ void ctrl_io_write_byte(unsigned int address, unsigned int data)
               if (scd.regs[0x32>>1].byte.l & 0x04)
               {
                 /* relative SUB-CPU cycle counter */
-                unsigned int cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;
+                u32 cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;
 
                 /* sync SUB-CPU with MAIN-CPU */
                 if (!s68k.stopped && (s68k.cycles < cycles))
@@ -796,7 +796,7 @@ void ctrl_io_write_byte(unsigned int address, unsigned int data)
   }
 }
 
-void ctrl_io_write_word(unsigned int address, unsigned int data)
+void ctrl_io_write_word(u32 address, u32 data)
 {
   switch ((address >> 8) & 0xFF)
   {
@@ -933,7 +933,7 @@ void ctrl_io_write_word(unsigned int address, unsigned int data)
 
           case 0x06:  /* H-INT vector (word access only ?) */
           {
-            *(uint16 *)(m68k.memory_map[0].base + 0x72) = data;
+            *(u16 *)(m68k.memory_map[0].base + 0x72) = data;
             return;
           }
 
@@ -1019,7 +1019,7 @@ void ctrl_io_write_word(unsigned int address, unsigned int data)
 /* VDP                                                                      */
 /*--------------------------------------------------------------------------*/
 
-unsigned int vdp_read_byte(unsigned int address)
+u32 vdp_read_byte(u32 address)
 {
   switch (address & 0xFD)
   {
@@ -1035,7 +1035,7 @@ unsigned int vdp_read_byte(unsigned int address)
 
     case 0x04:  /* CTRL */
     {
-      unsigned int data = (vdp_68k_ctrl_r(m68k.cycles) >> 8) & 3;
+      u32 data = (vdp_68k_ctrl_r(m68k.cycles) >> 8) & 3;
 
       /* Unused bits return prefetched bus data */
       address = m68k.pc;
@@ -1076,7 +1076,7 @@ unsigned int vdp_read_byte(unsigned int address)
   }
 }
 
-unsigned int vdp_read_word(unsigned int address)
+u32 vdp_read_word(u32 address)
 {
   switch (address & 0xFC)
   {
@@ -1087,11 +1087,11 @@ unsigned int vdp_read_word(unsigned int address)
 
     case 0x04:  /* CTRL */
     {
-      unsigned int data = vdp_68k_ctrl_r(m68k.cycles) & 0x3FF;
+      u32 data = vdp_68k_ctrl_r(m68k.cycles) & 0x3FF;
 
       /* Unused bits return prefetched bus data */
       address = m68k.pc;
-      data |= (*(uint16 *)(m68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff)) & 0xFC00);
+      data |= (*(u16 *)(m68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff)) & 0xFC00);
 
       return data;
     }
@@ -1115,7 +1115,7 @@ unsigned int vdp_read_word(unsigned int address)
   }
 }
 
-void vdp_write_byte(unsigned int address, unsigned int data)
+void vdp_write_byte(u32 address, u32 data)
 {
   switch (address & 0xFC)
   {
@@ -1163,7 +1163,7 @@ void vdp_write_byte(unsigned int address, unsigned int data)
   }
 }
 
-void vdp_write_word(unsigned int address, unsigned int data)
+void vdp_write_word(u32 address, u32 data)
 {
   switch (address & 0xFC)
   {
@@ -1211,7 +1211,7 @@ void vdp_write_word(unsigned int address, unsigned int data)
 /* PICO (incomplete)                                                        */
 /*--------------------------------------------------------------------------*/
 
-unsigned int pico_read_byte(unsigned int address)
+u32 pico_read_byte(u32 address)
 {
   switch (address & 0xFF)
   {
@@ -1268,7 +1268,7 @@ unsigned int pico_read_byte(unsigned int address)
   }
 }
 
-unsigned int pico_read_word(unsigned int address)
+u32 pico_read_word(u32 address)
 {
   return (pico_read_byte(address | 1) | (pico_read_byte(address) << 8));
 }

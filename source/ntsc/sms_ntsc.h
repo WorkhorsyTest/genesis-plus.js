@@ -29,7 +29,7 @@ typedef struct sms_ntsc_setup_t
   double bleed;      /* color bleed (color resolution reduction) */
   float const* decoder_matrix; /* optional RGB decoder matrix, 6 elements */
   
-  unsigned char* palette_out;  /* optional RGB palette out, 3 bytes per color */
+  u8* palette_out;  /* optional RGB palette out, 3 bytes per color */
 } sms_ntsc_setup_t;
 
 /* Video format presets */
@@ -48,7 +48,7 @@ void sms_ntsc_init( sms_ntsc_t* ntsc, sms_ntsc_setup_t const* setup );
 /* Filters one row of pixels. Input pixel format is set by SMS_NTSC_IN_FORMAT
 and output RGB depth is set by SMS_NTSC_OUT_DEPTH. Both default to 16-bit RGB.
 In_row_width is the number of pixels to get to the next input row. */
-void sms_ntsc_blit( sms_ntsc_t const* ntsc, SMS_NTSC_IN_T const* table, unsigned char* input,
+void sms_ntsc_blit( sms_ntsc_t const* ntsc, SMS_NTSC_IN_T const* table, u8* input,
     int in_width, int vline);
 
 /* Number of output pixels written by blitter for given input width. */

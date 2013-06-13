@@ -43,19 +43,19 @@
 
 static struct
 {
-  uint8 enabled;
-  uint8 *rom;
-  uint16 regs[0x20];
-  uint16 old[6];
-  uint16 data[6];
-  uint32 addr[6];
+  u8 enabled;
+  u8 *rom;
+  u16 regs[0x20];
+  u16 old[6];
+  u16 data[6];
+  u32 addr[6];
 } ggenie;
 
-static unsigned int ggenie_read_byte(unsigned int address);
-static unsigned int ggenie_read_word(unsigned int address);
-static void ggenie_write_byte(unsigned int address, unsigned int data);
-static void ggenie_write_word(unsigned int address, unsigned int data);
-static void ggenie_write_regs(unsigned int offset, unsigned int data);
+static u32 ggenie_read_byte(u32 address);
+static u32 ggenie_read_word(u32 address);
+static void ggenie_write_byte(u32 address, u32 data);
+static void ggenie_write_word(u32 address, u32 data);
+static void ggenie_write_regs(u32 offset, u32 data);
 
 void ggenie_init(void)
 {
@@ -85,7 +85,7 @@ void ggenie_init(void)
   for (i=0; i<0x8000; i+=2)
   {
     /* Byteswap ROM */
-    uint8 temp = ggenie.rom[i];
+    u8 temp = ggenie.rom[i];
     ggenie.rom[i] = ggenie.rom[i+1];
     ggenie.rom[i+1] = temp;
   }
@@ -147,8 +147,8 @@ void ggenie_switch(int enable)
       if (ggenie.regs[0] & (1 << i))
       {
         /* save old value and patch ROM if enabled */
-        ggenie.old[i] = *(uint16 *)(cart.rom + ggenie.addr[i]);
-        *(uint16 *)(cart.rom + ggenie.addr[i]) = ggenie.data[i];
+        ggenie.old[i] = *(u16 *)(cart.rom + ggenie.addr[i]);
+        *(u16 *)(cart.rom + ggenie.addr[i]) = ggenie.data[i];
       }
     }
   }
@@ -161,27 +161,27 @@ void ggenie_switch(int enable)
       if (ggenie.regs[0] & (1 << i))
       {
         /* restore original ROM value */
-        *(uint16 *)(cart.rom + ggenie.addr[i]) = ggenie.old[i];
+        *(u16 *)(cart.rom + ggenie.addr[i]) = ggenie.old[i];
       }
     }
   }
 }
 
-static unsigned int ggenie_read_byte(unsigned int address)
+static u32 ggenie_read_byte(u32 address)
 {
-  unsigned int data = ggenie.regs[(address >> 1) & 0x1f];
+  u32 data = ggenie.regs[(address >> 1) & 0x1f];
   return ((address & 1) ? (data & 0xff) : ((data >> 8) & 0xff));
 }
 
-static unsigned int ggenie_read_word(unsigned int address)
+static u32 ggenie_read_word(u32 address)
 {
   return ggenie.regs[(address >> 1) & 0x1f];
 }
 
-static void ggenie_write_byte(unsigned int address, unsigned int data)
+static void ggenie_write_byte(u32 address, u32 data)
 {
   /* Register offset */
-  uint8 offset = (address >> 1) & 0x1f;
+  u8 offset = (address >> 1) & 0x1f;
 
   /* /LWR and /UWR are used to decode writes */
   if (address & 1)
@@ -197,16 +197,16 @@ static void ggenie_write_byte(unsigned int address, unsigned int data)
   ggenie_write_regs(offset,data);
 }
 
-static void ggenie_write_word(unsigned int address, unsigned int data)
+static void ggenie_write_word(u32 address, u32 data)
 {
   /* Register offset */
-  uint8 offset = (address >> 1) & 0x1f;
+  u8 offset = (address >> 1) & 0x1f;
 
   /* Write internal register (full WORD) */
   ggenie_write_regs(offset,data);
 }
 
-static void ggenie_write_regs(unsigned int offset, unsigned int data)
+static void ggenie_write_regs(u32 offset, u32 data)
 {
   /* update internal register */
   ggenie.regs[offset] = data;

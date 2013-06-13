@@ -129,10 +129,10 @@
 
 typedef struct
 {
-  uint8 system[2];              /* can be one of the SYSTEM_* values */
-  uint8 dev[MAX_DEVICES];       /* can be one of the DEVICE_* values */
-  uint16 pad[MAX_DEVICES];      /* digital inputs (any of INPUT_* values)  */
-  int16 analog[MAX_DEVICES][2]; /* analog inputs (x/y) */
+  u8 system[2];              /* can be one of the SYSTEM_* values */
+  u8 dev[MAX_DEVICES];       /* can be one of the DEVICE_* values */
+  u16 pad[MAX_DEVICES];      /* digital inputs (any of INPUT_* values)  */
+  s16 analog[MAX_DEVICES][2]; /* analog inputs (x/y) */
   int x_offset;                 /* gun horizontal offset */
   int y_offset;                 /* gun vertical offset */
 } t_input;

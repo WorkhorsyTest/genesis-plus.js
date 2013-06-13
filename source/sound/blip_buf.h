@@ -4,6 +4,8 @@
 #ifndef BLIP_BUF_H 
 #define BLIP_BUF_H
 
+#include "types.h"
+
 #ifdef __cplusplus
 	extern "C" {
 #endif
@@ -29,10 +31,10 @@ blip_max_ratio = 1 << 20 };
 void blip_clear( blip_t* );
 
 /** Adds positive/negative delta into buffer at specified clock time. */
-void blip_add_delta( blip_t*, unsigned int clock_time, int delta );
+void blip_add_delta( blip_t*, u32 clock_time, int delta );
 
 /** Same as blip_add_delta(), but uses faster, lower-quality synthesis. */
-void blip_add_delta_fast( blip_t*, unsigned int clock_time, int delta );
+void blip_add_delta_fast( blip_t*, u32 clock_time, int delta );
 
 /** Length of time frame, in clocks, needed to make sample_count additional
 samples available. */
@@ -46,7 +48,7 @@ samples. Also begins new time frame at clock_duration, so that clock time 0 in
 the new time frame specifies the same clock as clock_duration in the old time
 frame specified. Deltas can have been added slightly past clock_duration (up to
 however many clocks there are in two output samples). */
-void blip_end_frame( blip_t*, unsigned int clock_duration );
+void blip_end_frame( blip_t*, u32 clock_duration );
 
 /** Number of buffered samples available for reading. */
 int blip_samples_avail( const blip_t* );

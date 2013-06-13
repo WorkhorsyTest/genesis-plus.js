@@ -31,7 +31,7 @@ static u8 s68ki_cycles[0x10000];
 static s32 irq_latency;
 
 /* IRQ priority */
-static const uint8 irq_level[0x40] = 
+static const u8 irq_level[0x40] = 
 {
   0, 1, 2, 2, 3, 3, 3, 3,
   4, 4, 4, 4, 4, 4, 4, 4,
@@ -203,7 +203,7 @@ void s68k_set_fc_callback(void  (*callback)(u32 new_fc))
 #endif
 
 extern void error(char *format, ...);
-extern uint16 v_counter;
+extern u16 v_counter;
 
 /* update IRQ level according to triggered interrupts */
 void s68k_update_irq(u32 mask)

@@ -40,8 +40,8 @@
 
 static struct
 {
-  uint8 State;
-  uint8 Counter;
+  u8 State;
+  u8 Counter;
 } sportspad[2];
 
 void sportspad_reset(int index)
@@ -52,10 +52,10 @@ void sportspad_reset(int index)
   sportspad[index].Counter = 0;
 }
 
-INLINE unsigned char sportspad_read(int port)
+INLINE u8 sportspad_read(int port)
 {
   /* Buttons 1(B) & 2(C) status (active low) */
-  unsigned char temp = ~(input.pad[port] & 0x30);
+  u8 temp = ~(input.pad[port] & 0x30);
 
   /* Pad index */
   int index = port >> 2;
@@ -98,7 +98,7 @@ INLINE unsigned char sportspad_read(int port)
   return temp;
 }
 
-INLINE void sportspad_write(int index, unsigned char data, unsigned char mask)
+INLINE void sportspad_write(int index, u8 data, u8 mask)
 {
   /* update bits set as output only */
   data = (sportspad[index].State & ~mask) | (data & mask);
@@ -113,22 +113,22 @@ INLINE void sportspad_write(int index, unsigned char data, unsigned char mask)
   sportspad[index].State = data;
 }
 
-unsigned char sportspad_1_read(void)
+u8 sportspad_1_read(void)
 {
   return sportspad_read(0);
 }
 
-unsigned char sportspad_2_read(void)
+u8 sportspad_2_read(void)
 {
   return sportspad_read(4);
 }
 
-void sportspad_1_write(unsigned char data, unsigned char mask)
+void sportspad_1_write(u8 data, u8 mask)
 {
   sportspad_write(0, data, mask);
 }
 
-void sportspad_2_write(unsigned char data, unsigned char mask)
+void sportspad_2_write(u8 data, u8 mask)
 {
   sportspad_write(1, data, mask);
 }

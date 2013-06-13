@@ -43,62 +43,62 @@
 #define _VDP_H_
 
 /* VDP context */
-extern uint8 reg[0x20];
-extern uint8 sat[0x400];
-extern uint8 vram[0x10000];
-extern uint8 cram[0x80];
-extern uint8 vsram[0x80];
-extern uint8 hint_pending;
-extern uint8 vint_pending;
-extern uint16 status;
-extern uint32 dma_length;
+extern u8 reg[0x20];
+extern u8 sat[0x400];
+extern u8 vram[0x10000];
+extern u8 cram[0x80];
+extern u8 vsram[0x80];
+extern u8 hint_pending;
+extern u8 vint_pending;
+extern u16 status;
+extern u32 dma_length;
 
 /* Global variables */
-extern uint16 ntab;
-extern uint16 ntbb;
-extern uint16 ntwb;
-extern uint16 satb;
-extern uint16 hscb;
-extern uint8 bg_name_dirty[0x800];
-extern uint16 bg_name_list[0x800];
-extern uint16 bg_list_index;
-extern uint8 hscroll_mask;
-extern uint8 playfield_shift;
-extern uint8 playfield_col_mask;
-extern uint16 playfield_row_mask;
-extern uint8 odd_frame;
-extern uint8 im2_flag;
-extern uint8 interlaced;
-extern uint8 vdp_pal;
-extern uint16 v_counter;
-extern uint16 vc_max;
-extern uint16 vscroll;
-extern uint16 lines_per_frame;
-extern int32 fifo_write_cnt;
-extern uint32 fifo_lastwrite;
-extern uint32 hvc_latch;
-extern const uint8 *hctab;
+extern u16 ntab;
+extern u16 ntbb;
+extern u16 ntwb;
+extern u16 satb;
+extern u16 hscb;
+extern u8 bg_name_dirty[0x800];
+extern u16 bg_name_list[0x800];
+extern u16 bg_list_index;
+extern u8 hscroll_mask;
+extern u8 playfield_shift;
+extern u8 playfield_col_mask;
+extern u16 playfield_row_mask;
+extern u8 odd_frame;
+extern u8 im2_flag;
+extern u8 interlaced;
+extern u8 vdp_pal;
+extern u16 v_counter;
+extern u16 vc_max;
+extern u16 vscroll;
+extern u16 lines_per_frame;
+extern s32 fifo_write_cnt;
+extern u32 fifo_lastwrite;
+extern u32 hvc_latch;
+extern const u8 *hctab;
 
 /* Function pointers */
-extern void (*vdp_68k_data_w)(unsigned int data);
-extern void (*vdp_z80_data_w)(unsigned int data);
-extern unsigned int (*vdp_68k_data_r)(void);
-extern unsigned int (*vdp_z80_data_r)(void);
+extern void (*vdp_68k_data_w)(u32 data);
+extern void (*vdp_z80_data_w)(u32 data);
+extern u32 (*vdp_68k_data_r)(void);
+extern u32 (*vdp_z80_data_r)(void);
 
 /* Function prototypes */
 extern void vdp_init(void);
 extern void vdp_reset(void);
-extern int vdp_context_save(uint8 *state);
-extern int vdp_context_load(uint8 *state);
-extern void vdp_dma_update(unsigned int cycles);
-extern void vdp_68k_ctrl_w(unsigned int data);
-extern void vdp_z80_ctrl_w(unsigned int data);
-extern void vdp_sms_ctrl_w(unsigned int data);
-extern void vdp_tms_ctrl_w(unsigned int data);
-extern unsigned int vdp_68k_ctrl_r(unsigned int cycles);
-extern unsigned int vdp_z80_ctrl_r(unsigned int cycles);
-extern unsigned int vdp_hvc_r(unsigned int cycles);
-extern void vdp_test_w(unsigned int data);
+extern int vdp_context_save(u8 *state);
+extern int vdp_context_load(u8 *state);
+extern void vdp_dma_update(u32 cycles);
+extern void vdp_68k_ctrl_w(u32 data);
+extern void vdp_z80_ctrl_w(u32 data);
+extern void vdp_sms_ctrl_w(u32 data);
+extern void vdp_tms_ctrl_w(u32 data);
+extern u32 vdp_68k_ctrl_r(u32 cycles);
+extern u32 vdp_z80_ctrl_r(u32 cycles);
+extern u32 vdp_hvc_r(u32 cycles);
+extern void vdp_test_w(u32 data);
 extern int vdp_68k_irq_ack(int int_level);
 
 #endif /* _VDP_H_ */

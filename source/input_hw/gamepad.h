@@ -43,15 +43,15 @@
 /* Function prototypes */
 extern void gamepad_reset(int port);
 extern void gamepad_refresh(int port);
-extern unsigned char gamepad_1_read(void);
-extern unsigned char gamepad_2_read(void);
-extern void gamepad_1_write(unsigned char data, unsigned char mask);
-extern void gamepad_2_write(unsigned char data, unsigned char mask);
-extern unsigned char wayplay_1_read(void);
-extern unsigned char wayplay_2_read(void);
-extern void wayplay_1_write(unsigned char data, unsigned char mask);
-extern void wayplay_2_write(unsigned char data, unsigned char mask);
-extern unsigned int jcart_read(unsigned int address);
-extern void jcart_write(unsigned int address, unsigned int data);
+extern u8 gamepad_1_read(void);
+extern u8 gamepad_2_read(void);
+extern void gamepad_1_write(u8 data, u8 mask);
+extern void gamepad_2_write(u8 data, u8 mask);
+extern u8 wayplay_1_read(void);
+extern u8 wayplay_2_read(void);
+extern void wayplay_1_write(u8 data, u8 mask);
+extern void wayplay_2_write(u8 data, u8 mask);
+extern u32 jcart_read(u32 address);
+extern void jcart_write(u32 address, u32 data);
 
 #endif

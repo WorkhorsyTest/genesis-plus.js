@@ -40,9 +40,9 @@
 
 static struct
 {
-  uint8 State;
-  uint8 Counter;
-  uint8 Table[12];
+  u8 State;
+  u8 Counter;
+  u8 Table[12];
 } teamplayer[2];
 
 
@@ -80,9 +80,9 @@ void teamplayer_reset(int port)
   teamplayer[port].Counter = 0;
 }
 
-INLINE unsigned int teamplayer_read(int port)
+INLINE u32 teamplayer_read(int port)
 {
-  unsigned int counter = teamplayer[port].Counter;
+  u32 counter = teamplayer[port].Counter;
 
   /* acquisition sequence */
   switch (counter)
@@ -109,7 +109,7 @@ INLINE unsigned int teamplayer_read(int port)
     case 6:
     case 7: /* PAD type */
     {
-      unsigned int retval = input.dev[(port << 2) + (counter - 4)];
+      u32 retval = input.dev[(port << 2) + (counter - 4)];
 
       /* TL should match TR */
       return (((teamplayer[port].State & 0x20) >> 1) | retval);
@@ -117,10 +117,10 @@ INLINE unsigned int teamplayer_read(int port)
 
     default: /* PAD status */
     {
-      unsigned int retval = 0x0F;
+      u32 retval = 0x0F;
 
       /* SEGA teamplayer returns successively PAD1 -> PAD2 -> PAD3 -> PAD4 inputs */
-      unsigned int padnum = teamplayer[port].Table[counter - 8] >> 4;
+      u32 padnum = teamplayer[port].Table[counter - 8] >> 4;
 
       /* Each PAD inputs is obtained through 2 or 3 sequential reads: RLDU -> SACB -> MXYZ */
       retval &= ~(input.pad[padnum] >> (teamplayer[port].Table[counter - 8] & 0x0F));
@@ -131,10 +131,10 @@ INLINE unsigned int teamplayer_read(int port)
   }
 }
 
-INLINE void teamplayer_write(int port, unsigned char data, unsigned char mask)
+INLINE void teamplayer_write(int port, u8 data, u8 mask)
 {
   /* update bits set as output only */
-  unsigned int state = (teamplayer[port].State & ~mask) | (data & mask);
+  u32 state = (teamplayer[port].State & ~mask) | (data & mask);
 
   /* TH & TR handshaking */
   if ((teamplayer[port].State ^ state) & 0x60)
@@ -155,22 +155,22 @@ INLINE void teamplayer_write(int port, unsigned char data, unsigned char mask)
   }
 }
 
-unsigned char teamplayer_1_read(void)
+u8 teamplayer_1_read(void)
 {
   return teamplayer_read(0);
 }
 
-unsigned char teamplayer_2_read(void)
+u8 teamplayer_2_read(void)
 {
   return teamplayer_read(1);
 }
 
-void teamplayer_1_write(unsigned char data, unsigned char mask)
+void teamplayer_1_write(u8 data, u8 mask)
 {
   teamplayer_write(0, data, mask);
 }
 
-void teamplayer_2_write(unsigned char data, unsigned char mask)
+void teamplayer_2_write(u8 data, u8 mask)
 {
   teamplayer_write(1, data, mask);
 }

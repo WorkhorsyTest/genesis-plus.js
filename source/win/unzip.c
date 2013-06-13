@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <zlib.h>
+#include "types.h"
 #include "unzip.h"
 
 #ifdef STDC
@@ -136,7 +137,7 @@ local int unzlocal_getByte(fin,pi)
   FILE *fin;
   int *pi;
 {
-  unsigned char c;
+  u8 c;
   int err = fread(&c, 1, 1, fin);
   if (err==1)
   {
@@ -276,7 +277,7 @@ extern int ZEXPORT unzStringFileNameCompare (fileName1,fileName2,iCaseSensitivit
 local uLong unzlocal_SearchCentralDir(fin)
   FILE *fin;
 {
-  unsigned char* buf;
+  u8* buf;
   uLong uSizeFile;
   uLong uBackRead;
   uLong uMaxBack=0xffff; /* maximum size of global comment */
@@ -291,7 +292,7 @@ local uLong unzlocal_SearchCentralDir(fin)
   if (uMaxBack>uSizeFile)
     uMaxBack = uSizeFile;
 
-  buf = (unsigned char*)ALLOC(BUFREADCOMMENT+4);
+  buf = (u8*)ALLOC(BUFREADCOMMENT+4);
   if (buf==NULL)
     return 0;
 

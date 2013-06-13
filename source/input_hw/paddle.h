@@ -41,9 +41,9 @@
 
 /* Function prototypes */
 extern void paddle_reset(int index);
-extern unsigned char paddle_1_read(void);
-extern unsigned char paddle_2_read(void);
-extern void paddle_1_write(unsigned char data, unsigned char mask);
-extern void paddle_2_write(unsigned char data, unsigned char mask);
+extern u8 paddle_1_read(void);
+extern u8 paddle_2_read(void);
+extern void paddle_1_write(u8 data, u8 mask);
+extern void paddle_2_write(u8 data, u8 mask);
 
 #endif

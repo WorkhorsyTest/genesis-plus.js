@@ -33,7 +33,7 @@ struct {
 } sdl_sound;
 
 
-static uint8 brm_format[0x40] =
+static u8 brm_format[0x40] =
 {
   0x5f,0x5f,0x5f,0x5f,0x5f,0x5f,0x5f,0x5f,0x5f,0x5f,0x5f,0x00,0x00,0x00,0x00,0x40,
   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -44,7 +44,7 @@ static uint8 brm_format[0x40] =
 
 static short soundframe[SOUND_SAMPLES_SIZE];
 
-static void sdl_sound_callback(void *userdata, Uint8 *stream, int len)
+static void sdl_sound_callback(void *userdata, u8 *stream, int len)
 {
   if(sdl_sound.current_emulated_samples < len) {
     memset(stream, 0, len);
@@ -138,7 +138,7 @@ struct {
   SDL_Surface* surf_bitmap;
   SDL_Rect srect;
   SDL_Rect drect;
-  Uint32 frames_rendered;
+  u32 frames_rendered;
 } sdl_video;
 
 static int sdl_video_init()
@@ -254,7 +254,7 @@ static void sdl_video_close()
     SDL_FreeSurface(sdl_video.surf_screen);
 }
 
-static const uint16 vc_table[4][2] = 
+static const u16 vc_table[4][2] = 
 {
   /* NTSC, PAL */
   {0xDA , 0xF2},  /* Mode 4 (192 lines) */
@@ -321,7 +321,7 @@ static int sdl_control_update(SDLKey keystate)
         FILE *f = fopen("game.gp0","rb");
         if (f)
         {
-          uint8 buf[STATE_SIZE];
+          u8 buf[STATE_SIZE];
           fread(&buf, STATE_SIZE, 1, f);
           state_load(buf);
           fclose(f);
@@ -334,7 +334,7 @@ static int sdl_control_update(SDLKey keystate)
         FILE *f = fopen("game.gp0","wb");
         if (f)
         {
-          uint8 buf[STATE_SIZE];
+          u8 buf[STATE_SIZE];
           int len = state_save(buf);
           fwrite(&buf, len, 1, f);
           fclose(f);
@@ -442,7 +442,7 @@ static int sdl_control_update(SDLKey keystate)
 
 int sdl_input_update(void)
 {
-  uint8 *keystate = SDL_GetKeyState(NULL);
+  u8 *keystate = SDL_GetKeyState(NULL);
 
   /* reset input */
   input.pad[joynum] = 0;
@@ -491,8 +491,8 @@ int sdl_input_update(void)
       int state = SDL_GetRelativeMouseState(&x,&y);
 
       /* Range is [0;256] */
-      input.analog[joynum][0] = (unsigned char)(-x & 0xFF);
-      input.analog[joynum][1] = (unsigned char)(-y & 0xFF);
+      input.analog[joynum][0] = (u8)(-x & 0xFF);
+      input.analog[joynum][1] = (u8)(-y & 0xFF);
 
       /* Buttons I & II -> 0 0 0 0 0 0 II I*/
       if(state & SDL_BUTTON_LMASK) input.pad[joynum] |= INPUT_B;
@@ -673,7 +673,7 @@ int main (int argc, char **argv)
     /* Byteswap ROM */
     for (i=0; i<0x800; i+=2)
     {
-      uint8 temp = boot_rom[i];
+      u8 temp = boot_rom[i];
       boot_rom[i] = boot_rom[i+1];
       boot_rom[i+1] = temp;
     }

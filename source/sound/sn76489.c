@@ -83,7 +83,7 @@ typedef struct
 
 } SN76489_Context;
 
-static const uint16 PSGVolumeValues[16] =
+static const u16 PSGVolumeValues[16] =
 {
   /* These values are taken from a real SMS2's output */
   /*{892,892,892,760,623,497,404,323,257,198,159,123,96,75,60,0}, */
@@ -159,7 +159,7 @@ void SN76489_Reset()
 
 void *SN76489_GetContextPtr(void)
 {
-  return (uint8 *)&SN76489;
+  return (u8 *)&SN76489;
 }
 
 int SN76489_GetContextSize(void)
@@ -294,7 +294,7 @@ static void RunNoise(int clocks)
   SN76489.ToneFreqVals[3] = time;
 }
 
-static void SN76489_RunUntil(unsigned int clocks)
+static void SN76489_RunUntil(u32 clocks)
 {
   int i;
 
@@ -308,7 +308,7 @@ static void SN76489_RunUntil(unsigned int clocks)
   }
 }
 
-void SN76489_Config(unsigned int clocks, int preAmp, int boostNoise, int stereo)
+void SN76489_Config(u32 clocks, int preAmp, int boostNoise, int stereo)
 {
   int i;
 
@@ -341,7 +341,7 @@ void SN76489_Config(unsigned int clocks, int preAmp, int boostNoise, int stereo)
   }
 }
 
-void SN76489_Update(unsigned int clocks)
+void SN76489_Update(u32 clocks)
 {
   int i;
 
@@ -364,9 +364,9 @@ void SN76489_Update(unsigned int clocks)
 	}
 }
 
-void SN76489_Write(unsigned int clocks, unsigned int data)
+void SN76489_Write(u32 clocks, u32 data)
 {
-  unsigned int index;
+  u32 index;
 
   if (clocks > SN76489.clocks)
   {
