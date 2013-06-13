@@ -681,731 +681,111 @@ static const u16 m68ki_exception_cycle_table[256] =
 };
 
 /* Read data immediately after the program counter */
-INLINE u32 m68ki_read_imm_16();
-INLINE u32 m68ki_read_imm_32();
+u32 m68ki_read_imm_16();
+u32 m68ki_read_imm_32();
 
 /* Read data with specific function code */
-INLINE u32 m68ki_read_8_fc  (u32 address, u32 fc);
-INLINE u32 m68ki_read_16_fc (u32 address, u32 fc);
-INLINE u32 m68ki_read_32_fc (u32 address, u32 fc);
+u32 m68ki_read_8_fc  (u32 address, u32 fc);
+u32 m68ki_read_16_fc (u32 address, u32 fc);
+u32 m68ki_read_32_fc (u32 address, u32 fc);
 
 /* Write data with specific function code */
-INLINE void m68ki_write_8_fc (u32 address, u32 fc, u32 value);
-INLINE void m68ki_write_16_fc(u32 address, u32 fc, u32 value);
-INLINE void m68ki_write_32_fc(u32 address, u32 fc, u32 value);
+void m68ki_write_8_fc (u32 address, u32 fc, u32 value);
+void m68ki_write_16_fc(u32 address, u32 fc, u32 value);
+void m68ki_write_32_fc(u32 address, u32 fc, u32 value);
 
 /* Indexed and PC-relative ea fetching */
-INLINE u32 m68ki_get_ea_pcdi();
-INLINE u32 m68ki_get_ea_pcix();
-INLINE u32 m68ki_get_ea_ix(u32 An);
+u32 m68ki_get_ea_pcdi();
+u32 m68ki_get_ea_pcix();
+u32 m68ki_get_ea_ix(u32 An);
 
 /* Operand fetching */
-INLINE u32 OPER_AY_AI_8();
-INLINE u32 OPER_AY_AI_16();
-INLINE u32 OPER_AY_AI_32();
-INLINE u32 OPER_AY_PI_8();
-INLINE u32 OPER_AY_PI_16();
-INLINE u32 OPER_AY_PI_32();
-INLINE u32 OPER_AY_PD_8();
-INLINE u32 OPER_AY_PD_16();
-INLINE u32 OPER_AY_PD_32();
-INLINE u32 OPER_AY_DI_8();
-INLINE u32 OPER_AY_DI_16();
-INLINE u32 OPER_AY_DI_32();
-INLINE u32 OPER_AY_IX_8();
-INLINE u32 OPER_AY_IX_16();
-INLINE u32 OPER_AY_IX_32();
+u32 OPER_AY_AI_8();
+u32 OPER_AY_AI_16();
+u32 OPER_AY_AI_32();
+u32 OPER_AY_PI_8();
+u32 OPER_AY_PI_16();
+u32 OPER_AY_PI_32();
+u32 OPER_AY_PD_8();
+u32 OPER_AY_PD_16();
+u32 OPER_AY_PD_32();
+u32 OPER_AY_DI_8();
+u32 OPER_AY_DI_16();
+u32 OPER_AY_DI_32();
+u32 OPER_AY_IX_8();
+u32 OPER_AY_IX_16();
+u32 OPER_AY_IX_32();
 
-INLINE u32 OPER_AX_AI_8();
-INLINE u32 OPER_AX_AI_16();
-INLINE u32 OPER_AX_AI_32();
-INLINE u32 OPER_AX_PI_8();
-INLINE u32 OPER_AX_PI_16();
-INLINE u32 OPER_AX_PI_32();
-INLINE u32 OPER_AX_PD_8();
-INLINE u32 OPER_AX_PD_16();
-INLINE u32 OPER_AX_PD_32();
-INLINE u32 OPER_AX_DI_8();
-INLINE u32 OPER_AX_DI_16();
-INLINE u32 OPER_AX_DI_32();
-INLINE u32 OPER_AX_IX_8();
-INLINE u32 OPER_AX_IX_16();
-INLINE u32 OPER_AX_IX_32();
+u32 OPER_AX_AI_8();
+u32 OPER_AX_AI_16();
+u32 OPER_AX_AI_32();
+u32 OPER_AX_PI_8();
+u32 OPER_AX_PI_16();
+u32 OPER_AX_PI_32();
+u32 OPER_AX_PD_8();
+u32 OPER_AX_PD_16();
+u32 OPER_AX_PD_32();
+u32 OPER_AX_DI_8();
+u32 OPER_AX_DI_16();
+u32 OPER_AX_DI_32();
+u32 OPER_AX_IX_8();
+u32 OPER_AX_IX_16();
+u32 OPER_AX_IX_32();
 
-INLINE u32 OPER_A7_PI_8();
-INLINE u32 OPER_A7_PD_8();
+u32 OPER_A7_PI_8();
+u32 OPER_A7_PD_8();
 
-INLINE u32 OPER_AW_8();
-INLINE u32 OPER_AW_16();
-INLINE u32 OPER_AW_32();
-INLINE u32 OPER_AL_8();
-INLINE u32 OPER_AL_16();
-INLINE u32 OPER_AL_32();
-INLINE u32 OPER_PCDI_8();
-INLINE u32 OPER_PCDI_16();
-INLINE u32 OPER_PCDI_32();
-INLINE u32 OPER_PCIX_8();
-INLINE u32 OPER_PCIX_16();
-INLINE u32 OPER_PCIX_32();
+u32 OPER_AW_8();
+u32 OPER_AW_16();
+u32 OPER_AW_32();
+u32 OPER_AL_8();
+u32 OPER_AL_16();
+u32 OPER_AL_32();
+u32 OPER_PCDI_8();
+u32 OPER_PCDI_16();
+u32 OPER_PCDI_32();
+u32 OPER_PCIX_8();
+u32 OPER_PCIX_16();
+u32 OPER_PCIX_32();
 
 /* Stack operations */
-INLINE void m68ki_push_16(u32 value);
-INLINE void m68ki_push_32(u32 value);
-INLINE u32 m68ki_pull_16();
-INLINE u32 m68ki_pull_32();
+void m68ki_push_16(u32 value);
+void m68ki_push_32(u32 value);
+u32 m68ki_pull_16();
+u32 m68ki_pull_32();
 
 /* Program flow operations */
-INLINE void m68ki_jump(u32 new_pc);
-INLINE void m68ki_jump_vector(u32 vector);
-INLINE void m68ki_branch_8(u32 offset);
-INLINE void m68ki_branch_16(u32 offset);
-INLINE void m68ki_branch_32(u32 offset);
+void m68ki_jump(u32 new_pc);
+void m68ki_jump_vector(u32 vector);
+void m68ki_branch_8(u32 offset);
+void m68ki_branch_16(u32 offset);
+void m68ki_branch_32(u32 offset);
 
 /* Status register operations. */
-INLINE void m68ki_set_s_flag(u32 value);            /* Only bit 2 of value should be set (i.e. 4 or 0) */
-INLINE void m68ki_set_ccr(u32 value);               /* set the condition code register */
-INLINE void m68ki_set_sr(u32 value);                /* set the status register */
+void m68ki_set_s_flag(u32 value);            /* Only bit 2 of value should be set (i.e. 4 or 0) */
+void m68ki_set_ccr(u32 value);               /* set the condition code register */
+void m68ki_set_sr(u32 value);                /* set the status register */
 
 /* Exception processing */
-INLINE u32 m68ki_init_exception();              /* Initial exception processing */
-INLINE void m68ki_stack_frame_3word(u32 pc, u32 sr); /* Stack various frame types */
+u32 m68ki_init_exception();              /* Initial exception processing */
+void m68ki_stack_frame_3word(u32 pc, u32 sr); /* Stack various frame types */
 #if M68K_EMULATE_ADDRESS_ERROR
-INLINE void m68ki_stack_frame_buserr(u32 sr);
+void m68ki_stack_frame_buserr(u32 sr);
 #endif
-INLINE void m68ki_exception_trap(u32 vector);
-INLINE void m68ki_exception_trapN(u32 vector);
+void m68ki_exception_trap(u32 vector);
+void m68ki_exception_trapN(u32 vector);
 #if M68K_EMULATE_TRACE
-INLINE void m68ki_exception_trace();
+void m68ki_exception_trace();
 #endif
-static void m68ki_exception_privilege_violation(); /* do not inline in order to reduce function size and allow inlining of read/write functions by the compile */
-INLINE void m68ki_exception_1010();
-INLINE void m68ki_exception_1111();
-INLINE void m68ki_exception_illegal();
+void m68ki_exception_privilege_violation(); /* do not inline in order to reduce function size and allow inlining of read/write functions by the compile */
+void m68ki_exception_1010();
+void m68ki_exception_1111();
+void m68ki_exception_illegal();
 #if M68K_EMULATE_ADDRESS_ERROR
-INLINE void m68ki_exception_address_error();
+void m68ki_exception_address_error();
 #endif
-INLINE void m68ki_exception_interrupt(u32 int_level);
-INLINE void m68ki_check_interrupts();            /* ASG: check for interrupts */
-
-/* ======================================================================== */
-/* =========================== UTILITY FUNCTIONS ========================== */
-/* ======================================================================== */
-
-
-/* ---------------------------- Read Immediate ---------------------------- */
-
-/* Handles all immediate reads, does address error check, function code setting,
- * and prefetching if they are enabled in m68kconf.h
- */
-INLINE u32 m68ki_read_imm_16()
-{
-  m68ki_set_fc(FLAG_S | FUNCTION_CODE_USER_PROGRAM) /* auto-disable (see m68kcpu.h) */
-#if M68K_CHECK_PC_ADDRESS_ERROR
-  m68ki_check_address_error(REG_PC, MODE_READ, FLAG_S | FUNCTION_CODE_USER_PROGRAM) /* auto-disable (see m68kcpu.h) */
-#endif
-#if M68K_EMULATE_PREFETCH
-  if(MASK_OUT_BELOW_2(REG_PC) != CPU_PREF_ADDR)
-  {
-    CPU_PREF_ADDR = MASK_OUT_BELOW_2(REG_PC);
-    CPU_PREF_DATA = m68k_read_immediate_32(CPU_PREF_ADDR);
-  }
-  REG_PC += 2;
-  return MASK_OUT_ABOVE_16(CPU_PREF_DATA >> ((2-((REG_PC-2)&2))<<3));
-#else
-  u32 pc = REG_PC;
-  REG_PC += 2;
-  return m68k_read_immediate_16(pc);
-#endif /* M68K_EMULATE_PREFETCH */
-}
-
-INLINE u32 m68ki_read_imm_32()
-{
-#if M68K_EMULATE_PREFETCH
-  u32 temp_val;
-
-  m68ki_set_fc(FLAG_S | FUNCTION_CODE_USER_PROGRAM) /* auto-disable (see m68kcpu.h) */
-#if M68K_CHECK_PC_ADDRESS_ERROR
-  m68ki_check_address_error(REG_PC, MODE_READ, FLAG_S | FUNCTION_CODE_USER_PROGRAM) /* auto-disable (see m68kcpu.h) */
-#endif
-  if(MASK_OUT_BELOW_2(REG_PC) != CPU_PREF_ADDR)
-  {
-    CPU_PREF_ADDR = MASK_OUT_BELOW_2(REG_PC);
-    CPU_PREF_DATA = m68k_read_immediate_32(CPU_PREF_ADDR);
-  }
-  temp_val = CPU_PREF_DATA;
-  REG_PC += 2;
-  if(MASK_OUT_BELOW_2(REG_PC) != CPU_PREF_ADDR)
-  {
-    CPU_PREF_ADDR = MASK_OUT_BELOW_2(REG_PC);
-    CPU_PREF_DATA = m68k_read_immediate_32(CPU_PREF_ADDR);
-    temp_val = MASK_OUT_ABOVE_32((temp_val << 16) | (CPU_PREF_DATA >> 16));
-  }
-  REG_PC += 2;
-
-  return temp_val;
-#else
-  m68ki_set_fc(FLAG_S | FUNCTION_CODE_USER_PROGRAM) /* auto-disable (see m68kcpu.h) */
-#if M68K_CHECK_PC_ADDRESS_ERROR
-  m68ki_check_address_error(REG_PC, MODE_READ, FLAG_S | FUNCTION_CODE_USER_PROGRAM) /* auto-disable (see m68kcpu.h) */
-#endif
-  u32 pc = REG_PC;
-  REG_PC += 4;
-  return m68k_read_immediate_32(pc);
-#endif /* M68K_EMULATE_PREFETCH */
-}
-
-
-
-/* ------------------------- Top level read/write ------------------------- */
-
-/* Handles all memory accesses (except for immediate reads if they are
- * configured to use separate functions in m68kconf.h).
- * All memory accesses must go through these top level functions.
- * These functions will also check for address error and set the function
- * code if they are enabled in m68kconf.h.
- */
-INLINE u32 m68ki_read_8_fc(u32 address, u32 fc)
-{
-  cpu_memory_map *temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];;
-
-  m68ki_set_fc(fc) /* auto-disable (see m68kcpu.h) */
-
-  if (temp->read8) return (*temp->read8)(ADDRESS_68K(address));
-  else return READ_BYTE(temp->base, (address) & 0xffff);
-}
-
-INLINE u32 m68ki_read_16_fc(u32 address, u32 fc)
-{
-  cpu_memory_map *temp;
-
-  m68ki_set_fc(fc) /* auto-disable (see m68kcpu.h) */
-  m68ki_check_address_error(address, MODE_READ, fc) /* auto-disable (see m68kcpu.h) */
-  
-  temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
-  if (temp->read16) return (*temp->read16)(ADDRESS_68K(address));
-  else return *(u16 *)(temp->base + ((address) & 0xffff));
-}
-
-INLINE u32 m68ki_read_32_fc(u32 address, u32 fc)
-{
-  cpu_memory_map *temp;
-
-  m68ki_set_fc(fc) /* auto-disable (see m68kcpu.h) */
-  m68ki_check_address_error(address, MODE_READ, fc) /* auto-disable (see m68kcpu.h) */
-
-  temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
-  if (temp->read16) return ((*temp->read16)(ADDRESS_68K(address)) << 16) | ((*temp->read16)(ADDRESS_68K(address + 2)));
-  else return m68k_read_immediate_32(address);
-}
-
-INLINE void m68ki_write_8_fc(u32 address, u32 fc, u32 value)
-{
-  cpu_memory_map *temp;
-
-  m68ki_set_fc(fc) /* auto-disable (see m68kcpu.h) */
-
-  temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
-  if (temp->write8) (*temp->write8)(ADDRESS_68K(address),value);
-  else WRITE_BYTE(temp->base, (address) & 0xffff, value);
-}
-
-INLINE void m68ki_write_16_fc(u32 address, u32 fc, u32 value)
-{
-  cpu_memory_map *temp;
-
-  m68ki_set_fc(fc) /* auto-disable (see m68kcpu.h) */
-  m68ki_check_address_error(address, MODE_WRITE, fc); /* auto-disable (see m68kcpu.h) */
-
-  temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
-  if (temp->write16) (*temp->write16)(ADDRESS_68K(address),value);
-  else *(u16 *)(temp->base + ((address) & 0xffff)) = value;
-}
-
-INLINE void m68ki_write_32_fc(u32 address, u32 fc, u32 value)
-{
-  cpu_memory_map *temp;
-
-  m68ki_set_fc(fc) /* auto-disable (see m68kcpu.h) */
-  m68ki_check_address_error(address, MODE_WRITE, fc) /* auto-disable (see m68kcpu.h) */
-
-  temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
-  if (temp->write16) (*temp->write16)(ADDRESS_68K(address),value>>16);
-  else *(u16 *)(temp->base + ((address) & 0xffff)) = value >> 16;
-
-  temp = &m68ki_cpu.memory_map[((address + 2)>>16)&0xff];
-  if (temp->write16) (*temp->write16)(ADDRESS_68K(address+2),value&0xffff);
-  else *(u16 *)(temp->base + ((address + 2) & 0xffff)) = value;
-}
-
-
-/* --------------------- Effective Address Calculation -------------------- */
-
-/* The program counter relative addressing modes cause operands to be
- * retrieved from program space, not data space.
- */
-INLINE u32 m68ki_get_ea_pcdi()
-{
-  u32 old_pc = REG_PC;
-  m68ki_use_program_space() /* auto-disable */
-  return old_pc + MAKE_INT_16(m68ki_read_imm_16());
-}
-
-
-INLINE u32 m68ki_get_ea_pcix()
-{
-  m68ki_use_program_space() /* auto-disable */
-  return m68ki_get_ea_ix(REG_PC);
-}
-
-/* Indexed addressing modes are encoded as follows:
- *
- * Base instruction format:
- * F E D C B A 9 8 7 6 | 5 4 3 | 2 1 0
- * x x x x x x x x x x | 1 1 0 | BASE REGISTER      (An)
- *
- * Base instruction format for destination EA in move instructions:
- * F E D C | B A 9    | 8 7 6 | 5 4 3 2 1 0
- * x x x x | BASE REG | 1 1 0 | X X X X X X       (An)
- *
- * Brief extension format:
- *  F  |  E D C   |  B  |  A 9  | 8 | 7 6 5 4 3 2 1 0
- * D/A | REGISTER | W/L | SCALE | 0 |  DISPLACEMENT
- *
- * Full extension format:
- *  F     E D C      B     A 9    8   7    6    5 4       3   2 1 0
- * D/A | REGISTER | W/L | SCALE | 1 | BS | IS | BD SIZE | 0 | I/IS
- * BASE DISPLACEMENT (0, 16, 32 bit)                (bd)
- * OUTER DISPLACEMENT (0, 16, 32 bit)               (od)
- *
- * D/A:     0 = Dn, 1 = An                          (Xn)
- * W/L:     0 = W (sign extend), 1 = L              (.SIZE)
- * SCALE:   00=1, 01=2, 10=4, 11=8                  (*SCALE)
- * BS:      0=add base reg, 1=suppress base reg     (An suppressed)
- * IS:      0=add index, 1=suppress index           (Xn suppressed)
- * BD SIZE: 00=reserved, 01=NULL, 10=Word, 11=Long  (size of bd)
- *
- * IS I/IS Operation
- * 0  000  No Memory Indirect
- * 0  001  indir prex with null outer
- * 0  010  indir prex with word outer
- * 0  011  indir prex with long outer
- * 0  100  reserved
- * 0  101  indir postx with null outer
- * 0  110  indir postx with word outer
- * 0  111  indir postx with long outer
- * 1  000  no memory indirect
- * 1  001  mem indir with null outer
- * 1  010  mem indir with word outer
- * 1  011  mem indir with long outer
- * 1  100-111  reserved
- */
-INLINE u32 m68ki_get_ea_ix(u32 An)
-{
-  /* An = base register */
-  u32 extension = m68ki_read_imm_16();
-
-  u32 Xn = 0;                        /* Index register */
-
-  /* Calculate index */
-  Xn = REG_DA[extension>>12];     /* Xn */
-  if(!BIT_B(extension))           /* W/L */
-    Xn = MAKE_INT_16(Xn);
-
-  /* Add base register and displacement and return */
-  return An + Xn + MAKE_INT_8(extension);
-}
-
-
-/* Fetch operands */
-INLINE u32 OPER_AY_AI_8()  {u32 ea = EA_AY_AI_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_AY_AI_16() {u32 ea = EA_AY_AI_16(); return m68ki_read_16(ea);}
-INLINE u32 OPER_AY_AI_32() {u32 ea = EA_AY_AI_32(); return m68ki_read_32(ea);}
-INLINE u32 OPER_AY_PI_8()  {u32 ea = EA_AY_PI_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_AY_PI_16() {u32 ea = EA_AY_PI_16(); return m68ki_read_16(ea);}
-INLINE u32 OPER_AY_PI_32() {u32 ea = EA_AY_PI_32(); return m68ki_read_32(ea);}
-INLINE u32 OPER_AY_PD_8()  {u32 ea = EA_AY_PD_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_AY_PD_16() {u32 ea = EA_AY_PD_16(); return m68ki_read_16(ea);}
-INLINE u32 OPER_AY_PD_32() {u32 ea = EA_AY_PD_32(); return m68ki_read_32(ea);}
-INLINE u32 OPER_AY_DI_8()  {u32 ea = EA_AY_DI_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_AY_DI_16() {u32 ea = EA_AY_DI_16(); return m68ki_read_16(ea);}
-INLINE u32 OPER_AY_DI_32() {u32 ea = EA_AY_DI_32(); return m68ki_read_32(ea);}
-INLINE u32 OPER_AY_IX_8()  {u32 ea = EA_AY_IX_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_AY_IX_16() {u32 ea = EA_AY_IX_16(); return m68ki_read_16(ea);}
-INLINE u32 OPER_AY_IX_32() {u32 ea = EA_AY_IX_32(); return m68ki_read_32(ea);}
-
-INLINE u32 OPER_AX_AI_8()  {u32 ea = EA_AX_AI_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_AX_AI_16() {u32 ea = EA_AX_AI_16(); return m68ki_read_16(ea);}
-INLINE u32 OPER_AX_AI_32() {u32 ea = EA_AX_AI_32(); return m68ki_read_32(ea);}
-INLINE u32 OPER_AX_PI_8()  {u32 ea = EA_AX_PI_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_AX_PI_16() {u32 ea = EA_AX_PI_16(); return m68ki_read_16(ea);}
-INLINE u32 OPER_AX_PI_32() {u32 ea = EA_AX_PI_32(); return m68ki_read_32(ea);}
-INLINE u32 OPER_AX_PD_8()  {u32 ea = EA_AX_PD_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_AX_PD_16() {u32 ea = EA_AX_PD_16(); return m68ki_read_16(ea);}
-INLINE u32 OPER_AX_PD_32() {u32 ea = EA_AX_PD_32(); return m68ki_read_32(ea);}
-INLINE u32 OPER_AX_DI_8()  {u32 ea = EA_AX_DI_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_AX_DI_16() {u32 ea = EA_AX_DI_16(); return m68ki_read_16(ea);}
-INLINE u32 OPER_AX_DI_32() {u32 ea = EA_AX_DI_32(); return m68ki_read_32(ea);}
-INLINE u32 OPER_AX_IX_8()  {u32 ea = EA_AX_IX_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_AX_IX_16() {u32 ea = EA_AX_IX_16(); return m68ki_read_16(ea);}
-INLINE u32 OPER_AX_IX_32() {u32 ea = EA_AX_IX_32(); return m68ki_read_32(ea);}
-
-INLINE u32 OPER_A7_PI_8()  {u32 ea = EA_A7_PI_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_A7_PD_8()  {u32 ea = EA_A7_PD_8();  return m68ki_read_8(ea); }
-
-INLINE u32 OPER_AW_8()     {u32 ea = EA_AW_8();     return m68ki_read_8(ea); }
-INLINE u32 OPER_AW_16()    {u32 ea = EA_AW_16();    return m68ki_read_16(ea);}
-INLINE u32 OPER_AW_32()    {u32 ea = EA_AW_32();    return m68ki_read_32(ea);}
-INLINE u32 OPER_AL_8()     {u32 ea = EA_AL_8();     return m68ki_read_8(ea); }
-INLINE u32 OPER_AL_16()    {u32 ea = EA_AL_16();    return m68ki_read_16(ea);}
-INLINE u32 OPER_AL_32()    {u32 ea = EA_AL_32();    return m68ki_read_32(ea);}
-INLINE u32 OPER_PCDI_8()   {u32 ea = EA_PCDI_8();   return m68ki_read_pcrel_8(ea); }
-INLINE u32 OPER_PCDI_16()  {u32 ea = EA_PCDI_16();  return m68ki_read_pcrel_16(ea);}
-INLINE u32 OPER_PCDI_32()  {u32 ea = EA_PCDI_32();  return m68ki_read_pcrel_32(ea);}
-INLINE u32 OPER_PCIX_8()   {u32 ea = EA_PCIX_8();   return m68ki_read_pcrel_8(ea); }
-INLINE u32 OPER_PCIX_16()  {u32 ea = EA_PCIX_16();  return m68ki_read_pcrel_16(ea);}
-INLINE u32 OPER_PCIX_32()  {u32 ea = EA_PCIX_32();  return m68ki_read_pcrel_32(ea);}
-
-
-
-/* ---------------------------- Stack Functions --------------------------- */
-
-/* Push/pull data from the stack */
-/* Optimized access assuming stack is always located in ROM/RAM [EkeEke] */  
-INLINE void m68ki_push_16(u32 value)
-{
-  REG_SP = MASK_OUT_ABOVE_32(REG_SP - 2);
-  /*m68ki_write_16(REG_SP, value);*/
-  *(u16 *)(m68ki_cpu.memory_map[(REG_SP>>16)&0xff].base + (REG_SP & 0xffff)) = value;
-}
-
-INLINE void m68ki_push_32(u32 value)
-{
-  REG_SP = MASK_OUT_ABOVE_32(REG_SP - 4);
-  /*m68ki_write_32(REG_SP, value);*/
-  *(u16 *)(m68ki_cpu.memory_map[(REG_SP>>16)&0xff].base + (REG_SP & 0xffff)) = value >> 16;
-  *(u16 *)(m68ki_cpu.memory_map[((REG_SP + 2)>>16)&0xff].base + ((REG_SP + 2) & 0xffff)) = value & 0xffff;
-}
-
-INLINE u32 m68ki_pull_16()
-{
-  u32 sp = REG_SP;
-  REG_SP = MASK_OUT_ABOVE_32(REG_SP + 2);
-  return m68k_read_immediate_16(sp);
-  /*return m68ki_read_16(sp);*/
-}
-
-INLINE u32 m68ki_pull_32()
-{
-  u32 sp = REG_SP;
-  REG_SP = MASK_OUT_ABOVE_32(REG_SP + 4);
-  return m68k_read_immediate_32(sp);
-  /*return m68ki_read_32(sp);*/
-}
-
-
-
-/* ----------------------------- Program Flow ----------------------------- */
-
-/* Jump to a new program location or vector.
- * These functions will also call the pc_changed callback if it was enabled
- * in m68kconf.h.
- */
-INLINE void m68ki_jump(u32 new_pc)
-{
-  REG_PC = new_pc;
-}
-
-INLINE void m68ki_jump_vector(u32 vector)
-{
-  REG_PC = m68ki_read_data_32(vector<<2);
-}
-
-
-/* Branch to a new memory location.
- * The 32-bit branch will call pc_changed if it was enabled in m68kconf.h.
- * So far I've found no problems with not calling pc_changed for 8 or 16
- * bit branches.
- */
-INLINE void m68ki_branch_8(u32 offset)
-{
-  REG_PC += MAKE_INT_8(offset);
-}
-
-INLINE void m68ki_branch_16(u32 offset)
-{
-  REG_PC += MAKE_INT_16(offset);
-}
-
-INLINE void m68ki_branch_32(u32 offset)
-{
-  REG_PC += offset;
-}
-
-
-
-/* ---------------------------- Status Register --------------------------- */
-
-/* Set the S flag and change the active stack pointer.
- * Note that value MUST be 4 or 0.
- */
-INLINE void m68ki_set_s_flag(u32 value)
-{
-  /* Backup the old stack pointer */
-  REG_SP_BASE[FLAG_S] = REG_SP;
-  /* Set the S flag */
-  FLAG_S = value;
-  /* Set the new stack pointer */
-  REG_SP = REG_SP_BASE[FLAG_S];
-}
-
-
-/* Set the condition code register */
-INLINE void m68ki_set_ccr(u32 value)
-{
-  FLAG_X = BIT_4(value)  << 4;
-  FLAG_N = BIT_3(value)  << 4;
-  FLAG_Z = !BIT_2(value);
-  FLAG_V = BIT_1(value)  << 6;
-  FLAG_C = BIT_0(value)  << 8;
-}
-
-
-/* Set the status register and check for interrupts */
-INLINE void m68ki_set_sr(u32 value)
-{
-  /* Set the status register */
-  FLAG_T1 = BIT_F(value);
-  FLAG_INT_MASK = value & 0x0700;
-  m68ki_set_ccr(value);
-  m68ki_set_s_flag((value >> 11) & 4);
-
-  /* Check current IRQ status */
-  m68ki_check_interrupts();
-}
-
-
-/* ------------------------- Exception Processing ------------------------- */
-
-/* Initiate exception processing */
-INLINE u32 m68ki_init_exception()
-{
-  /* Save the old status register */
-  u32 sr = m68ki_get_sr();
-
-  /* Turn off trace flag, clear pending traces */
-  FLAG_T1 = 0;
-  m68ki_clear_trace()
-
-  /* Enter supervisor mode */
-  m68ki_set_s_flag(SFLAG_SET);
-
-  return sr;
-}
-
-/* 3 word stack frame (68000 only) */
-INLINE void m68ki_stack_frame_3word(u32 pc, u32 sr)
-{
-  m68ki_push_32(pc);
-  m68ki_push_16(sr);
-}
-
-#if M68K_EMULATE_ADDRESS_ERROR
-/* Bus error stack frame (68000 only).
- */
-INLINE void m68ki_stack_frame_buserr(u32 sr)
-{
-  m68ki_push_32(REG_PC);
-  m68ki_push_16(sr);
-  m68ki_push_16(REG_IR);
-  m68ki_push_32(m68ki_cpu.aerr_address);  /* access address */
-  /* 0 0 0 0 0 0 0 0 0 0 0 R/W I/N FC
-     * R/W  0 = write, 1 = read
-     * I/N  0 = instruction, 1 = not
-     * FC   3-bit function code
-     */
-  m68ki_push_16(m68ki_cpu.aerr_write_mode | CPU_INSTR_MODE | m68ki_cpu.aerr_fc);
-}
-#endif
-
-/* Used for Group 2 exceptions.
- */
-INLINE void m68ki_exception_trap(u32 vector)
-{
-  u32 sr = m68ki_init_exception();
-
-  m68ki_stack_frame_3word(REG_PC, sr);
-
-  m68ki_jump_vector(vector);
-
-  /* Use up some clock cycles */
-  USE_CYCLES(CYC_EXCEPTION[vector]);
-}
-
-/* Trap#n stacks a 0 frame but behaves like group2 otherwise */
-INLINE void m68ki_exception_trapN(u32 vector)
-{
-  u32 sr = m68ki_init_exception();
-  m68ki_stack_frame_3word(REG_PC, sr);
-  m68ki_jump_vector(vector);
-
-  /* Use up some clock cycles */
-  USE_CYCLES(CYC_EXCEPTION[vector]);
-}
-
-#if M68K_EMULATE_TRACE
-/* Exception for trace mode */
-INLINE void m68ki_exception_trace()
-{
-  u32 sr = m68ki_init_exception();
-
-  #if M68K_EMULATE_ADDRESS_ERROR == OPT_ON
-  CPU_INSTR_MODE = INSTRUCTION_NO;
-  #endif /* M68K_EMULATE_ADDRESS_ERROR */
-
-  m68ki_stack_frame_3word(REG_PC, sr);
-  m68ki_jump_vector(EXCEPTION_TRACE);
-
-  /* Trace nullifies a STOP instruction */
-  CPU_STOPPED &= ~STOP_LEVEL_STOP;
-
-  /* Use up some clock cycles */
-  USE_CYCLES(CYC_EXCEPTION[EXCEPTION_TRACE]);
-}
-#endif
-
-/* Exception for privilege violation */
-static void m68ki_exception_privilege_violation()
-{
-  u32 sr = m68ki_init_exception();
-
-  #if M68K_EMULATE_ADDRESS_ERROR == OPT_ON
-  CPU_INSTR_MODE = INSTRUCTION_NO;
-  #endif /* M68K_EMULATE_ADDRESS_ERROR */
-
-  m68ki_stack_frame_3word(REG_PC-2, sr);
-  m68ki_jump_vector(EXCEPTION_PRIVILEGE_VIOLATION);
-
-  /* Use up some clock cycles and undo the instruction's cycles */
-  USE_CYCLES(CYC_EXCEPTION[EXCEPTION_PRIVILEGE_VIOLATION] - CYC_INSTRUCTION[REG_IR]);
-}
-
-/* Exception for A-Line instructions */
-INLINE void m68ki_exception_1010()
-{
-  u32 sr = m68ki_init_exception();
-  m68ki_stack_frame_3word(REG_PC-2, sr);
-  m68ki_jump_vector(EXCEPTION_1010);
-
-  /* Use up some clock cycles and undo the instruction's cycles */
-  USE_CYCLES(CYC_EXCEPTION[EXCEPTION_1010] - CYC_INSTRUCTION[REG_IR]);
-}
-
-/* Exception for F-Line instructions */
-INLINE void m68ki_exception_1111()
-{
-  u32 sr = m68ki_init_exception();
-  m68ki_stack_frame_3word(REG_PC-2, sr);
-  m68ki_jump_vector(EXCEPTION_1111);
-
-  /* Use up some clock cycles and undo the instruction's cycles */
-  USE_CYCLES(CYC_EXCEPTION[EXCEPTION_1111] - CYC_INSTRUCTION[REG_IR]);
-}
-
-/* Exception for illegal instructions */
-INLINE void m68ki_exception_illegal()
-{
-  u32 sr = m68ki_init_exception();
-
-  #if M68K_EMULATE_ADDRESS_ERROR == OPT_ON
-  CPU_INSTR_MODE = INSTRUCTION_NO;
-  #endif /* M68K_EMULATE_ADDRESS_ERROR */
-
-  m68ki_stack_frame_3word(REG_PC-2, sr);
-  m68ki_jump_vector(EXCEPTION_ILLEGAL_INSTRUCTION);
-
-  /* Use up some clock cycles and undo the instruction's cycles */
-  USE_CYCLES(CYC_EXCEPTION[EXCEPTION_ILLEGAL_INSTRUCTION] - CYC_INSTRUCTION[REG_IR]);
-}
-
-
-#if M68K_EMULATE_ADDRESS_ERROR
-/* Exception for address error */
-INLINE void m68ki_exception_address_error()
-{
-  u32 sr = m68ki_init_exception();
-
-  /* If we were processing a bus error, address error, or reset,
-     * this is a catastrophic failure.
-     * Halt the CPU
-     */
-  if(CPU_RUN_MODE == RUN_MODE_BERR_AERR_RESET)
-  {
-    CPU_STOPPED = STOP_LEVEL_HALT;
-    SET_CYCLES(m68ki_cpu.cycle_end - CYC_INSTRUCTION[REG_IR]);
-    return;
-  }
-  CPU_RUN_MODE = RUN_MODE_BERR_AERR_RESET;
-
-  /* Note: This is implemented for 68000 only! */
-  m68ki_stack_frame_buserr(sr);
-
-  m68ki_jump_vector(EXCEPTION_ADDRESS_ERROR);
-
-  /* Use up some clock cycles and undo the instruction's cycles */
-  USE_CYCLES(CYC_EXCEPTION[EXCEPTION_ADDRESS_ERROR] - CYC_INSTRUCTION[REG_IR]);
-}
-#endif
-
-/* Service an interrupt request and start exception processing */
-INLINE void m68ki_exception_interrupt(u32 int_level)
-{
-  u32 vector, sr, new_pc;
-
-  #if M68K_EMULATE_ADDRESS_ERROR == OPT_ON
-  CPU_INSTR_MODE = INSTRUCTION_NO;
-  #endif /* M68K_EMULATE_ADDRESS_ERROR */
-
-  /* Turn off the stopped state */
-  CPU_STOPPED &= STOP_LEVEL_HALT;
-
-  /* If we are halted, don't do anything */
-  if(CPU_STOPPED)
-    return;
-
-  /* Always use the autovectors. */
-  vector = EXCEPTION_INTERRUPT_AUTOVECTOR+int_level;
-
-  /* Start exception processing */
-  sr = m68ki_init_exception();
-
-  /* Set the interrupt mask to the level of the one being serviced */
-  FLAG_INT_MASK = int_level<<8;
-
-  /* Acknowledge the interrupt */
-  m68ki_int_ack(int_level);
-
-  /* Get the new PC */
-  new_pc = m68ki_read_data_32(vector<<2);
-
-  /* If vector is uninitialized, call the uninitialized interrupt vector */
-  if(new_pc == 0)
-    new_pc = m68ki_read_data_32((EXCEPTION_UNINITIALIZED_INTERRUPT<<2));
-
-  /* Generate a stack frame */
-  m68ki_stack_frame_3word(REG_PC, sr);
-
-  m68ki_jump(new_pc);
-
-  /* Update cycle count now */
-  USE_CYCLES(CYC_EXCEPTION[vector]);
-}
-
-/* ASG: Check for interrupts */
-INLINE void m68ki_check_interrupts()
-{
-  if(CPU_INT_LEVEL > FLAG_INT_MASK)
-    m68ki_exception_interrupt(CPU_INT_LEVEL>>8);
-}
+void m68ki_exception_interrupt(u32 int_level);
+void m68ki_check_interrupts();            /* ASG: check for interrupts */
 
 
 /* ======================================================================== */

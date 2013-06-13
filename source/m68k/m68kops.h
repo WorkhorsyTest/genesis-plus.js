@@ -3,7 +3,7 @@
 /* ============== CYCLE-ACCURATE DIV/MUL EXECUTION ======================== */
 /* ======================================================================== */
 
-INLINE void UseDivuCycles(u32 dst, u32 src)
+static void UseDivuCycles(u32 dst, u32 src)
 {
   s32 i;
 
@@ -41,7 +41,7 @@ INLINE void UseDivuCycles(u32 dst, u32 src)
   USE_CYCLES(mcycles << 1);
 }
 
-INLINE void UseDivsCycles(s32 dst, s16 src)
+static void UseDivsCycles(s32 dst, s16 src)
 {
   /* minimum cycle time */
   u32 mcycles = 6 * MUL;
@@ -83,7 +83,7 @@ INLINE void UseDivsCycles(s32 dst, s16 src)
   USE_CYCLES(mcycles << 1);
 }
 
-INLINE void UseMuluCycles(u16 src)
+static void UseMuluCycles(u16 src)
 {
   /* minimum cycle time */
   u32 mcycles = 38 * MUL;
@@ -99,7 +99,7 @@ INLINE void UseMuluCycles(u16 src)
   USE_CYCLES(mcycles);
 }
 
-INLINE void UseMulsCycles(s16 src)
+static void UseMulsCycles(s16 src)
 {
   /* minimum cycle time */
   u32 mcycles = 38 * MUL;
