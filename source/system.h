@@ -69,27 +69,27 @@
 
 typedef struct
 {
-  uint8 *data;      /* Bitmap data */
-  int width;        /* Bitmap width */
-  int height;       /* Bitmap height */
-  int pitch;        /* Bitmap pitch */
+  u8 *data;      /* Bitmap data */
+  s32 width;        /* Bitmap width */
+  s32 height;       /* Bitmap height */
+  s32 pitch;        /* Bitmap pitch */
   struct
   {
-    int x;          /* X offset of viewport within bitmap */
-    int y;          /* Y offset of viewport within bitmap */
-    int w;          /* Width of viewport */
-    int h;          /* Height of viewport */
-    int ow;         /* Previous width of viewport */
-    int oh;         /* Previous height of viewport */
-    int changed;    /* 1= Viewport width or height have changed */
+    s32 x;          /* X offset of viewport within bitmap */
+    s32 y;          /* Y offset of viewport within bitmap */
+    s32 w;          /* Width of viewport */
+    s32 h;          /* Height of viewport */
+    s32 ow;         /* Previous width of viewport */
+    s32 oh;         /* Previous height of viewport */
+    s32 changed;    /* 1= Viewport width or height have changed */
   } viewport;
 } t_bitmap;
 
 typedef struct
 {
-  int sample_rate;      /* Output Sample rate (8000-48000) */
+  s32 sample_rate;      /* Output Sample rate (8000-48000) */
   double frame_rate;    /* Output Frame rate (usually 50 or 60 frames per second) */
-  int enabled;          /* 1= sound emulation is enabled */
+  s32 enabled;          /* 1= sound emulation is enabled */
   blip_t* blips[3][2];  /* Blip Buffer resampling */
 } t_snd;
 
@@ -97,23 +97,23 @@ typedef struct
 /* Global variables */
 extern t_bitmap bitmap;
 extern t_snd snd;
-extern uint32 mcycles_vdp;
-extern int16 SVP_cycles; 
-extern uint8 system_hw;
-extern uint8 system_bios;
-extern uint32 system_clock;
+extern u32 mcycles_vdp;
+extern s16 SVP_cycles; 
+extern u8 system_hw;
+extern u8 system_bios;
+extern u32 system_clock;
 
 /* Function prototypes */
-extern int audio_init(int samplerate, double framerate);
+extern s32 audio_init(s32 samplerate, double framerate);
 extern void audio_reset(void);
 extern void audio_shutdown(void);
-extern int audio_update(int16 *buffer);
+extern s32 audio_update(s16 *buffer);
 extern void audio_set_equalizer(void);
 extern void system_init(void);
 extern void system_reset(void);
-extern void system_frame_gen(int do_skip);
-extern void system_frame_scd(int do_skip);
-extern void system_frame_sms(int do_skip);
+extern void system_frame_gen(s32 do_skip);
+extern void system_frame_scd(s32 do_skip);
+extern void system_frame_sms(s32 do_skip);
 
 #endif /* _SYSTEM_H_ */
 

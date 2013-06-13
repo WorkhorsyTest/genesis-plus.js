@@ -50,25 +50,25 @@ typedef struct
   char international[50];       /* International name of ROM */
   char ROMType[4];              /* Boot ROM (BR), Educational (AL) or Game (GM) program */
   char product[14];             /* Product serial number */
-  unsigned short checksum;      /* ROM Checksum (header) */
-  unsigned short realchecksum;  /* ROM Checksum (calculated) */
-  unsigned int romstart;        /* ROM start address */
-  unsigned int romend;          /* ROM end address */
+  u16 checksum;      /* ROM Checksum (header) */
+  u16 realchecksum;  /* ROM Checksum (calculated) */
+  u32 romstart;        /* ROM start address */
+  u32 romend;          /* ROM end address */
   char country[18];             /* Country flag */
-  uint16 peripherals;           /* Supported peripherals */
+  u16 peripherals;           /* Supported peripherals */
 } ROMINFO;
 
 
 /* Global variables */
 extern ROMINFO rominfo;
-extern uint8 romtype;
+extern u8 romtype;
 
 /* Function prototypes */
-extern int load_bios(void);
-extern int load_rom(char *filename);
+extern s32 load_bios(void);
+extern s32 load_rom(char *filename);
 extern void get_region(char *romheader);
 extern char *get_company(void);
-extern char *get_peripheral(int index);
+extern char *get_peripheral(s32 index);
 extern void getrominfo(char *romheader);
 
 #endif /* _LOADROM_H_ */

@@ -42,7 +42,7 @@
 /*--------------------------------------------------------------------------*/
 /* backup RAM cartridge (max. 512KB)                                        */
 /*--------------------------------------------------------------------------*/
-static unsigned int cart_ram_read_byte(unsigned int address)
+static u32 cart_ram_read_byte(u32 address)
 {
   /* LSB only */
   if (address & 1)
@@ -53,12 +53,12 @@ static unsigned int cart_ram_read_byte(unsigned int address)
   return 0xff;
 }
 
-static unsigned int cart_ram_read_word(unsigned int address)
+static u32 cart_ram_read_word(u32 address)
 {
   return (scd.cartridge.area[(address >> 1) & scd.cartridge.mask] | 0xff00);
 }
 
-static void cart_ram_write_byte(unsigned int address, unsigned int data)
+static void cart_ram_write_byte(u32 address, u32 data)
 {
   /* LSB only */
   if (address & 1)
@@ -67,7 +67,7 @@ static void cart_ram_write_byte(unsigned int address, unsigned int data)
   }
 }
 
-static void cart_ram_write_word(unsigned int address, unsigned int data)
+static void cart_ram_write_word(u32 address, u32 data)
 {
   scd.cartridge.area[(address >> 1) & scd.cartridge.mask] = data & 0xff;
 }
@@ -77,7 +77,7 @@ static void cart_ram_write_word(unsigned int address, unsigned int data)
 /* backup RAM cartridge ID                                                  */
 /*--------------------------------------------------------------------------*/
 
-static unsigned int cart_id_read_byte(unsigned int address)
+static u32 cart_id_read_byte(u32 address)
 {
   /* LSB only */
   if (address & 1)
@@ -88,7 +88,7 @@ static unsigned int cart_id_read_byte(unsigned int address)
   return 0xff;
 }
 
-static unsigned int cart_id_read_word(unsigned int address)
+static u32 cart_id_read_word(u32 address)
 {
   return (scd.cartridge.id | 0xff00);
 }
@@ -98,7 +98,7 @@ static unsigned int cart_id_read_word(unsigned int address)
 /* backup RAM cartridge write protection                                    */
 /*--------------------------------------------------------------------------*/
 
-static unsigned int cart_prot_read_byte(unsigned int address)
+static u32 cart_prot_read_byte(u32 address)
 {
   /* LSB only */
   if (address & 1)
@@ -109,17 +109,17 @@ static unsigned int cart_prot_read_byte(unsigned int address)
   return 0xff;
 }
 
-static unsigned int cart_prot_read_word(unsigned int address)
+static u32 cart_prot_read_word(u32 address)
 {
   return (scd.cartridge.prot | 0xff00);
 }
 
-static void cart_prot_write_byte(unsigned int address, unsigned int data)
+static void cart_prot_write_byte(u32 address, u32 data)
 {
   /* LSB only */
   if (address & 1)
   {
-    int i;
+    s32 i;
 
     if (data & 1)
     {
@@ -146,9 +146,9 @@ static void cart_prot_write_byte(unsigned int address, unsigned int data)
   }
 }
 
-static void cart_prot_write_word(unsigned int address, unsigned int data)
+static void cart_prot_write_word(u32 address, u32 data)
 {
-  int i;
+  s32 i;
 
   if (data & 1)
   {
@@ -179,7 +179,7 @@ static void cart_prot_write_word(unsigned int address, unsigned int data)
 /*--------------------------------------------------------------------------*/
 void cd_cart_init(void)
 {
-  int i;
+  s32 i;
 
   /* System boot mode */
   if (scd.cartridge.boot)

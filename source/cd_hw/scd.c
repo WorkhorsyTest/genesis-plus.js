@@ -41,7 +41,7 @@
 /*--------------------------------------------------------------------------*/
 /* Unused area (return open bus data, i.e prefetched instruction word)      */
 /*--------------------------------------------------------------------------*/
-static unsigned int s68k_read_bus_8(unsigned int address)
+static u32 s68k_read_bus_8(u32 address)
 {
 #ifdef LOGERROR
   error("[SUB 68k] Unused read8 %08X (%08X)\n", address, s68k.pc);
@@ -50,23 +50,23 @@ static unsigned int s68k_read_bus_8(unsigned int address)
   return READ_BYTE(s68k.memory_map[((address)>>16)&0xff].base, (address) & 0xffff);
 }
 
-static unsigned int s68k_read_bus_16(unsigned int address)
+static u32 s68k_read_bus_16(u32 address)
 {
 #ifdef LOGERROR
   error("[SUB 68k] Unused read16 %08X (%08X)\n", address, s68k.pc);
 #endif
   address = s68k.pc;
-  return *(uint16 *)(s68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff));
+  return *(u16 *)(s68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff));
 }
 
-static void s68k_unused_8_w(unsigned int address, unsigned int data)
+static void s68k_unused_8_w(u32 address, u32 data)
 {
 #ifdef LOGERROR
   error("[SUB 68k] Unused write8 %08X = %02X (%08X)\n", address, data, s68k.pc);
 #endif
 }
 
-static void s68k_unused_16_w(unsigned int address, unsigned int data)
+static void s68k_unused_16_w(u32 address, u32 data)
 {
 #ifdef LOGERROR
   error("[SUB 68k] Unused write16 %08X = %04X (%08X)\n", address, data, s68k.pc);
@@ -76,15 +76,15 @@ static void s68k_unused_16_w(unsigned int address, unsigned int data)
 /*--------------------------------------------------------------------------*/
 /* PRG-RAM DMA access                                                       */
 /*--------------------------------------------------------------------------*/
-void prg_ram_dma_w(unsigned int words)
+void prg_ram_dma_w(u32 words)
 {
-  uint16 data;
+  u16 data;
 
   /* CDC buffer source address */
-  uint16 src_index = cdc.dac.w & 0x3ffe;
+  u16 src_index = cdc.dac.w & 0x3ffe;
   
   /* PRG-RAM destination address*/
-  uint32 dst_index = (scd.regs[0x0a>>1].w << 3) & 0x7fffe;
+  u32 dst_index = (scd.regs[0x0a>>1].w << 3) & 0x7fffe;
   
   /* update DMA destination address */
   scd.regs[0x0a>>1].w += (words >> 2);
@@ -102,7 +102,7 @@ void prg_ram_dma_w(unsigned int words)
   while (words--)
   {
     /* read 16-bit word from CDC buffer */
-    data = *(uint16 *)(cdc.ram + src_index);
+    data = *(u16 *)(cdc.ram + src_index);
 
 #ifdef LSB_FIRST
     /* source data is stored in big endian format */
@@ -110,7 +110,7 @@ void prg_ram_dma_w(unsigned int words)
 #endif
 
     /* write 16-bit word to PRG-RAM */
-    *(uint16 *)(scd.prg_ram + dst_index) = data ;
+    *(u16 *)(scd.prg_ram + dst_index) = data ;
 
     /* increment CDC buffer source address */
     src_index = (src_index + 2) & 0x3ffe;
@@ -123,7 +123,7 @@ void prg_ram_dma_w(unsigned int words)
 /*--------------------------------------------------------------------------*/
 /* PRG-RAM write protected area                                             */
 /*--------------------------------------------------------------------------*/
-static void prg_ram_write_byte(unsigned int address, unsigned int data)
+static void prg_ram_write_byte(u32 address, u32 data)
 {
   address &= 0x7ffff;
   if (address >= (scd.regs[0x02>>1].byte.h << 9))
@@ -136,12 +136,12 @@ static void prg_ram_write_byte(unsigned int address, unsigned int data)
 #endif
 }
 
-static void prg_ram_write_word(unsigned int address, unsigned int data)
+static void prg_ram_write_word(u32 address, u32 data)
 {
   address &= 0x7fffe;
   if (address >= (scd.regs[0x02>>1].byte.h << 9))
   {
-    *(uint16 *)(scd.prg_ram + address) = data;
+    *(u16 *)(scd.prg_ram + address) = data;
     return;
   }
 #ifdef LOGERROR
@@ -152,7 +152,7 @@ static void prg_ram_write_word(unsigned int address, unsigned int data)
 /*--------------------------------------------------------------------------*/
 /* internal backup RAM (8KB)                                                */
 /*--------------------------------------------------------------------------*/
-static unsigned int bram_read_byte(unsigned int address)
+static u32 bram_read_byte(u32 address)
 {
   /* LSB only */
   if (address & 1)
@@ -163,12 +163,12 @@ static unsigned int bram_read_byte(unsigned int address)
   return 0xff;
 }
 
-static unsigned int bram_read_word(unsigned int address)
+static u32 bram_read_word(u32 address)
 {
   return (scd.bram[(address >> 1) & 0x1fff] | 0xff00);
 }
 
-static void bram_write_byte(unsigned int address, unsigned int data)
+static void bram_write_byte(u32 address, u32 data)
 {
   /* LSB only */
   if (address & 1)
@@ -177,7 +177,7 @@ static void bram_write_byte(unsigned int address, unsigned int data)
   }
 }
 
-static void bram_write_word(unsigned int address, unsigned int data)
+static void bram_write_word(u32 address, u32 data)
 {
   scd.bram[(address >> 1) & 0x1fff] = data & 0xff;
 }
@@ -219,7 +219,7 @@ static void s68k_poll_detect(reg)
 static void s68k_poll_sync(reg)
 {
   /* relative MAIN-CPU cycle counter */
-  unsigned int cycles = (s68k.cycles * MCYCLES_PER_LINE) / SCYCLES_PER_LINE;
+  u32 cycles = (s68k.cycles * MCYCLES_PER_LINE) / SCYCLES_PER_LINE;
 
   /* sync MAIN-CPU with SUB-CPU */
   if (!m68k.stopped && (m68k.cycles < cycles))
@@ -245,7 +245,7 @@ static void s68k_poll_sync(reg)
   s68k.poll.detected &= ~(3 << reg);
 }
 
-static unsigned int scd_read_byte(unsigned int address)
+static u32 scd_read_byte(u32 address)
 {
   /* PCM area (8K) is mirrored into $FF0000-$FF7FFF */
   if (address < 0xff8000)
@@ -280,7 +280,7 @@ static unsigned int scd_read_byte(unsigned int address)
   /* CDC register data (controlled by BIOS, byte access only ?) */
   if (address == 0xff8007)
   {
-    unsigned int data = cdc_reg_r();
+    u32 data = cdc_reg_r();
 #ifdef LOG_CDC
     error("CDC register %X read 0x%02X (%X)\n", scd.regs[0x04>>1].byte.l & 0x0F, data, s68k.pc);
 #endif
@@ -305,13 +305,13 @@ static unsigned int scd_read_byte(unsigned int address)
   if ((address >= 0xff8050) && (address <= 0xff8056))
   {
     /* shifted 4-bit input (xxxx00) */
-    uint8 bits = (scd.regs[0x4e>>1].w >> (((address & 6) ^ 6) << 1)) << 2;
+    u8 bits = (scd.regs[0x4e>>1].w >> (((address & 6) ^ 6) << 1)) << 2;
     
     /* color code */
-    uint8 code = scd.regs[0x4c>>1].byte.l;
+    u8 code = scd.regs[0x4c>>1].byte.l;
     
     /* 16-bit font data (4 pixels = 16 bits) */
-    uint16 data = (code >> (bits & 4)) & 0x0f;
+    u16 data = (code >> (bits & 4)) & 0x0f;
 
     bits = bits >> 1;
     data = data | (((code >> (bits & 4)) << 4) & 0xf0);
@@ -342,7 +342,7 @@ static unsigned int scd_read_byte(unsigned int address)
   return scd.regs[(address >> 1) & 0xff].byte.h;
 }
 
-static unsigned int scd_read_word(unsigned int address)
+static u32 scd_read_word(u32 address)
 {
   /* PCM area (8K) is mirrored into $FF0000-$FF7FFF */
   if (address < 0xff8000)
@@ -386,13 +386,13 @@ static unsigned int scd_read_word(unsigned int address)
   if ((address >= 0xff8050) && (address <= 0xff8056))
   {
     /* shifted 4-bit input (xxxx00) */
-    uint8 bits = (scd.regs[0x4e>>1].w >> (((address & 6) ^ 6) << 1)) << 2;
+    u8 bits = (scd.regs[0x4e>>1].w >> (((address & 6) ^ 6) << 1)) << 2;
     
     /* color code */
-    uint8 code = scd.regs[0x4c>>1].byte.l;
+    u8 code = scd.regs[0x4c>>1].byte.l;
     
     /* 16-bit font data (4 pixels = 16 bits) */
-    uint16 data = (code >> (bits & 4)) & 0x0f;
+    u16 data = (code >> (bits & 4)) & 0x0f;
 
     bits = bits >> 1;
     data = data | (((code >> (bits & 4)) << 4) & 0xf0);
@@ -410,7 +410,7 @@ static unsigned int scd_read_word(unsigned int address)
   if ((address & 0x1f0) == 0x10)
   {
     /* relative MAIN-CPU cycle counter */
-    unsigned int cycles = (s68k.cycles * MCYCLES_PER_LINE) / SCYCLES_PER_LINE;
+    u32 cycles = (s68k.cycles * MCYCLES_PER_LINE) / SCYCLES_PER_LINE;
 
     /* sync MAIN-CPU with SUB-CPU (Mighty Morphin Power Rangers) */
     if (!m68k.stopped && (m68k.cycles < cycles))
@@ -425,12 +425,12 @@ static unsigned int scd_read_word(unsigned int address)
   return scd.regs[(address >> 1) & 0xff].w;
 }
 
-INLINE void word_ram_switch(uint8 mode)
+INLINE void word_ram_switch(u8 mode)
 {
-  int i;
-  uint16 *ptr1 = (uint16 *)(scd.word_ram_2M);
-  uint16 *ptr2 = (uint16 *)(scd.word_ram[0]);
-  uint16 *ptr3 = (uint16 *)(scd.word_ram[1]);
+  s32 i;
+  u16 *ptr1 = (u16 *)(scd.word_ram_2M);
+  u16 *ptr2 = (u16 *)(scd.word_ram[0]);
+  u16 *ptr3 = (u16 *)(scd.word_ram[1]);
 
   if (mode & 0x04)
   {
@@ -483,7 +483,7 @@ INLINE void word_ram_switch(uint8 mode)
   }
 }
 
-static void scd_write_byte(unsigned int address, unsigned int data)
+static void scd_write_byte(u32 address, u32 data)
 {
   /* PCM area (8K) is mirrored into $FF0000-$FF7FFF */
   if (address < 0xff8000)
@@ -531,7 +531,7 @@ static void scd_write_byte(unsigned int address, unsigned int data)
       /* detect MODE & RET bits modifications */
       if ((data ^ scd.regs[0x03 >> 1].byte.l) & 0x05)
       {
-        int i;
+        s32 i;
         
         /* MODE bit */
         if (data & 0x04)
@@ -766,7 +766,7 @@ static void scd_write_byte(unsigned int address, unsigned int data)
   }
 }
 
-static void scd_write_word(unsigned int address, unsigned int data)
+static void scd_write_word(u32 address, u32 data)
 {
   /* PCM area (8K) is mirrored into $FF0000-$FF7FFF */
   if (address < 0xff8000)
@@ -804,7 +804,7 @@ static void scd_write_word(unsigned int address, unsigned int data)
       /* detect MODE & RET bits modifications */
       if ((data ^ scd.regs[0x03>>1].byte.l) & 0x05)
       {
-        int i;
+        s32 i;
 
         /* MODE bit */
         if (data & 0x04)
@@ -955,7 +955,7 @@ static void scd_write_word(unsigned int address, unsigned int data)
     case 0x0c: /* Stopwatch (word access only) */
     {
       /* synchronize the counter with SUB-CPU */
-      int ticks = (s68k.cycles - scd.stopwatch) / TIMERS_SCYCLES_RATIO;
+      s32 ticks = (s68k.cycles - scd.stopwatch) / TIMERS_SCYCLES_RATIO;
       scd.stopwatch += (ticks * TIMERS_SCYCLES_RATIO);
 
       /* any writes clear the counter */
@@ -1045,14 +1045,14 @@ static void scd_write_word(unsigned int address, unsigned int data)
 
 void scd_init(void)
 {
-  int i;
+  s32 i;
   
   /****************************************************************/
   /*  MAIN-CPU low memory map ($000000-$7FFFFF)                   */
   /****************************************************************/
 
   /* 0x00: boot from CD (Mode 2), 0x40: boot from cartridge (Mode 1) */
-  uint8 base = scd.cartridge.boot;
+  u8 base = scd.cartridge.boot;
 
   /* $400000-$7FFFFF (resp. $000000-$3FFFFF): cartridge area (4MB) */
   cd_cart_init();
@@ -1162,12 +1162,12 @@ void scd_init(void)
   memset(scd.bram, 0x00, sizeof(scd.bram));
 }
 
-void scd_reset(int hard)
+void scd_reset(s32 hard)
 {
   /* TODO: figure what exactly is resetted when RESET bit is cleared by SUB-CPU */
   if (hard)
   {
-    int i;
+    s32 i;
     
     /* Clear all ASIC registers by default */
     memset(scd.regs, 0, sizeof(scd.regs));
@@ -1176,8 +1176,8 @@ void scd_reset(int hard)
     scd.dmna = 0;
 
     /* H-INT default vector */
-    *(uint16 *)(m68k.memory_map[0].base + 0x70) = 0x00FF;
-    *(uint16 *)(m68k.memory_map[0].base + 0x72) = 0xFFFF;
+    *(u16 *)(m68k.memory_map[0].base + 0x70) = 0x00FF;
+    *(u16 *)(m68k.memory_map[0].base + 0x72) = 0xFFFF;
 
     /* Power ON initial values (MAIN-CPU side) */
     scd.regs[0x00>>1].w = 0x0002;
@@ -1235,7 +1235,7 @@ void scd_reset(int hard)
   pcm_reset();
 }
 
-void scd_update(unsigned int cycles)
+void scd_update(u32 cycles)
 {
   /* update CDC DMA transfer */
   if (cdc.dma_w)
@@ -1312,10 +1312,10 @@ void scd_update(unsigned int cycles)
   }
 }
 
-void scd_end_frame(unsigned int cycles)
+void scd_end_frame(u32 cycles)
 {
   /* run Stopwatch until end of frame */
-  int ticks = (cycles - scd.stopwatch) / TIMERS_SCYCLES_RATIO;
+  s32 ticks = (cycles - scd.stopwatch) / TIMERS_SCYCLES_RATIO;
   scd.regs[0x0c>>1].w = (scd.regs[0x0c>>1].w + ticks) & 0xfff;
 
   /* adjust Stopwatch counter for next frame (can be negative) */
@@ -1330,11 +1330,11 @@ void scd_end_frame(unsigned int cycles)
   s68k.poll.cycle = 0;
 }
 
-int scd_context_save(uint8 *state)
+s32 scd_context_save(u8 *state)
 {
-  uint16 tmp16;
-  uint32 tmp32;
-  int bufferptr = 0;
+  u16 tmp16;
+  u32 tmp32;
+  s32 bufferptr = 0;
 
   /* internal harware */
   save_param(scd.regs, sizeof(scd.regs));
@@ -1375,7 +1375,7 @@ int scd_context_save(uint8 *state)
   save_param(&s68k.poll, sizeof(s68k.poll));
 
   /* H-INT default vector */
-  tmp16 = *(uint16 *)(m68k.memory_map[0].base + 0x72);
+  tmp16 = *(u16 *)(m68k.memory_map[0].base + 0x72);
   save_param(&tmp16, 2);
 
   /* SUB-CPU internal state */
@@ -1414,12 +1414,12 @@ int scd_context_save(uint8 *state)
   return bufferptr;
 }
 
-int scd_context_load(uint8 *state)
+s32 scd_context_load(u8 *state)
 {
-  int i;
-  uint16 tmp16;
-  uint32 tmp32;
-  int bufferptr = 0;
+  s32 i;
+  u16 tmp16;
+  u32 tmp32;
+  s32 bufferptr = 0;
 
   /* internal harware */
   load_param(scd.regs, sizeof(scd.regs));
@@ -1576,7 +1576,7 @@ int scd_context_load(uint8 *state)
 
   /* H-INT default vector */
   load_param(&tmp16, 2);
-  *(uint16 *)(m68k.memory_map[0].base + 0x72) = tmp16;
+  *(u16 *)(m68k.memory_map[0].base + 0x72) = tmp16;
 
   /* SUB-CPU internal state */
   load_param(&s68k.cycles, sizeof(s68k.cycles));
@@ -1614,7 +1614,7 @@ int scd_context_load(uint8 *state)
   return bufferptr;
 }
 
-int scd_68k_irq_ack(int level)
+s32 scd_68k_irq_ack(s32 level)
 {
 #ifdef LOG_SCD
   error("INT ack level %d  (%X)\n", level, s68k.pc);

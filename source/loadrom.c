@@ -90,9 +90,9 @@ typedef struct
 
 
 ROMINFO rominfo;
-uint8 romtype;
+u8 romtype;
 
-static uint8 rom_region;
+static u8 rom_region;
 
 /***************************************************************************
  * Genesis ROM Manufacturers
@@ -197,10 +197,10 @@ static const PERIPHERALINFO peripheralinfo[MAXPERIPHERALS] =
  *
  * Compute ROM real checksum.
  ***************************************************************************/
-static uint16 getchecksum(uint8 *rom, int length)
+static u16 getchecksum(u8 *rom, s32 length)
 {
-  int i;
-  uint16 checksum = 0;
+  s32 i;
+  u16 checksum = 0;
 
   for (i = 0; i < length; i += 2)
   {
@@ -216,10 +216,10 @@ static uint16 getchecksum(uint8 *rom, int length)
  *
  * Convert interleaved (.smd) ROM files.
  ***************************************************************************/
-static void deinterleave_block(uint8 * src)
+static void deinterleave_block(u8 * src)
 {
-  int i;
-  uint8 block[0x4000];
+  s32 i;
+  u8 block[0x4000];
   memcpy (block, src, 0x4000);
   for (i = 0; i < 0x2000; i += 1)
   {
@@ -240,7 +240,7 @@ void getrominfo(char *romheader)
   /* Genesis ROM header support */
   if (system_hw & SYSTEM_MD)
   {
-    int i,j;
+    s32 i,j;
 
     memcpy (&rominfo.consoletype, romheader + ROMCONSOLE, 16);
     memcpy (&rominfo.copyright, romheader + ROMCOPYRIGHT, 16);
@@ -283,7 +283,7 @@ void getrominfo(char *romheader)
 #ifdef LSB_FIRST
     rominfo.checksum =  (rominfo.checksum >> 8) | ((rominfo.checksum & 0xff) << 8);
 #endif
-    rominfo.realchecksum = getchecksum(((uint8 *) cart.rom) + 0x200, cart.romsize - 0x200);
+    rominfo.realchecksum = getchecksum(((u8 *) cart.rom) + 0x200, cart.romsize - 0x200);
 
     /* Supported peripherals */
     rominfo.peripherals = 0;
@@ -294,7 +294,7 @@ void getrominfo(char *romheader)
   }
   else
   {
-    uint16 offset = 0;
+    u16 offset = 0;
 
     /* detect Master System ROM header */
     if (!memcmp (&romheader[0x1ff0], "TMR SEGA", 8))
@@ -389,9 +389,9 @@ void getrominfo(char *romheader)
  * Return loaded size (-1 if already loaded)
  *
  ***************************************************************************/
-int load_bios(void)
+s32 load_bios(void)
 {
-  int size = 0;
+  s32 size = 0;
 
   switch (system_hw)
   {
@@ -419,10 +419,10 @@ int load_bios(void)
         {
 #ifdef LSB_FIRST
           /* Byteswap ROM to optimize 16-bit access */
-          int i;
+          s32 i;
           for (i = 0; i < size; i += 2)
           {
-            uint8 temp = scd.bootrom[i];
+            u8 temp = scd.bootrom[i];
             scd.bootrom[i] = scd.bootrom[i+1];
             scd.bootrom[i+1] = temp;
           }
@@ -525,9 +525,9 @@ int load_bios(void)
  * Return 0 on error, 1 on success
  *
  ***************************************************************************/
-int load_rom(char *filename)
+s32 load_rom(char *filename)
 {
-  int i, size;
+  s32 i, size;
 
   /* clear any existing patches */
   ggenie_shutdown();
@@ -578,7 +578,7 @@ int load_rom(char *filename)
     }
 
     /* convert lower case to upper case */
-    *(uint32 *)(extension) &= 0xdfdfdfdf;
+    *(u32 *)(extension) &= 0xdfdfdfdf;
 
     /* auto-detect system hardware from ROM file extension */
     if (!memcmp("SMS", &extension[0], 3))
@@ -617,7 +617,7 @@ int load_rom(char *filename)
       {
         for(i = 0; i < size; i += 2)
         {
-          uint8 temp = cart.rom[i];
+          u8 temp = cart.rom[i];
           cart.rom[i] = cart.rom[i+1];
           cart.rom[i+1] = temp;
         }
@@ -675,7 +675,7 @@ int load_rom(char *filename)
     /* Byteswap ROM to optimize 16-bit access */
     for (i = 0; i < cart.romsize; i += 2)
     {
-      uint8 temp = cart.rom[i];
+      u8 temp = cart.rom[i];
       cart.rom[i] = cart.rom[i+1];
       cart.rom[i+1] = temp;
     }
@@ -984,7 +984,7 @@ void get_region(char *romheader)
       /* 0010 = japan pal  (2) -> does not exist ? */
       /* 0100 = usa        (4) */
       /* 1000 = europe     (8) */
-      int country = 0;
+      s32 country = 0;
 
       /* from Gens */
       if (!memcmp(rominfo.country, "eur", 3)) country |= 8;
@@ -995,13 +995,13 @@ void get_region(char *romheader)
       else if (!memcmp(rominfo.country, "USA", 3)) country |= 4;
       else
       {
-        int i;
+        s32 i;
         char c;
 
         /* look for each characters */
         for(i = 0; i < 4; i++)
         {
-          c = toupper((int)rominfo.country[i]);
+          c = toupper((s32)rominfo.country[i]);
 
           if (c == 'U') country |= 4;
           else if (c == 'J') country |= 1;
@@ -1085,7 +1085,7 @@ void get_region(char *romheader)
 char *get_company(void)
 {
   char *s;
-  int i;
+  s32 i;
   char company[10];
 
   for (i = 3; i < 8; i++) 
@@ -1127,7 +1127,7 @@ char *get_company(void)
  * Return peripheral name based on header code
  *
  ****************************************************************************/
-char *get_peripheral(int index)
+char *get_peripheral(s32 index)
 {
   if (index < MAXPERIPHERALS)
     return (char *)peripheralinfo[index].pName;

@@ -61,44 +61,44 @@
 typedef struct
 {
   FILE *fd;
-  int offset;
-  int start;
-  int end;
+  s32 offset;
+  s32 start;
+  s32 end;
 } track_t; 
 
 /* CD TOC */
 typedef struct
 {
-  int end;
-  int last;
+  s32 end;
+  s32 last;
   track_t tracks[CD_MAX_TRACKS];
 } toc_t; 
 
 /* CDD hardware */
 typedef struct
 {
-  uint32 cycles;
-  uint32 latency;
-  int loaded;
-  int index;
-  int lba;
-  int scanOffset;
-  int volume;
-  uint8 status;
-  uint16 sectorSize;
+  u32 cycles;
+  u32 latency;
+  s32 loaded;
+  s32 index;
+  s32 lba;
+  s32 scanOffset;
+  s32 volume;
+  u8 status;
+  u16 sectorSize;
   toc_t toc;
-  int16 audio[2];
+  s16 audio[2];
 } cdd_t; 
 
 /* Function prototypes */
 extern void cdd_init(blip_t* left, blip_t* right);
 extern void cdd_reset(void);
-extern int cdd_context_save(uint8 *state);
-extern int cdd_context_load(uint8 *state);
+extern int cdd_context_save(u8 *state);
+extern int cdd_context_load(u8 *state);
 extern int cdd_load(char *filename, char *header);
 extern void cdd_unload(void);
-extern void cdd_read_data(uint8 *dst);
-extern void cdd_read_audio(unsigned int samples);
+extern void cdd_read_data(u8 *dst);
+extern void cdd_read_audio(u32 samples);
 extern void cdd_update(void);
 extern void cdd_process(void);
 

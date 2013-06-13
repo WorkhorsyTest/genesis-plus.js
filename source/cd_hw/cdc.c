@@ -111,10 +111,10 @@ void cdc_reset(void)
   }
 }
 
-int cdc_context_save(uint8 *state)
+s32 cdc_context_save(u8 *state)
 {
-  uint8 tmp8;
-  int bufferptr = 0;
+  u8 tmp8;
+  s32 bufferptr = 0;
 
   if (cdc.dma_w == pcm_ram_dma_w)
   {
@@ -147,10 +147,10 @@ int cdc_context_save(uint8 *state)
   return bufferptr;
 }
 
-int cdc_context_load(uint8 *state)
+s32 cdc_context_load(u8 *state)
 {
-  uint8 tmp8;
-  int bufferptr = 0;
+  u8 tmp8;
+  s32 bufferptr = 0;
 
   load_param(&cdc, sizeof(cdc));
   load_param(&tmp8, 1);
@@ -183,7 +183,7 @@ int cdc_context_load(uint8 *state)
 void cdc_dma_update(void)
 {
   /* maximal transfer length */
-  int length = DMA_BYTES_PER_LINE;
+  s32 length = DMA_BYTES_PER_LINE;
 
   /* end of DMA transfer ? */
   if (cdc.dbc.w < DMA_BYTES_PER_LINE)
@@ -230,13 +230,13 @@ void cdc_dma_update(void)
   }
 }
 
-int cdc_decoder_update(uint32 header)
+s32 cdc_decoder_update(u32 header)
 {
   /* data decoding enabled ? */
   if (cdc.ctrl[0] & BIT_DECEN)
   {
     /* update HEAD registers */
-    *(uint32 *)(cdc.head[0]) = header;
+    *(u32 *)(cdc.head[0]) = header;
 
     /* set !VALST */
     cdc.stat[3] = 0x00;
@@ -261,7 +261,7 @@ int cdc_decoder_update(uint32 header)
     /* buffer RAM write enabled ? */
     if (cdc.ctrl[0] & BIT_WRRQ)
     {
-      uint16 offset;
+      u16 offset;
 
       /* increment block pointer  */
       cdc.pt.w += 2352;
@@ -273,7 +273,7 @@ int cdc_decoder_update(uint32 header)
       offset = cdc.pt.w & 0x3fff;
 
       /* write CDD block header (4 bytes) */
-      *(uint32 *)(cdc.ram + offset) = header;
+      *(u32 *)(cdc.ram + offset) = header;
 
       /* write CDD block data (2048 bytes) */
       cdd_read_data(cdc.ram + 4 + offset);
@@ -600,7 +600,7 @@ unsigned char cdc_reg_r(void)
 
     case 0x0f:  /* STAT3 */
     {
-      uint8 data = cdc.stat[3];
+      u8 data = cdc.stat[3];
 
       /* clear !VALST (note: this is not 100% correct but BIOS do not seem to care) */
       cdc.stat[3] = BIT_VALST;
@@ -635,7 +635,7 @@ unsigned short cdc_host_r(void)
   if (!(cdc.ifstat & BIT_DTEN))
   {
     /* read data word from CDC RAM buffer */
-    uint16 data = *(uint16 *)(cdc.ram + (cdc.dac.w & 0x3ffe));
+    u16 data = *(u16 *)(cdc.ram + (cdc.dac.w & 0x3ffe));
 
 #ifdef LSB_FIRST
     /* source data is stored in big endian format */
@@ -653,7 +653,7 @@ unsigned short cdc_host_r(void)
     cdc.dbc.w -= 2;
 
     /* end of transfer ? */
-    if ((int16)cdc.dbc.w <= 0)
+    if ((s16)cdc.dbc.w <= 0)
     {
       /* reset data byte counter (DBCH bits 4-7 should be set to 1) */
       cdc.dbc.w = 0xf000;

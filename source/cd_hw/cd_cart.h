@@ -40,11 +40,11 @@
  /* CD compatible ROM/RAM cartridge */
 typedef struct 
 {
-  uint8 area[0x810000];  /* cartridge ROM/RAM area (max. 8MB + 64KB backup) */
-  uint8 boot;            /* cartridge boot mode (0x00: boot from CD with ROM/RAM cartridge enabled, 0x40: boot from ROM cartridge with CD enabled) */
-  uint8 id;              /* RAM cartridge ID (related to RAM size, 0 if disabled) */
-  uint8 prot;            /* RAM cartridge write protection */
-  uint32 mask;           /* RAM cartridge size mask */
+  u8 area[0x810000];  /* cartridge ROM/RAM area (max. 8MB + 64KB backup) */
+  u8 boot;            /* cartridge boot mode (0x00: boot from CD with ROM/RAM cartridge enabled, 0x40: boot from ROM cartridge with CD enabled) */
+  u8 id;              /* RAM cartridge ID (related to RAM size, 0 if disabled) */
+  u8 prot;            /* RAM cartridge write protection */
+  u32 mask;           /* RAM cartridge size mask */
 } cd_cart_t;
 
 /* Function prototypes */

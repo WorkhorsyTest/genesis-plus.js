@@ -60,17 +60,17 @@
 typedef struct 
 {
   cd_cart_t cartridge;        /* ROM/RAM Cartridge */
-  uint8 bootrom[0x20000];     /* 128K internal BOOT ROM */
-  uint8 prg_ram[0x80000];     /* 512K PRG-RAM */
-  uint8 word_ram[2][0x20000]; /* 2 x 128K Word RAM (1M mode) */
-  uint8 word_ram_2M[0x40000]; /* 256K Word RAM (2M mode) */
-  uint8 bram[0x2000];         /* 8K Backup RAM */
+  u8 bootrom[0x20000];     /* 128K internal BOOT ROM */
+  u8 prg_ram[0x80000];     /* 512K PRG-RAM */
+  u8 word_ram[2][0x20000]; /* 2 x 128K Word RAM (1M mode) */
+  u8 word_ram_2M[0x40000]; /* 256K Word RAM (2M mode) */
+  u8 bram[0x2000];         /* 8K Backup RAM */
   reg16_t regs[0x100];        /* 256 x 16-bit ASIC registers */
-  uint32 cycles;              /* Master clock counter */
-  int32 stopwatch;            /* Stopwatch counter */
-  int32 timer;                /* Timer counter */
-  uint8 pending;              /* Pending interrupts */
-  uint8 dmna;                 /* Pending DMNA write status */
+  u32 cycles;              /* Master clock counter */
+  s32 stopwatch;            /* Stopwatch counter */
+  s32 timer;                /* Timer counter */
+  u8 pending;              /* Pending interrupts */
+  u8 dmna;                 /* Pending DMNA write status */
   gfx_t gfx_hw;               /* Graphics processor */
   cdc_t cdc_hw;               /* CD data controller */
   cdd_t cdd_hw;               /* CD drive processor */
@@ -79,12 +79,12 @@ typedef struct
 
 /* Function prototypes */
 extern void scd_init(void);
-extern void scd_reset(int hard);
-extern void scd_update(unsigned int cycles);
-extern void scd_end_frame(unsigned int cycles);
-extern int scd_context_load(uint8 *state);
-extern int scd_context_save(uint8 *state);
-extern int scd_68k_irq_ack(int level);
-extern void prg_ram_dma_w(unsigned int words);
+extern void scd_reset(s32 hard);
+extern void scd_update(u32 cycles);
+extern void scd_end_frame(u32 cycles);
+extern s32 scd_context_load(u8 *state);
+extern s32 scd_context_save(u8 *state);
+extern s32 scd_68k_irq_ack(s32 level);
+extern void prg_ram_dma_w(u32 words);
 
 #endif

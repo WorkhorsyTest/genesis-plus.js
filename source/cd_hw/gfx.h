@@ -42,65 +42,65 @@
 
 typedef struct
 {
-  uint32 cycles;                    /* current cycles count for graphics operation */
-  uint32 cyclesPerLine;             /* current graphics operation timings */
-  uint32 dotMask;                   /* stamp map size mask */
-  uint16 *tracePtr;                 /* trace vector pointer */
-  uint16 *mapPtr;                   /* stamp map table base address */
-  uint8 stampShift;                 /* stamp pixel shift value (related to stamp size) */
-  uint8 mapShift;                   /* stamp map table shift value (related to stamp map size) */
-  uint16 bufferOffset;              /* image buffer column offset */
-  uint32 bufferStart;               /* image buffer start index */
-  uint16 lut_offset[0x8000];        /* Cell Image -> WORD-RAM offset lookup table (1M Mode) */
-  uint8 lut_prio[4][0x100][0x100];  /* WORD-RAM data writes priority lookup table */
-  uint8 lut_pixel[0x200];           /* Graphics operation dot offset lookup table */
-  uint8 lut_cell[0x100];            /* Graphics operation stamp offset lookup table */
+  u32 cycles;                    /* current cycles count for graphics operation */
+  u32 cyclesPerLine;             /* current graphics operation timings */
+  u32 dotMask;                   /* stamp map size mask */
+  u16 *tracePtr;                 /* trace vector pointer */
+  u16 *mapPtr;                   /* stamp map table base address */
+  u8 stampShift;                 /* stamp pixel shift value (related to stamp size) */
+  u8 mapShift;                   /* stamp map table shift value (related to stamp map size) */
+  u16 bufferOffset;              /* image buffer column offset */
+  u32 bufferStart;               /* image buffer start index */
+  u16 lut_offset[0x8000];        /* Cell Image -> WORD-RAM offset lookup table (1M Mode) */
+  u8 lut_prio[4][0x100][0x100];  /* WORD-RAM data writes priority lookup table */
+  u8 lut_pixel[0x200];           /* Graphics operation dot offset lookup table */
+  u8 lut_cell[0x100];            /* Graphics operation stamp offset lookup table */
 } gfx_t;
 
 
 /***************************************************************/
 /*          WORD-RAM DMA interfaces (1M & 2M modes)            */
 /***************************************************************/
-extern void word_ram_0_dma_w(unsigned int words);
-extern void word_ram_1_dma_w(unsigned int words);
-extern void word_ram_2M_dma_w(unsigned int words);
+extern void word_ram_0_dma_w(u32 words);
+extern void word_ram_1_dma_w(u32 words);
+extern void word_ram_2M_dma_w(u32 words);
 
 /***************************************************************/
 /*          WORD-RAM 0 & 1 CPU interfaces (1M mode)            */
 /***************************************************************/
-extern unsigned int word_ram_0_read16(unsigned int address);
-extern unsigned int word_ram_1_read16(unsigned int address);
-extern void word_ram_0_write16(unsigned int address, unsigned int data);
-extern void word_ram_1_write16(unsigned int address, unsigned int data);
-extern unsigned int word_ram_0_read8(unsigned int address);
-extern unsigned int word_ram_1_read8(unsigned int address);
-extern void word_ram_0_write8(unsigned int address, unsigned int data);
-extern void word_ram_1_write8(unsigned int address, unsigned int data);
+extern u32 word_ram_0_read16(u32 address);
+extern u32 word_ram_1_read16(u32 address);
+extern void word_ram_0_write16(u32 address, u32 data);
+extern void word_ram_1_write16(u32 address, u32 data);
+extern u32 word_ram_0_read8(u32 address);
+extern u32 word_ram_1_read8(u32 address);
+extern void word_ram_0_write8(u32 address, u32 data);
+extern void word_ram_1_write8(u32 address, u32 data);
 
 /***************************************************************/
 /*     WORD-RAM 0 & 1 DOT image SUB-CPU interface (1M mode)    */
 /***************************************************************/
-extern unsigned int dot_ram_0_read16(unsigned int address);
-extern unsigned int dot_ram_1_read16(unsigned int address);
-extern void dot_ram_0_write16(unsigned int address, unsigned int data);
-extern void dot_ram_1_write16(unsigned int address, unsigned int data);
-extern unsigned int dot_ram_0_read8(unsigned int address);
-extern unsigned int dot_ram_1_read8(unsigned int address);
-extern void dot_ram_0_write8(unsigned int address, unsigned int data);
-extern void dot_ram_1_write8(unsigned int address, unsigned int data);
+extern u32 dot_ram_0_read16(u32 address);
+extern u32 dot_ram_1_read16(u32 address);
+extern void dot_ram_0_write16(u32 address, u32 data);
+extern void dot_ram_1_write16(u32 address, u32 data);
+extern u32 dot_ram_0_read8(u32 address);
+extern u32 dot_ram_1_read8(u32 address);
+extern void dot_ram_0_write8(u32 address, u32 data);
+extern void dot_ram_1_write8(u32 address, u32 data);
 
 
 /***************************************************************/
 /*    WORD-RAM 0 & 1 CELL image MAIN-CPU interface (1M mode)   */
 /***************************************************************/
-extern unsigned int cell_ram_0_read16(unsigned int address);
-extern unsigned int cell_ram_1_read16(unsigned int address);
-extern void cell_ram_0_write16(unsigned int address, unsigned int data);
-extern void cell_ram_1_write16(unsigned int address, unsigned int data);
-extern unsigned int cell_ram_0_read8(unsigned int address);
-extern unsigned int cell_ram_1_read8(unsigned int address);
-extern void cell_ram_0_write8(unsigned int address, unsigned int data);
-extern void cell_ram_1_write8(unsigned int address, unsigned int data);
+extern u32 cell_ram_0_read16(u32 address);
+extern u32 cell_ram_1_read16(u32 address);
+extern void cell_ram_0_write16(u32 address, u32 data);
+extern void cell_ram_1_write16(u32 address, u32 data);
+extern u32 cell_ram_0_read8(u32 address);
+extern u32 cell_ram_1_read8(u32 address);
+extern void cell_ram_0_write8(u32 address, u32 data);
+extern void cell_ram_1_write8(u32 address, u32 data);
 
 
 /***************************************************************/
@@ -108,9 +108,9 @@ extern void cell_ram_1_write8(unsigned int address, unsigned int data);
 /***************************************************************/
 extern void gfx_init(void);
 extern void gfx_reset(void);
-extern int gfx_context_save(uint8 *state);
-extern int gfx_context_load(uint8 *state);
-extern void gfx_start(unsigned int base, int cycles);
+extern int gfx_context_save(u8 *state);
+extern int gfx_context_load(u8 *state);
+extern void gfx_start(u32 base, int cycles);
 extern void gfx_update(int cycles);
 
 #endif

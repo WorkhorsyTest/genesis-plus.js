@@ -43,29 +43,29 @@
 /* CDC hardware */
 typedef struct
 {
-  uint8 ifstat;
-  uint8 ifctrl;
+  u8 ifstat;
+  u8 ifctrl;
   reg16_t dbc;
   reg16_t dac;
   reg16_t pt;
   reg16_t wa;
-  uint8 ctrl[2];
-  uint8 head[2][4];
-  uint8 stat[4];
-  int cycles;
-  void (*dma_w)(unsigned int words);  /* DMA transfer callback */
-  uint8 ram[0x4000 + 2352]; /* 16K external RAM (with one block overhead to handle buffer overrun) */
+  u8 ctrl[2];
+  u8 head[2][4];
+  u8 stat[4];
+  s32 cycles;
+  void (*dma_w)(u32 words);  /* DMA transfer callback */
+  u8 ram[0x4000 + 2352]; /* 16K external RAM (with one block overhead to handle buffer overrun) */
 } cdc_t; 
 
 /* Function prototypes */
 extern void cdc_init(void);
 extern void cdc_reset(void);
-extern int cdc_context_save(uint8 *state);
-extern int cdc_context_load(uint8 *state);
+extern s32 cdc_context_save(u8 *state);
+extern s32 cdc_context_load(u8 *state);
 extern void cdc_dma_update(void);
-extern int cdc_decoder_update(uint32 header);
-extern void cdc_reg_w(unsigned char data);
-extern unsigned char cdc_reg_r(void);
-extern unsigned short cdc_host_r(void);
+extern s32 cdc_decoder_update(u32 header);
+extern void cdc_reg_w(u8 data);
+extern u8 cdc_reg_r(void);
+extern u16 cdc_host_r(void);
 
 #endif

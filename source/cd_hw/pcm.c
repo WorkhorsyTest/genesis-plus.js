@@ -82,10 +82,10 @@ void pcm_reset(void)
   blip_clear(blip[1]);
 }
 
-int pcm_context_save(uint8 *state)
+s32 pcm_context_save(u8 *state)
 {
-  uint8 tmp8;
-  int bufferptr = 0;
+  u8 tmp8;
+  s32 bufferptr = 0;
 
   tmp8 = (pcm.bank - pcm.ram) >> 12;
 
@@ -100,10 +100,10 @@ int pcm_context_save(uint8 *state)
   return bufferptr;
 }
 
-int pcm_context_load(uint8 *state)
+s32 pcm_context_load(u8 *state)
 {
-  uint8 tmp8;
-  int bufferptr = 0;
+  u8 tmp8;
+  s32 bufferptr = 0;
 
   load_param(pcm.chan, sizeof(pcm.chan));
   load_param(pcm.out, sizeof(pcm.out));
@@ -119,7 +119,7 @@ int pcm_context_load(uint8 *state)
   return bufferptr;
 }
 
-void pcm_run(unsigned int length)
+void pcm_run(u32 length)
 {
 #ifdef LOG_PCM
   error("[%d][%d]run %d PCM samples (from %d)\n", v_counter, s68k.cycles, length, pcm.cycles);
@@ -127,7 +127,7 @@ void pcm_run(unsigned int length)
   /* check if PCM chip is running */
   if (pcm.enabled)
   {
-    int i, j, l, r;
+    s32 i, j, l, r;
   
     /* generate PCM samples */
     for (i=0; i<length; i++)
@@ -227,10 +227,10 @@ void pcm_run(unsigned int length)
   pcm.cycles += length * PCM_SCYCLES_RATIO;
 }
 
-void pcm_update(unsigned int samples)
+void pcm_update(u32 samples)
 {
   /* get number of internal clocks (samples) needed */
-  unsigned int clocks = blip_clocks_needed(blip[0], samples);
+  u32 clocks = blip_clocks_needed(blip[0], samples);
 
   /* run PCM chip */
   if (clocks > 0)
@@ -242,10 +242,10 @@ void pcm_update(unsigned int samples)
   pcm.cycles = 0;
 }
 
-void pcm_write(unsigned int address, unsigned char data)
+void pcm_write(u32 address, u8 data)
 {
   /* synchronize PCM chip with SUB-CPU */
-  int clocks = s68k.cycles - pcm.cycles;
+  s32 clocks = s68k.cycles - pcm.cycles;
   if (clocks > 0)
   {
     /* number of internal clocks (samples) to run */
@@ -366,10 +366,10 @@ void pcm_write(unsigned int address, unsigned char data)
   }
 }
 
-unsigned char pcm_read(unsigned int address)
+u8 pcm_read(u32 address)
 {
   /* synchronize PCM chip with SUB-CPU */
-  int clocks = s68k.cycles - pcm.cycles;
+  s32 clocks = s68k.cycles - pcm.cycles;
   if (clocks > 0)
   {
     /* number of internal clocks (samples) to run */
@@ -391,7 +391,7 @@ unsigned char pcm_read(unsigned int address)
   /* read WAVE RAM address pointers */
   if ((address >= 0x10) && (address < 0x20))
   {
-    int index = (address >> 1) & 0x07;
+    s32 index = (address >> 1) & 0x07;
 
     if (address & 1)
     {
@@ -407,15 +407,15 @@ unsigned char pcm_read(unsigned int address)
   return 0xff;
 }
 
-void pcm_ram_dma_w(unsigned int words)
+void pcm_ram_dma_w(u32 words)
 {
-  uint16 data;
+  u16 data;
 
   /* CDC buffer source address */
-  uint16 src_index = cdc.dac.w & 0x3ffe;
+  u16 src_index = cdc.dac.w & 0x3ffe;
   
   /* PCM-RAM destination address*/
-  uint16 dst_index = (scd.regs[0x0a>>1].w << 2) & 0xffe;
+  u16 dst_index = (scd.regs[0x0a>>1].w << 2) & 0xffe;
   
   /* update DMA destination address */
   scd.regs[0x0a>>1].w += (words >> 1);
@@ -427,10 +427,10 @@ void pcm_ram_dma_w(unsigned int words)
   while (words--)
   {
     /* read 16-bit word from CDC buffer */
-    data = *(uint16 *)(cdc.ram + src_index);
+    data = *(u16 *)(cdc.ram + src_index);
 
     /* write 16-bit word to PCM RAM (endianness does not matter since PCM RAM is always accessed as byte)*/
-    *(uint16 *)(pcm.bank + dst_index) = data ;
+    *(u16 *)(pcm.bank + dst_index) = data ;
 
     /* increment CDC buffer source address */
     src_index = (src_index + 2) & 0x3ffe;

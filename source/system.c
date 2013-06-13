@@ -45,21 +45,21 @@
 /* Global variables */
 t_bitmap bitmap;
 t_snd snd;
-uint32 mcycles_vdp;
-uint8 system_hw;
-uint8 system_bios;
-uint32 system_clock;
-int16 SVP_cycles = 800; 
+u32 mcycles_vdp;
+u8 system_hw;
+u8 system_bios;
+u32 system_clock;
+s16 SVP_cycles = 800; 
 
-static uint8 pause_b;
+static u8 pause_b;
 static EQSTATE eq;
-static int32 llp,rrp;
+static s32 llp,rrp;
 
 /******************************************************************************************/
 /* Audio subsystem                                                                        */
 /******************************************************************************************/
 
-int audio_init(int samplerate, double framerate)
+s32 audio_init(s32 samplerate, double framerate)
 {
   /* Number of M-cycles executed per second. */
   /* All emulated chips are kept in sync by using a common oscillator (MCLOCK)            */
@@ -145,7 +145,7 @@ int audio_init(int samplerate, double framerate)
 
 void audio_reset(void)
 {
-  int i,j;
+  s32 i,j;
   
   /* Clear blip buffers */
   for (i=0; i<3; i++)
@@ -177,7 +177,7 @@ void audio_set_equalizer(void)
 
 void audio_shutdown(void)
 {
-  int i,j;
+  s32 i,j;
   
   /* Delete blip buffers */
   for (i=0; i<3; i++)
@@ -190,10 +190,10 @@ void audio_shutdown(void)
   }
 }
 
-int audio_update(int16 *buffer)
+s32 audio_update(s16 *buffer)
 {
   /* run sound chips until end of frame */
-  int size = sound_update(mcycles_vdp);
+  s32 size = sound_update(mcycles_vdp);
 
   /* Mega CD specific */
   if (system_hw == SYSTEM_MCD)
@@ -239,15 +239,15 @@ int audio_update(int16 *buffer)
   /* Audio filtering */
   if (config.filter)
   {
-    int32 i, l, r;
+    s32 i, l, r;
 
     if (config.filter & 1)
     {
       /* single-pole low-pass filter (6 dB/octave) */
-      uint32 factora  = (config.lp_range << 16) / 100;
-      uint32 factorb  = 0x10000 - factora;
-      int32 ll = llp;
-      int32 rr = rrp;
+      u32 factora  = (config.lp_range << 16) / 100;
+      u32 factorb  = 0x10000 - factora;
+      s32 ll = llp;
+      s32 rr = rrp;
 
       for (i = 0; i < size; i ++)
       {
@@ -322,16 +322,16 @@ void system_reset(void)
   audio_reset();
 }
 
-void system_frame_gen(int do_skip)
+void system_frame_gen(s32 do_skip)
 {
   /* line counters */
-  int start, end, line = 0;
+  s32 start, end, line = 0;
 
   /* Z80 interrupt flag */
-  int zirq = 1;
+  s32 zirq = 1;
 
   /* reload H Counter */
-  int h_counter = reg[10];
+  s32 h_counter = reg[10];
 
   /* reset frame cycle counter */
   mcycles_vdp = 0;
@@ -350,7 +350,7 @@ void system_frame_gen(int do_skip)
   if (bitmap.viewport.changed & 2)
   {
     /* interlaced modes */
-    int old_interlaced = interlaced;
+    s32 old_interlaced = interlaced;
     interlaced = (reg[12] & 0x02) >> 1;
 
     if (old_interlaced != interlaced)
@@ -667,16 +667,16 @@ void system_frame_gen(int do_skip)
   Z80.cycles -= mcycles_vdp;
 }
 
-void system_frame_scd(int do_skip)
+void system_frame_scd(s32 do_skip)
 {
   /* line counters */
-  int start, end, line = 0;
+  s32 start, end, line = 0;
 
   /* Z80 interrupt flag */
-  int zirq = 1;
+  s32 zirq = 1;
 
   /* reload H Counter */
-  int h_counter = reg[10];
+  s32 h_counter = reg[10];
 
   /* reset frame cycle counters */
   mcycles_vdp = 0;
@@ -696,7 +696,7 @@ void system_frame_scd(int do_skip)
   if (bitmap.viewport.changed & 2)
   {
     /* interlaced modes */
-    int old_interlaced = interlaced;
+    s32 old_interlaced = interlaced;
     interlaced = (reg[12] & 0x02) >> 1;
 
     if (old_interlaced != interlaced)
@@ -1000,13 +1000,13 @@ void system_frame_scd(int do_skip)
   m68k.cycles -= mcycles_vdp;
 }
 
-void system_frame_sms(int do_skip)
+void system_frame_sms(s32 do_skip)
 {
   /* line counter */
-  int start, end, line = 0;
+  s32 start, end, line = 0;
 
   /* reload H Counter */
-  int h_counter = reg[10];
+  s32 h_counter = reg[10];
 
   /* reset line master cycle count */
   mcycles_vdp = 0;
@@ -1029,7 +1029,7 @@ void system_frame_sms(int do_skip)
     if (system_hw & SYSTEM_MD)
     {
       /* interlaced mode */
-      int old_interlaced  = interlaced;
+      s32 old_interlaced  = interlaced;
       interlaced = (reg[12] & 0x02) >> 1;
       if (old_interlaced != interlaced)
       {
@@ -1072,7 +1072,7 @@ void system_frame_sms(int do_skip)
     else
     {
       /* check for VDP extended modes */
-      int mode = (reg[0] & 0x06) | (reg[1] & 0x18);
+      s32 mode = (reg[0] & 0x06) | (reg[1] & 0x18);
 
       /* update active height */
       if (mode == 0x0E)

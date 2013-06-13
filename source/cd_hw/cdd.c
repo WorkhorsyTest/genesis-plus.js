@@ -38,7 +38,7 @@
 #include "shared.h"
 
 /* BCD conversion lookup tables */
-static const uint8 lut_BCD_8[100] =
+static const u8 lut_BCD_8[100] =
 {
   0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 
   0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 
@@ -52,7 +52,7 @@ static const uint8 lut_BCD_8[100] =
   0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 
 };
 
-static const uint16 lut_BCD_16[100] =
+static const u16 lut_BCD_16[100] =
 {
   0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006, 0x0007, 0x0008, 0x0009, 
   0x0100, 0x0101, 0x0102, 0x0103, 0x0104, 0x0105, 0x0106, 0x0107, 0x0108, 0x0109, 
@@ -67,14 +67,14 @@ static const uint16 lut_BCD_16[100] =
 };
 
 /* pre-build TOC */
-static const uint16 toc_snatcher[21] =
+static const u16 toc_snatcher[21] =
 {
   56014,   495, 10120, 20555, 1580, 5417, 12502, 16090,  6553, 9681,
    8148, 20228,  8622,  6142, 5858, 1287,  7424,  3535, 31697, 2485,
   31380
 };
 
-static const uint16 toc_lunar[52] =
+static const u16 toc_lunar[52] =
 {
   5422, 1057, 7932, 5401, 6380, 6592, 5862,  5937, 5478, 5870,
   6673, 6613, 6429, 4996, 4977, 5657, 3720,  5892, 3140, 3263,
@@ -84,26 +84,26 @@ static const uint16 toc_lunar[52] =
   685, 3167
 };
 
-static const uint32 toc_shadow[15] =
+static const u32 toc_shadow[15] =
 {
   10226, 70054, 11100, 12532, 12444, 11923, 10059, 10167, 10138, 13792,
   11637,  2547,  2521,  3856, 900
 };
 
-static const uint32 toc_dungeon[13] =
+static const u32 toc_dungeon[13] =
 {
   2250, 22950, 16350, 24900, 13875, 19950, 13800, 15375, 17400, 17100,
   3325,  6825, 25275
 };
 
-static const uint32 toc_ffight[26] =
+static const u32 toc_ffight[26] =
 {
   11994, 9742, 10136, 9685, 9553, 14588, 9430, 8721, 9975, 9764,
   9704, 12796, 585, 754, 951, 624, 9047, 1068, 817, 9191, 1024,
   14562, 10320, 8627, 3795, 3047
 };
 
-static const uint32 toc_ffightj[29] =
+static const u32 toc_ffightj[29] =
 {
   11994, 9752, 10119, 9690, 9567, 14575, 9431, 8731, 9965, 9763,
   9716, 12791, 579, 751, 958, 630, 9050, 1052, 825, 9193, 1026,
@@ -111,7 +111,7 @@ static const uint32 toc_ffightj[29] =
 };
 
 /* supported WAVE file header (16-bit stereo samples @44.1kHz) */
-static const unsigned char waveHeader[32] =
+static const u8 waveHeader[32] =
 {
   0x57,0x41,0x56,0x45,0x66,0x6d,0x74,0x20,0x10,0x00,0x00,0x00,0x01,0x00,0x02,0x00,
   0x44,0xac,0x00,0x00,0x10,0xb1,0x02,0x00,0x04,0x00,0x10,0x00,0x64,0x61,0x74,0x61
@@ -168,9 +168,9 @@ void cdd_reset(void)
   cdd.audio[0] = cdd.audio[1] = 0;
 }
 
-int cdd_context_save(uint8 *state)
+s32 cdd_context_save(u8 *state)
 {
-  int bufferptr = 0;
+  s32 bufferptr = 0;
 
   save_param(&cdd.cycles, sizeof(cdd.cycles));
   save_param(&cdd.latency, sizeof(cdd.latency));
@@ -183,10 +183,10 @@ int cdd_context_save(uint8 *state)
   return bufferptr;
 }
 
-int cdd_context_load(uint8 *state)
+s32 cdd_context_load(u8 *state)
 {
-  int lba;
-  int bufferptr = 0;
+  s32 lba;
+  s32 bufferptr = 0;
 
   load_param(&cdd.cycles, sizeof(cdd.cycles));
   load_param(&cdd.latency, sizeof(cdd.latency));
@@ -221,7 +221,7 @@ int cdd_context_load(uint8 *state)
   return bufferptr;
 }
 
-int cdd_load(char *filename, char *header)
+s32 cdd_load(char *filename, char *header)
 {
   char fname[256];
   char line[128];
@@ -360,8 +360,8 @@ int cdd_load(char *filename, char *header)
   /* automatically retrieve audio tracks infos from .cue file */
   if (fd)
   {
-    int pregap = 0;
-    int mm, ss, bb;
+    s32 pregap = 0;
+    s32 mm, ss, bb;
         
     /* skip first (DATA) track */
     while (!strstr(line, "INDEX 01") && !strstr(line, "INDEX 1"))
@@ -533,7 +533,7 @@ int cdd_load(char *filename, char *header)
   /* ISO+WAV audio tracks auto-detection */
   else if (cdd.sectorSize == 2048)
   {
-    int i, offset;
+    s32 i, offset;
 
     /* set pointer at the end of filename */
     ptr = fname + strlen(fname) - 4;
@@ -562,7 +562,7 @@ int cdd_load(char *filename, char *header)
     /* repeat until no more valid track files can be found */
     while (fd)
     {
-      unsigned char head[32];
+      u8 head[32];
 
       /* make sure this is a valid WAVE file (16-bit stereo @44.1kHz only) */
       fseek(fd, 8, SEEK_SET);
@@ -588,7 +588,7 @@ int cdd_load(char *filename, char *header)
         /* auto-detect PAUSE within audio files */
         fseek(fd, 100 * 2352, SEEK_SET);
         fread(head, 4, 1, fd);
-        if (*(int32 *)head == 0)
+        if (*(s32 *)head == 0)
         {
           /* assume 2s PAUSE is included at the beginning of the file */
           cdd.toc.tracks[cdd.toc.last].offset -= 150 * 2352;
@@ -726,7 +726,7 @@ void cdd_unload(void)
 {
   if (cdd.loaded)
   {
-    int i;
+    s32 i;
 
     /* close CD tracks */
     for (i=0; i<cdd.toc.last; i++)
@@ -755,7 +755,7 @@ void cdd_unload(void)
   cdd.sectorSize = 0;
 }
 
-void cdd_read_data(uint8 *dst)
+void cdd_read_data(u8 *dst)
 {
   /* only read DATA track sectors */
   if ((cdd.lba >= 0) && (cdd.lba < cdd.toc.tracks[0].end))
@@ -772,11 +772,11 @@ void cdd_read_data(uint8 *dst)
   }
 }
 
-void cdd_read_audio(unsigned int samples)
+void cdd_read_audio(u32 samples)
 {
   /* previous audio outputs */
-  int16 l = cdd.audio[0];
-  int16 r = cdd.audio[1];
+  s16 l = cdd.audio[0];
+  s16 r = cdd.audio[1];
 
   /* get number of internal clocks (samples) needed */
   samples = blip_clocks_needed(blip[0], samples);
@@ -784,19 +784,19 @@ void cdd_read_audio(unsigned int samples)
   /* audio track playing ? */
   if (!scd.regs[0x36>>1].byte.h && cdd.toc.tracks[cdd.index].fd)
   {
-    int i, mul, delta;
+    s32 i, mul, delta;
 
     /* current CD-DA fader volume */
-    int curVol = cdd.volume;
+    s32 curVol = cdd.volume;
 
     /* CD-DA fader volume setup (0-1024) */
-    int endVol = scd.regs[0x34>>1].w >> 4;
+    s32 endVol = scd.regs[0x34>>1].w >> 4;
 
     /* use CDD buffer as temporary buffer */
 #ifdef LSB_FIRST
-    int16 *ptr = (int16 *) (cdc.ram);
+    s16 *ptr = (s16 *) (cdc.ram);
 #else
-    uint8 *ptr = cdc.ram;
+    u8 *ptr = cdc.ram;
 #endif
 
     /* read samples from current block */
@@ -814,7 +814,7 @@ void cdd_read_audio(unsigned int samples)
       delta = ((ptr[0] * mul) / 1024) - l;
       ptr++;
 #else
-      delta = (((int16)((ptr[0] + ptr[1]*256)) * mul) / 1024) - l;
+      delta = (((s16)((ptr[0] + ptr[1]*256)) * mul) / 1024) - l;
       ptr += 2;
 #endif
       l += delta;
@@ -825,7 +825,7 @@ void cdd_read_audio(unsigned int samples)
       delta = ((ptr[0] * mul) / 1024) - r;
       ptr++;
 #else
-      delta = (((int16)((ptr[0] + ptr[1]*256)) * mul) / 1024) - r;
+      delta = (((s16)((ptr[0] + ptr[1]*256)) * mul) / 1024) - r;
       ptr += 2;
 #endif
       r += delta;
@@ -876,7 +876,7 @@ void cdd_read_audio(unsigned int samples)
 void cdd_update(void)
 {  
 #ifdef LOG_CDD
-  error("LBA = %d (track n°%d)(latency=%d)\n", cdd.lba, cdd.index, cdd.latency);
+  error("LBA = %d (track n\B0%d)(latency=%d)\n", cdd.lba, cdd.index, cdd.latency);
 #endif
   
   /* seeking disc */
@@ -907,15 +907,15 @@ void cdd_update(void)
     if (!cdd.index)
     {
       /* DATA sector header (CD-ROM Mode 1) */
-      uint8 header[4];
-      uint32 msf = cdd.lba + 150;
+      u8 header[4];
+      u32 msf = cdd.lba + 150;
       header[0] = lut_BCD_8[(msf / 75) / 60];
       header[1] = lut_BCD_8[(msf / 75) % 60];
       header[2] = lut_BCD_8[(msf % 75)];
       header[3] = 0x01;
 
       /* data track sector read is controlled by CDC */
-      cdd.lba += cdc_decoder_update(*(uint32 *)(header));
+      cdd.lba += cdc_decoder_update(*(u32 *)(header));
     }
     else if (cdd.index < cdd.toc.last)
     {
@@ -1064,7 +1064,7 @@ void cdd_process(void)
       {
         case 0x00:  /* Current Absolute Time (MM:SS:FF) */
         {
-          int lba = cdd.lba + 150;
+          s32 lba = cdd.lba + 150;
           scd.regs[0x38>>1].w = cdd.status << 8;
           scd.regs[0x3a>>1].w = lut_BCD_16[(lba/75)/60];
           scd.regs[0x3c>>1].w = lut_BCD_16[(lba/75)%60];
@@ -1075,7 +1075,7 @@ void cdd_process(void)
 
         case 0x01:  /* Current Track Relative Time (MM:SS:FF) */
         {
-          int lba = cdd.lba - cdd.toc.tracks[cdd.index].start;
+          s32 lba = cdd.lba - cdd.toc.tracks[cdd.index].start;
           scd.regs[0x38>>1].w = (cdd.status << 8) | 0x01;
           scd.regs[0x3a>>1].w = lut_BCD_16[(lba/75)/60];
           scd.regs[0x3c>>1].w = lut_BCD_16[(lba/75)%60];
@@ -1096,7 +1096,7 @@ void cdd_process(void)
 
         case 0x03:  /* Total length (MM:SS:FF) */
         {
-          int lba = cdd.toc.end + 150;
+          s32 lba = cdd.toc.end + 150;
           scd.regs[0x38>>1].w = (cdd.status << 8) | 0x03;
           scd.regs[0x3a>>1].w = lut_BCD_16[(lba/75)/60];
           scd.regs[0x3c>>1].w = lut_BCD_16[(lba/75)%60];
@@ -1117,8 +1117,8 @@ void cdd_process(void)
 
         case 0x05:  /* Track Start Time (MM:SS:FF) */
         {
-          int track = scd.regs[0x46>>1].byte.h * 10 + scd.regs[0x46>>1].byte.l;
-          int lba = cdd.toc.tracks[track-1].start + 150;
+          s32 track = scd.regs[0x46>>1].byte.h * 10 + scd.regs[0x46>>1].byte.l;
+          s32 lba = cdd.toc.tracks[track-1].start + 150;
           scd.regs[0x38>>1].w = (cdd.status << 8) | 0x05;
           scd.regs[0x3a>>1].w = lut_BCD_16[(lba/75)/60];
           scd.regs[0x3c>>1].w = lut_BCD_16[(lba/75)%60];
@@ -1146,10 +1146,10 @@ void cdd_process(void)
     case 0x03:  /* Play  */
     {
       /* reset track index */
-      int index = 0;
+      s32 index = 0;
 
       /* new LBA position */
-      int lba = ((scd.regs[0x44>>1].byte.h * 10 + scd.regs[0x44>>1].byte.l) * 60 + 
+      s32 lba = ((scd.regs[0x44>>1].byte.h * 10 + scd.regs[0x44>>1].byte.l) * 60 + 
                  (scd.regs[0x46>>1].byte.h * 10 + scd.regs[0x46>>1].byte.l)) * 75 +
                  (scd.regs[0x48>>1].byte.h * 10 + scd.regs[0x48>>1].byte.l) - 150;
 
@@ -1229,10 +1229,10 @@ void cdd_process(void)
     case 0x04:  /* Seek */
     {
       /* reset track index */
-      int index = 0;
+      s32 index = 0;
 
       /* new LBA position */
-      int lba = ((scd.regs[0x44>>1].byte.h * 10 + scd.regs[0x44>>1].byte.l) * 60 + 
+      s32 lba = ((scd.regs[0x44>>1].byte.h * 10 + scd.regs[0x44>>1].byte.l) * 60 + 
                  (scd.regs[0x46>>1].byte.h * 10 + scd.regs[0x46>>1].byte.l)) * 75 +
                  (scd.regs[0x48>>1].byte.h * 10 + scd.regs[0x48>>1].byte.l) - 150;
 
