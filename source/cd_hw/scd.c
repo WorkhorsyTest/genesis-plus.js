@@ -1043,7 +1043,7 @@ static void scd_write_word(u32 address, u32 data)
 }
 
 
-void scd_init(void)
+void scd_init()
 {
   s32 i;
   

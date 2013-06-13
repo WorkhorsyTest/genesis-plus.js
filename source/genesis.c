@@ -55,7 +55,7 @@ static u8 tmss[4];     /* TMSS security register */
 /* Init, reset, shutdown functions                                          */
 /*--------------------------------------------------------------------------*/
 
-void gen_init(void)
+void gen_init()
 {
   int i;
 
@@ -412,7 +412,7 @@ void gen_bankswitch_w(u32 data)
   }
 }
 
-u32 gen_bankswitch_r(void)
+u32 gen_bankswitch_r()
 {
   /* check if BOOT ROM is loaded */
   if (system_bios & SYSTEM_MD)

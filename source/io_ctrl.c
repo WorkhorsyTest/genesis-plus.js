@@ -56,14 +56,14 @@ u8 region_code = REGION_USA;
 static struct port_t
 {
   void (*data_w)(u8 data, u8 mask);
-  u8 (*data_r)(void);
+  u8 (*data_r)();
 } port[3];
 
 static void dummy_write(u8 data, u8 mask)
 {
 }
 
-static u8 dummy_read(void)
+static u8 dummy_read()
 {
   return 0x7F;
 }
@@ -72,7 +72,7 @@ static u8 dummy_read(void)
  * I/O chip initialization                                                   *
  *                                                                           *
  *****************************************************************************/
-void io_init(void)
+void io_init()
 {
   /* Initialize connected peripherals */
   input_init();
@@ -251,7 +251,7 @@ void io_init(void)
 }
 
 
-void io_reset(void)
+void io_reset()
 {
   /* Reset I/O registers */
   if ((system_hw & SYSTEM_PBC) == SYSTEM_MD)

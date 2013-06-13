@@ -63,11 +63,11 @@ extern u8 zstate;
 extern u8 pico_current;
 
 /* Function prototypes */
-extern void gen_init(void);
+extern void gen_init();
 extern void gen_reset(int hard_reset);
 extern void gen_tmss_w(u32 offset, u32 data);
 extern void gen_bankswitch_w(u32 data);
-extern u32 gen_bankswitch_r(void);
+extern u32 gen_bankswitch_r();
 extern void gen_zbusreq_w(u32 state, u32 cycles);
 extern void gen_zreset_w(u32 state, u32 cycles);
 extern void gen_zbank_w(u32 state);

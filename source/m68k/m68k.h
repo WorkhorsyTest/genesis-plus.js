@@ -245,8 +245,8 @@ typedef struct
 
   /* Callbacks to host */
   s32  (*int_ack_callback)(s32 int_line);           /* Interrupt Acknowledge */
-  void (*reset_instr_callback)(void);               /* Called when a RESET instruction is encountered */
-  s32  (*tas_instr_callback)(void);                 /* Called when a TAS instruction is encountered, allows / disallows writeback */
+  void (*reset_instr_callback)();               /* Called when a RESET instruction is encountered */
+  s32  (*tas_instr_callback)();                 /* Called when a TAS instruction is encountered, allows / disallows writeback */
   void (*set_fc_callback)(u32 new_fc);     /* Called when the CPU function code changes */
 } m68ki_cpu_core;
 
@@ -287,7 +287,7 @@ void m68k_set_int_ack_callback(s32  (*callback)(s32 int_level));
  * The CPU calls this callback every time it encounters a RESET instruction.
  * Default behavior: do nothing.
  */
-void m68k_set_reset_instr_callback(void  (*callback)(void));
+void m68k_set_reset_instr_callback(void  (*callback)());
 #endif
 
 #if M68K_TAS_HAS_CALLBACK == OPT_ON
@@ -296,7 +296,7 @@ void m68k_set_reset_instr_callback(void  (*callback)(void));
  * The CPU calls this callback every time it encounters a TAS instruction.
  * Default behavior: return 1, allow writeback.
  */
-void m68k_set_tas_instr_callback(s32  (*callback)(void));
+void m68k_set_tas_instr_callback(s32  (*callback)());
 #endif
 
 #if M68K_EMULATE_FC == OPT_ON
@@ -318,14 +318,14 @@ void m68k_set_fc_callback(void  (*callback)(u32 new_fc));
 /* Do whatever initialisations the core requires.  Should be called
  * at least once at init time.
  */
-extern void m68k_init(void);
-extern void s68k_init(void);
+extern void m68k_init();
+extern void s68k_init();
 
 /* Pulse the RESET pin on the CPU.
  * You *MUST* reset the CPU at least once to initialize the emulation
  */
-extern void m68k_pulse_reset(void);
-extern void s68k_pulse_reset(void);
+extern void m68k_pulse_reset();
+extern void s68k_pulse_reset();
 
 /* Run until given cycle count is reached */
 extern void m68k_run(u32 cycles);
@@ -341,10 +341,10 @@ extern void m68k_update_irq(u32 mask);
 extern void s68k_update_irq(u32 mask);
 
 /* Halt the CPU as if you pulsed the HALT pin. */
-extern void m68k_pulse_halt(void);
-extern void m68k_clear_halt(void);
-extern void s68k_pulse_halt(void);
-extern void s68k_clear_halt(void);
+extern void m68k_pulse_halt();
+extern void m68k_clear_halt();
+extern void s68k_pulse_halt();
+extern void s68k_clear_halt();
 
 
 /* Peek at the internals of a CPU context.  This can either be a context

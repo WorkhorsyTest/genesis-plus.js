@@ -193,12 +193,12 @@ INLINE u8 phaser_read(int port)
   return temp & 0x7F;
 }
 
-u8 phaser_1_read(void)
+u8 phaser_1_read()
 {
   return phaser_read(0);
 }
 
-u8 phaser_2_read(void)
+u8 phaser_2_read()
 {
   return phaser_read(4);
 }
@@ -208,7 +208,7 @@ u8 phaser_2_read(void)
 /*  Sega Menacer                                                            */
 /*--------------------------------------------------------------------------*/
 
-u8 menacer_read(void)
+u8 menacer_read()
 {
   /* D0=??? (INPUT_B), D1=TRIGGER (INPUT_A), D2=??? (INPUT_C), D3= START (INPUT_START) (active high) */
   /* TL & TR pins always return 0 (normally set as output)  */
@@ -222,7 +222,7 @@ u8 menacer_read(void)
 /*  Konami Justifiers                                                       */
 /*--------------------------------------------------------------------------*/
 
-u8 justifier_read(void)
+u8 justifier_read()
 {
   /* Gun detection */
   if (lightgun.State & 0x40)

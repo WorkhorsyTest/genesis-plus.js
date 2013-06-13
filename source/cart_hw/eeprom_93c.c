@@ -242,7 +242,7 @@ void eeprom_93c_write(u8 data)
   eeprom_93c.clk = (data >> BIT_CLK) & 1;
 }
 
-u8 eeprom_93c_read(void)
+u8 eeprom_93c_read()
 {
   return ((eeprom_93c.cs << BIT_CS) | (eeprom_93c.data << BIT_DATA) | (1 << BIT_CLK));
 }

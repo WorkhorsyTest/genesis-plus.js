@@ -4,7 +4,7 @@
 t_config config;
 
 
-void set_config_defaults(void)
+void set_config_defaults()
 {
   int i;
 

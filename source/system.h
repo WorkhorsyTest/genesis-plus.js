@@ -105,12 +105,12 @@ extern u32 system_clock;
 
 /* Function prototypes */
 extern s32 audio_init(s32 samplerate, double framerate);
-extern void audio_reset(void);
-extern void audio_shutdown(void);
+extern void audio_reset();
+extern void audio_shutdown();
 extern s32 audio_update(s16 *buffer);
-extern void audio_set_equalizer(void);
-extern void system_init(void);
-extern void system_reset(void);
+extern void audio_set_equalizer();
+extern void system_init();
+extern void system_reset();
 extern void system_frame_gen(s32 do_skip);
 extern void system_frame_scd(s32 do_skip);
 extern void system_frame_sms(s32 do_skip);

@@ -239,7 +239,7 @@ static const md_entry_t rom_database[CART_CNT] =
           Cart Hardware initialization 
 *************************************************************/
 
-void md_cart_init(void)
+void md_cart_init()
 {
   int i;
 

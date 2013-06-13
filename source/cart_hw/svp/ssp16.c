@@ -352,7 +352,7 @@ static int last_iram = 0;
 /* register i/o handlers */
 
 /* 0-4, 13 */
-static u32 read_unknown(void)
+static u32 read_unknown()
 {
 #ifdef LOG_SVP
   elprintf(EL_ANOMALY|EL_SVP, "ssp FIXME: unknown read @ %04x", GET_PPC_OFFS());
@@ -378,7 +378,7 @@ static void write_ST(u32 d)
 }
 
 /* 5 */
-static u32 read_STACK(void)
+static u32 read_STACK()
 {
   --rSTACK;
   if ((s16)rSTACK < 0) {
@@ -402,7 +402,7 @@ static void write_STACK(u32 d)
 }
 
 /* 6 */
-static u32 read_PC(void)
+static u32 read_PC()
 {
   /* g_cycles--; */
   return GET_PC();
@@ -415,7 +415,7 @@ static void write_PC(u32 d)
 }
 
 /* 7 */
-static u32 read_P(void)
+static u32 read_P()
 {
   int m1 = (s16)rX;
   int m2 = (s16)rY;
@@ -591,7 +591,7 @@ static u32 pm_io(int reg, int write, u32 d)
 }
 
 /* 8 */
-static u32 read_PM0(void)
+static u32 read_PM0()
 {
   u32 d = pm_io(0, 0, 0);
   if (d != (u32)-1) return d;
@@ -620,7 +620,7 @@ static void write_PM0(u32 d)
 }
 
 /* 9 */
-static u32 read_PM1(void)
+static u32 read_PM1()
 {
   u32 d = pm_io(1, 0, 0);
   if (d != (u32)-1) return d;
@@ -643,7 +643,7 @@ static void write_PM1(u32 d)
 }
 
 /* 10 */
-static u32 read_PM2(void)
+static u32 read_PM2()
 {
   u32 d = pm_io(2, 0, 0);
   if (d != (u32)-1) return d;
@@ -666,7 +666,7 @@ static void write_PM2(u32 d)
 }
 
 /* 11 */
-static u32 read_XST(void)
+static u32 read_XST()
 {
   /* can be removed? */
   u32 d = pm_io(3, 0, 0);
@@ -690,7 +690,7 @@ static void write_XST(u32 d)
 }
 
 /* 12 */
-static u32 read_PM4(void)
+static u32 read_PM4()
 {
   u32 d = pm_io(4, 0, 0);
   if (d == 0) {
@@ -729,7 +729,7 @@ static void write_PM4(u32 d)
 }
 
 /* 14 */
-static u32 read_PMC(void)
+static u32 read_PMC()
 {
 #ifdef LOG_SVP
   elprintf(EL_SVP, "PMC r a %04x (st %c) @ %04x", rPMC.byte.h,
@@ -772,7 +772,7 @@ static void write_PMC(u32 d)
 }
 
 /* 15 */
-static u32 read_AL(void)
+static u32 read_AL()
 {
   if (*(PC-1) == 0x000f) {
 #ifdef LOG_SVP
@@ -789,7 +789,7 @@ static void write_AL(u32 d)
 }
 
 
-typedef u32 (*read_func_t)(void);
+typedef u32 (*read_func_t)();
 typedef void (*write_func_t)(u32 d);
 
 static read_func_t read_handlers[16] =
@@ -986,7 +986,7 @@ void ssp1601_reset(ssp1601_t *l_ssp)
 
 
 #ifdef USE_DEBUGGER
-static void debug_dump(void)
+static void debug_dump()
 {
   printf("GR0:   %04x    X: %04x    Y: %04x  A: %08x\n", ssp->gr[SSP_GR0].byte.h, rX, rY, ssp->gr[SSP_A].v);
   printf("PC:    %04x  (%04x)                P: %08x\n", GET_PC(), GET_PC() << 1, ssp->gr[SSP_P].v);
@@ -1000,7 +1000,7 @@ static void debug_dump(void)
   elprintf(EL_SVP, "cycles: %i, emu_status: %x", g_cycles, ssp->emu_status);
 }
 
-static void debug_dump_mem(void)
+static void debug_dump_mem()
 {
   int h, i;
   printf("RAM0\n");

@@ -65,14 +65,14 @@ static s32 default_int_ack_callback(s32 int_level)
 
 #if M68K_EMULATE_RESET == OPT_ON
 /* Called when a reset instruction is executed */
-static void default_reset_instr_callback(void)
+static void default_reset_instr_callback()
 {
 }
 #endif
 
 #if M68K_TAS_HAS_CALLBACK == OPT_ON
 /* Called when a tas instruction is executed */
-static s32 default_tas_instr_callback(void)
+static s32 default_tas_instr_callback()
 {
   return 1; // allow writeback
 }
@@ -182,14 +182,14 @@ void s68k_set_int_ack_callback(s32  (*callback)(s32 int_level))
 #endif
 
 #if M68K_EMULATE_RESET == OPT_ON
-void s68k_set_reset_instr_callback(void  (*callback)(void))
+void s68k_set_reset_instr_callback(void  (*callback)())
 {
   CALLBACK_RESET_INSTR = callback ? callback : default_reset_instr_callback;
 }
 #endif
 
 #if M68K_TAS_HAS_CALLBACK == OPT_ON
-void s68k_set_tas_instr_callback(s32  (*callback)(void))
+void s68k_set_tas_instr_callback(s32  (*callback)())
 {
   CALLBACK_TAS_INSTR = callback ? callback : default_tas_instr_callback;
 }
@@ -267,7 +267,7 @@ void s68k_run(u32 cycles)
   }
 }
 
-void s68k_init(void)
+void s68k_init()
 {
 #ifdef BUILD_TABLES
   static uint emulation_initialized = 0;
@@ -295,7 +295,7 @@ void s68k_init(void)
 }
 
 /* Pulse the RESET line on the CPU */
-void s68k_pulse_reset(void)
+void s68k_pulse_reset()
 {
   /* Clear all stop levels */
   CPU_STOPPED = 0;
@@ -334,7 +334,7 @@ void s68k_pulse_reset(void)
   USE_CYCLES(CYC_EXCEPTION[EXCEPTION_RESET]);
 }
 
-void s68k_pulse_halt(void)
+void s68k_pulse_halt()
 {
   /* Pulse the HALT line on the CPU */
   CPU_STOPPED |= STOP_LEVEL_HALT;

@@ -113,12 +113,12 @@ INLINE void sportspad_write(int index, u8 data, u8 mask)
   sportspad[index].State = data;
 }
 
-u8 sportspad_1_read(void)
+u8 sportspad_1_read()
 {
   return sportspad_read(0);
 }
 
-u8 sportspad_2_read(void)
+u8 sportspad_2_read()
 {
   return sportspad_read(4);
 }

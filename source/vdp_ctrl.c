@@ -93,18 +93,18 @@ const u8 *hctab;               /* pointer to H Counter table */
 /* Function pointers */
 void (*vdp_68k_data_w)(u32 data);
 void (*vdp_z80_data_w)(u32 data);
-u32 (*vdp_68k_data_r)(void);
-u32 (*vdp_z80_data_r)(void);
+u32 (*vdp_68k_data_r)();
+u32 (*vdp_z80_data_r)();
 
 /* Function prototypes */
 static void vdp_68k_data_w_m4(u32 data);
 static void vdp_68k_data_w_m5(u32 data);
-static u32 vdp_68k_data_r_m4(void);
-static u32 vdp_68k_data_r_m5(void);
+static u32 vdp_68k_data_r_m4();
+static u32 vdp_68k_data_r_m5();
 static void vdp_z80_data_w_m4(u32 data);
 static void vdp_z80_data_w_m5(u32 data);
-static u32 vdp_z80_data_r_m4(void);
-static u32 vdp_z80_data_r_m5(void);
+static u32 vdp_z80_data_r_m4();
+static u32 vdp_z80_data_r_m5();
 static void vdp_z80_data_w_ms(u32 data);
 static void vdp_z80_data_w_gg(u32 data);
 static void vdp_z80_data_w_sg(u32 data);
@@ -181,7 +181,7 @@ static void (*const dma_func[16])(u32 length) =
 /* Init, reset, context functions                                           */
 /*--------------------------------------------------------------------------*/
 
-void vdp_init(void)
+void vdp_init()
 {
   /* PAL/NTSC timings */
   lines_per_frame = vdp_pal ? 313: 262;
@@ -201,7 +201,7 @@ void vdp_init(void)
   }
 }
 
-void vdp_reset(void)
+void vdp_reset()
 {
   int i;
 
@@ -2363,7 +2363,7 @@ static void vdp_68k_data_w_m5(u32 data)
   }
 }
 
-static u32 vdp_68k_data_r_m4(void)
+static u32 vdp_68k_data_r_m4()
 {
   /* VRAM address (interleaved format) */
   int index = ((addr << 1) & 0x3FC) | ((addr & 0x200) >> 8) | (addr & 0x3C00);
@@ -2378,7 +2378,7 @@ static u32 vdp_68k_data_r_m4(void)
   return *(u16 *) &vram[index];
 }
 
-static u32 vdp_68k_data_r_m5(void)
+static u32 vdp_68k_data_r_m5()
 {
   u16 data = 0;
 
@@ -2616,7 +2616,7 @@ static void vdp_z80_data_w_m5(u32 data)
   }
 }
 
-static u32 vdp_z80_data_r_m4(void)
+static u32 vdp_z80_data_r_m4()
 {
   /* Read buffer */
   u32 data = fifo[0];
@@ -2634,7 +2634,7 @@ static u32 vdp_z80_data_r_m4(void)
   return data;
 }
 
-static u32 vdp_z80_data_r_m5(void)
+static u32 vdp_z80_data_r_m5()
 {
   u32 data = 0;
 

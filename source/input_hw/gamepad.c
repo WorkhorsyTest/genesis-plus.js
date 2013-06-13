@@ -166,12 +166,12 @@ INLINE void gamepad_write(int port, u8 data, u8 mask)
 /*  Default ports handlers                                                  */
 /*--------------------------------------------------------------------------*/
 
-u8 gamepad_1_read(void)
+u8 gamepad_1_read()
 {
   return gamepad_read(0);
 }
 
-u8 gamepad_2_read(void)
+u8 gamepad_2_read()
 {
   return gamepad_read(4);
 }
@@ -190,7 +190,7 @@ void gamepad_2_write(u8 data, u8 mask)
 /*  4-WayPlay ports handler                                                 */
 /*--------------------------------------------------------------------------*/
 
-u8 wayplay_1_read(void)
+u8 wayplay_1_read()
 {
   if (pad_index < 4)
   {
@@ -201,7 +201,7 @@ u8 wayplay_1_read(void)
   return 0x70;
 }
 
-u8 wayplay_2_read(void)
+u8 wayplay_2_read()
 {
   return 0x7F;
 }

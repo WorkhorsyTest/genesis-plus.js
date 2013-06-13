@@ -67,6 +67,6 @@ extern T_EEPROM_93C eeprom_93c;
 /* Function prototypes */
 extern void eeprom_93c_init();
 extern void eeprom_93c_write(u8 data);
-extern u8 eeprom_93c_read(void);
+extern u8 eeprom_93c_read();
 
 #endif

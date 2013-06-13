@@ -41,8 +41,8 @@
 #define _SOUND_H_
 
 /* Function prototypes */
-extern void sound_init(void);
-extern void sound_reset(void);
+extern void sound_init();
+extern void sound_reset();
 extern int sound_context_save(u8 *state);
 extern int sound_context_load(u8 *state);
 extern int sound_update(u32 cycles);

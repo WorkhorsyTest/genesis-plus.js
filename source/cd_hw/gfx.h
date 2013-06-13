@@ -106,8 +106,8 @@ extern void cell_ram_1_write8(u32 address, u32 data);
 /***************************************************************/
 /*            Rotation / Scaling operation (2M mode)           */
 /***************************************************************/
-extern void gfx_init(void);
-extern void gfx_reset(void);
+extern void gfx_init();
+extern void gfx_reset();
 extern int gfx_context_save(u8 *state);
 extern int gfx_context_load(u8 *state);
 extern void gfx_start(u32 base, int cycles);

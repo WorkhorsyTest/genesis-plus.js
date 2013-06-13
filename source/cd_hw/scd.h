@@ -78,7 +78,7 @@ typedef struct
 } cd_hw_t;
 
 /* Function prototypes */
-extern void scd_init(void);
+extern void scd_init();
 extern void scd_reset(s32 hard);
 extern void scd_update(u32 cycles);
 extern void scd_end_frame(u32 cycles);

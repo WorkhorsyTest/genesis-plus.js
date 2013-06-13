@@ -82,12 +82,12 @@ extern const u8 *hctab;
 /* Function pointers */
 extern void (*vdp_68k_data_w)(u32 data);
 extern void (*vdp_z80_data_w)(u32 data);
-extern u32 (*vdp_68k_data_r)(void);
-extern u32 (*vdp_z80_data_r)(void);
+extern u32 (*vdp_68k_data_r)();
+extern u32 (*vdp_z80_data_r)();
 
 /* Function prototypes */
-extern void vdp_init(void);
-extern void vdp_reset(void);
+extern void vdp_init();
+extern void vdp_reset();
 extern int vdp_context_save(u8 *state);
 extern int vdp_context_load(u8 *state);
 extern void vdp_dma_update(u32 cycles);

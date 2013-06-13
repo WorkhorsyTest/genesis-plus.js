@@ -12,12 +12,12 @@
 #ifndef _H_YM2413_
 #define _H_YM2413_
 
-extern void YM2413Init(void);
-extern void YM2413ResetChip(void);
+extern void YM2413Init();
+extern void YM2413ResetChip();
 extern void YM2413Update(int *buffer, int length);
 extern void YM2413Write(u32 a, u32 v);
 extern u32 YM2413Read(u32 a);
-extern u8 *YM2413GetContextPtr(void);
-extern u32 YM2413GetContextSize(void);
+extern u8 *YM2413GetContextPtr();
+extern u32 YM2413GetContextSize();
 
 #endif /*_H_YM2413_*/

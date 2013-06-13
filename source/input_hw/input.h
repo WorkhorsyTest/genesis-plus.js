@@ -142,8 +142,8 @@ extern t_input input;
 extern int old_system[2];
 
 /* Function prototypes */
-extern void input_init(void);
-extern void input_reset(void);
-extern void input_refresh(void);
+extern void input_init();
+extern void input_reset();
+extern void input_refresh();
 
 #endif

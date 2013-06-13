@@ -60,7 +60,7 @@ extern void (*z80_writeport)(u32 port, u8 data);
 extern u8 (*z80_readport)(u32 port);
 
 extern void z80_init(const void *config, s32 (*irqcallback)(s32));
-extern void z80_reset (void);
+extern void z80_reset ();
 extern void z80_run(u32 cycles);
 extern void z80_get_context (void *dst);
 extern void z80_set_context (void *src);

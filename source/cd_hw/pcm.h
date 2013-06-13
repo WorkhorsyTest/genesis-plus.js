@@ -66,7 +66,7 @@ typedef struct
 
 /* Function prototypes */
 extern void pcm_init(blip_t* left, blip_t* right);
-extern void pcm_reset(void);
+extern void pcm_reset();
 extern s32 pcm_context_save(u8 *state);
 extern s32 pcm_context_load(u8 *state);
 extern void pcm_update(u32 samples);

@@ -47,8 +47,8 @@ extern u8 object_count;
 extern u16 spr_col;
 
 /* Function prototypes */
-extern void render_init(void);
-extern void render_reset(void);
+extern void render_init();
+extern void render_reset();
 extern void render_line(int line);
 extern void blank_line(int line, int offset, int width);
 extern void remap_line(int line);

@@ -155,12 +155,12 @@ INLINE void teamplayer_write(int port, u8 data, u8 mask)
   }
 }
 
-u8 teamplayer_1_read(void)
+u8 teamplayer_1_read()
 {
   return teamplayer_read(0);
 }
 
-u8 teamplayer_2_read(void)
+u8 teamplayer_2_read()
 {
   return teamplayer_read(1);
 }

@@ -1882,14 +1882,14 @@ static void init_tables(u8 dac_bits)
 
 
 /* initialize ym2612 emulator */
-void YM2612Init(void)
+void YM2612Init()
 {
   memset(&ym2612,0,sizeof(YM2612));
   init_tables(TL_BITS);
 }
 
 /* reset OPN registers */
-void YM2612ResetChip(void)
+void YM2612ResetChip()
 {
   s32 i;
 
@@ -1977,7 +1977,7 @@ void YM2612Write(u32 a, u32 v)
   }
 }
 
-u32 YM2612Read(void)
+u32 YM2612Read()
 {
   return ym2612.OPN.ST.status & 0xff;
 }

@@ -48,4 +48,4 @@ typedef struct
 } cd_cart_t;
 
 /* Function prototypes */
-extern void cd_cart_init(void);
+extern void cd_cart_init();

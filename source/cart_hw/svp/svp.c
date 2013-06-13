@@ -14,13 +14,13 @@
 
 svp_t *svp = NULL;
 
-void svp_init(void)
+void svp_init()
 {
   svp = (void *) ((char *)cart.rom + 0x200000);
   memset(svp, 0, sizeof(*svp));
 }
 
-void svp_reset(void)
+void svp_reset()
 {
   memcpy(svp->iram_rom + 0x800, cart.rom + 0x800, 0x20000 - 0x800);
   ssp1601_reset(&svp->ssp1601);

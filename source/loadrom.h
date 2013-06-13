@@ -64,10 +64,10 @@ extern ROMINFO rominfo;
 extern u8 romtype;
 
 /* Function prototypes */
-extern s32 load_bios(void);
+extern s32 load_bios();
 extern s32 load_rom(char *filename);
 extern void get_region(char *romheader);
-extern char *get_company(void);
+extern char *get_company();
 extern char *get_peripheral(s32 index);
 extern void getrominfo(char *romheader);
 

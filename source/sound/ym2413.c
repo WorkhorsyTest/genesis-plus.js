@@ -505,7 +505,7 @@ static s32  LFO_PM;
 static YM2413 ym2413;
 
 /* advance LFO to next sample */
-INLINE void advance_lfo(void)
+INLINE void advance_lfo()
 {
   /* LFO */
   ym2413.lfo_am_cnt += ym2413.lfo_am_inc;
@@ -519,7 +519,7 @@ INLINE void advance_lfo(void)
 }
 
 /* advance to next sample */
-INLINE void advance(void)
+INLINE void advance()
 {
   YM2413_OPLL_CH *CH;
   YM2413_OPLL_SLOT *op;
@@ -1005,7 +1005,7 @@ INLINE void rhythm_calc( YM2413_OPLL_CH *CH, u32 noise )
 
 
 /* generic table initialize */
-static s32 init_tables(void)
+static s32 init_tables()
 {
   s32 i,x;
   s32 n;
@@ -1072,7 +1072,7 @@ static s32 init_tables(void)
 }
 
 
-static void OPLL_initalize(void)
+static void OPLL_initalize()
 {
   s32 i;
 
@@ -1589,7 +1589,7 @@ static void OPLLWriteReg(s32 r, s32 v)
 }
 
 
-void YM2413Init(void)
+void YM2413Init()
 {
   init_tables();
 
@@ -1600,7 +1600,7 @@ void YM2413Init(void)
   OPLL_initalize();
 }
 
-void YM2413ResetChip(void)
+void YM2413ResetChip()
 {
   s32 c,s;
   s32 i;
@@ -1710,12 +1710,12 @@ void YM2413Update(s32 *buffer, s32 length)
   }
 }
 
-u8 *YM2413GetContextPtr(void)
+u8 *YM2413GetContextPtr()
 {
   return (u8 *)&ym2413;
 }
 
-u32 YM2413GetContextSize(void)
+u32 YM2413GetContextSize()
 {
   return sizeof(YM2413);
 }

@@ -681,8 +681,8 @@ static const u16 m68ki_exception_cycle_table[256] =
 };
 
 /* Read data immediately after the program counter */
-INLINE u32 m68ki_read_imm_16(void);
-INLINE u32 m68ki_read_imm_32(void);
+INLINE u32 m68ki_read_imm_16();
+INLINE u32 m68ki_read_imm_32();
 
 /* Read data with specific function code */
 INLINE u32 m68ki_read_8_fc  (u32 address, u32 fc);
@@ -695,64 +695,64 @@ INLINE void m68ki_write_16_fc(u32 address, u32 fc, u32 value);
 INLINE void m68ki_write_32_fc(u32 address, u32 fc, u32 value);
 
 /* Indexed and PC-relative ea fetching */
-INLINE u32 m68ki_get_ea_pcdi(void);
-INLINE u32 m68ki_get_ea_pcix(void);
+INLINE u32 m68ki_get_ea_pcdi();
+INLINE u32 m68ki_get_ea_pcix();
 INLINE u32 m68ki_get_ea_ix(u32 An);
 
 /* Operand fetching */
-INLINE u32 OPER_AY_AI_8(void);
-INLINE u32 OPER_AY_AI_16(void);
-INLINE u32 OPER_AY_AI_32(void);
-INLINE u32 OPER_AY_PI_8(void);
-INLINE u32 OPER_AY_PI_16(void);
-INLINE u32 OPER_AY_PI_32(void);
-INLINE u32 OPER_AY_PD_8(void);
-INLINE u32 OPER_AY_PD_16(void);
-INLINE u32 OPER_AY_PD_32(void);
-INLINE u32 OPER_AY_DI_8(void);
-INLINE u32 OPER_AY_DI_16(void);
-INLINE u32 OPER_AY_DI_32(void);
-INLINE u32 OPER_AY_IX_8(void);
-INLINE u32 OPER_AY_IX_16(void);
-INLINE u32 OPER_AY_IX_32(void);
+INLINE u32 OPER_AY_AI_8();
+INLINE u32 OPER_AY_AI_16();
+INLINE u32 OPER_AY_AI_32();
+INLINE u32 OPER_AY_PI_8();
+INLINE u32 OPER_AY_PI_16();
+INLINE u32 OPER_AY_PI_32();
+INLINE u32 OPER_AY_PD_8();
+INLINE u32 OPER_AY_PD_16();
+INLINE u32 OPER_AY_PD_32();
+INLINE u32 OPER_AY_DI_8();
+INLINE u32 OPER_AY_DI_16();
+INLINE u32 OPER_AY_DI_32();
+INLINE u32 OPER_AY_IX_8();
+INLINE u32 OPER_AY_IX_16();
+INLINE u32 OPER_AY_IX_32();
 
-INLINE u32 OPER_AX_AI_8(void);
-INLINE u32 OPER_AX_AI_16(void);
-INLINE u32 OPER_AX_AI_32(void);
-INLINE u32 OPER_AX_PI_8(void);
-INLINE u32 OPER_AX_PI_16(void);
-INLINE u32 OPER_AX_PI_32(void);
-INLINE u32 OPER_AX_PD_8(void);
-INLINE u32 OPER_AX_PD_16(void);
-INLINE u32 OPER_AX_PD_32(void);
-INLINE u32 OPER_AX_DI_8(void);
-INLINE u32 OPER_AX_DI_16(void);
-INLINE u32 OPER_AX_DI_32(void);
-INLINE u32 OPER_AX_IX_8(void);
-INLINE u32 OPER_AX_IX_16(void);
-INLINE u32 OPER_AX_IX_32(void);
+INLINE u32 OPER_AX_AI_8();
+INLINE u32 OPER_AX_AI_16();
+INLINE u32 OPER_AX_AI_32();
+INLINE u32 OPER_AX_PI_8();
+INLINE u32 OPER_AX_PI_16();
+INLINE u32 OPER_AX_PI_32();
+INLINE u32 OPER_AX_PD_8();
+INLINE u32 OPER_AX_PD_16();
+INLINE u32 OPER_AX_PD_32();
+INLINE u32 OPER_AX_DI_8();
+INLINE u32 OPER_AX_DI_16();
+INLINE u32 OPER_AX_DI_32();
+INLINE u32 OPER_AX_IX_8();
+INLINE u32 OPER_AX_IX_16();
+INLINE u32 OPER_AX_IX_32();
 
-INLINE u32 OPER_A7_PI_8(void);
-INLINE u32 OPER_A7_PD_8(void);
+INLINE u32 OPER_A7_PI_8();
+INLINE u32 OPER_A7_PD_8();
 
-INLINE u32 OPER_AW_8(void);
-INLINE u32 OPER_AW_16(void);
-INLINE u32 OPER_AW_32(void);
-INLINE u32 OPER_AL_8(void);
-INLINE u32 OPER_AL_16(void);
-INLINE u32 OPER_AL_32(void);
-INLINE u32 OPER_PCDI_8(void);
-INLINE u32 OPER_PCDI_16(void);
-INLINE u32 OPER_PCDI_32(void);
-INLINE u32 OPER_PCIX_8(void);
-INLINE u32 OPER_PCIX_16(void);
-INLINE u32 OPER_PCIX_32(void);
+INLINE u32 OPER_AW_8();
+INLINE u32 OPER_AW_16();
+INLINE u32 OPER_AW_32();
+INLINE u32 OPER_AL_8();
+INLINE u32 OPER_AL_16();
+INLINE u32 OPER_AL_32();
+INLINE u32 OPER_PCDI_8();
+INLINE u32 OPER_PCDI_16();
+INLINE u32 OPER_PCDI_32();
+INLINE u32 OPER_PCIX_8();
+INLINE u32 OPER_PCIX_16();
+INLINE u32 OPER_PCIX_32();
 
 /* Stack operations */
 INLINE void m68ki_push_16(u32 value);
 INLINE void m68ki_push_32(u32 value);
-INLINE u32 m68ki_pull_16(void);
-INLINE u32 m68ki_pull_32(void);
+INLINE u32 m68ki_pull_16();
+INLINE u32 m68ki_pull_32();
 
 /* Program flow operations */
 INLINE void m68ki_jump(u32 new_pc);
@@ -767,7 +767,7 @@ INLINE void m68ki_set_ccr(u32 value);               /* set the condition code re
 INLINE void m68ki_set_sr(u32 value);                /* set the status register */
 
 /* Exception processing */
-INLINE u32 m68ki_init_exception(void);              /* Initial exception processing */
+INLINE u32 m68ki_init_exception();              /* Initial exception processing */
 INLINE void m68ki_stack_frame_3word(u32 pc, u32 sr); /* Stack various frame types */
 #if M68K_EMULATE_ADDRESS_ERROR
 INLINE void m68ki_stack_frame_buserr(u32 sr);
@@ -775,17 +775,17 @@ INLINE void m68ki_stack_frame_buserr(u32 sr);
 INLINE void m68ki_exception_trap(u32 vector);
 INLINE void m68ki_exception_trapN(u32 vector);
 #if M68K_EMULATE_TRACE
-INLINE void m68ki_exception_trace(void);
+INLINE void m68ki_exception_trace();
 #endif
-static void m68ki_exception_privilege_violation(void); /* do not inline in order to reduce function size and allow inlining of read/write functions by the compile */
-INLINE void m68ki_exception_1010(void);
-INLINE void m68ki_exception_1111(void);
-INLINE void m68ki_exception_illegal(void);
+static void m68ki_exception_privilege_violation(); /* do not inline in order to reduce function size and allow inlining of read/write functions by the compile */
+INLINE void m68ki_exception_1010();
+INLINE void m68ki_exception_1111();
+INLINE void m68ki_exception_illegal();
 #if M68K_EMULATE_ADDRESS_ERROR
-INLINE void m68ki_exception_address_error(void);
+INLINE void m68ki_exception_address_error();
 #endif
 INLINE void m68ki_exception_interrupt(u32 int_level);
-INLINE void m68ki_check_interrupts(void);            /* ASG: check for interrupts */
+INLINE void m68ki_check_interrupts();            /* ASG: check for interrupts */
 
 /* ======================================================================== */
 /* =========================== UTILITY FUNCTIONS ========================== */
@@ -797,7 +797,7 @@ INLINE void m68ki_check_interrupts(void);            /* ASG: check for interrupt
 /* Handles all immediate reads, does address error check, function code setting,
  * and prefetching if they are enabled in m68kconf.h
  */
-INLINE u32 m68ki_read_imm_16(void)
+INLINE u32 m68ki_read_imm_16()
 {
   m68ki_set_fc(FLAG_S | FUNCTION_CODE_USER_PROGRAM) /* auto-disable (see m68kcpu.h) */
 #if M68K_CHECK_PC_ADDRESS_ERROR
@@ -818,7 +818,7 @@ INLINE u32 m68ki_read_imm_16(void)
 #endif /* M68K_EMULATE_PREFETCH */
 }
 
-INLINE u32 m68ki_read_imm_32(void)
+INLINE u32 m68ki_read_imm_32()
 {
 #if M68K_EMULATE_PREFETCH
   u32 temp_val;
@@ -943,7 +943,7 @@ INLINE void m68ki_write_32_fc(u32 address, u32 fc, u32 value)
 /* The program counter relative addressing modes cause operands to be
  * retrieved from program space, not data space.
  */
-INLINE u32 m68ki_get_ea_pcdi(void)
+INLINE u32 m68ki_get_ea_pcdi()
 {
   u32 old_pc = REG_PC;
   m68ki_use_program_space() /* auto-disable */
@@ -951,7 +951,7 @@ INLINE u32 m68ki_get_ea_pcdi(void)
 }
 
 
-INLINE u32 m68ki_get_ea_pcix(void)
+INLINE u32 m68ki_get_ea_pcix()
 {
   m68ki_use_program_space() /* auto-disable */
   return m68ki_get_ea_ix(REG_PC);
@@ -1017,53 +1017,53 @@ INLINE u32 m68ki_get_ea_ix(u32 An)
 
 
 /* Fetch operands */
-INLINE u32 OPER_AY_AI_8(void)  {u32 ea = EA_AY_AI_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_AY_AI_16(void) {u32 ea = EA_AY_AI_16(); return m68ki_read_16(ea);}
-INLINE u32 OPER_AY_AI_32(void) {u32 ea = EA_AY_AI_32(); return m68ki_read_32(ea);}
-INLINE u32 OPER_AY_PI_8(void)  {u32 ea = EA_AY_PI_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_AY_PI_16(void) {u32 ea = EA_AY_PI_16(); return m68ki_read_16(ea);}
-INLINE u32 OPER_AY_PI_32(void) {u32 ea = EA_AY_PI_32(); return m68ki_read_32(ea);}
-INLINE u32 OPER_AY_PD_8(void)  {u32 ea = EA_AY_PD_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_AY_PD_16(void) {u32 ea = EA_AY_PD_16(); return m68ki_read_16(ea);}
-INLINE u32 OPER_AY_PD_32(void) {u32 ea = EA_AY_PD_32(); return m68ki_read_32(ea);}
-INLINE u32 OPER_AY_DI_8(void)  {u32 ea = EA_AY_DI_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_AY_DI_16(void) {u32 ea = EA_AY_DI_16(); return m68ki_read_16(ea);}
-INLINE u32 OPER_AY_DI_32(void) {u32 ea = EA_AY_DI_32(); return m68ki_read_32(ea);}
-INLINE u32 OPER_AY_IX_8(void)  {u32 ea = EA_AY_IX_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_AY_IX_16(void) {u32 ea = EA_AY_IX_16(); return m68ki_read_16(ea);}
-INLINE u32 OPER_AY_IX_32(void) {u32 ea = EA_AY_IX_32(); return m68ki_read_32(ea);}
+INLINE u32 OPER_AY_AI_8()  {u32 ea = EA_AY_AI_8();  return m68ki_read_8(ea); }
+INLINE u32 OPER_AY_AI_16() {u32 ea = EA_AY_AI_16(); return m68ki_read_16(ea);}
+INLINE u32 OPER_AY_AI_32() {u32 ea = EA_AY_AI_32(); return m68ki_read_32(ea);}
+INLINE u32 OPER_AY_PI_8()  {u32 ea = EA_AY_PI_8();  return m68ki_read_8(ea); }
+INLINE u32 OPER_AY_PI_16() {u32 ea = EA_AY_PI_16(); return m68ki_read_16(ea);}
+INLINE u32 OPER_AY_PI_32() {u32 ea = EA_AY_PI_32(); return m68ki_read_32(ea);}
+INLINE u32 OPER_AY_PD_8()  {u32 ea = EA_AY_PD_8();  return m68ki_read_8(ea); }
+INLINE u32 OPER_AY_PD_16() {u32 ea = EA_AY_PD_16(); return m68ki_read_16(ea);}
+INLINE u32 OPER_AY_PD_32() {u32 ea = EA_AY_PD_32(); return m68ki_read_32(ea);}
+INLINE u32 OPER_AY_DI_8()  {u32 ea = EA_AY_DI_8();  return m68ki_read_8(ea); }
+INLINE u32 OPER_AY_DI_16() {u32 ea = EA_AY_DI_16(); return m68ki_read_16(ea);}
+INLINE u32 OPER_AY_DI_32() {u32 ea = EA_AY_DI_32(); return m68ki_read_32(ea);}
+INLINE u32 OPER_AY_IX_8()  {u32 ea = EA_AY_IX_8();  return m68ki_read_8(ea); }
+INLINE u32 OPER_AY_IX_16() {u32 ea = EA_AY_IX_16(); return m68ki_read_16(ea);}
+INLINE u32 OPER_AY_IX_32() {u32 ea = EA_AY_IX_32(); return m68ki_read_32(ea);}
 
-INLINE u32 OPER_AX_AI_8(void)  {u32 ea = EA_AX_AI_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_AX_AI_16(void) {u32 ea = EA_AX_AI_16(); return m68ki_read_16(ea);}
-INLINE u32 OPER_AX_AI_32(void) {u32 ea = EA_AX_AI_32(); return m68ki_read_32(ea);}
-INLINE u32 OPER_AX_PI_8(void)  {u32 ea = EA_AX_PI_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_AX_PI_16(void) {u32 ea = EA_AX_PI_16(); return m68ki_read_16(ea);}
-INLINE u32 OPER_AX_PI_32(void) {u32 ea = EA_AX_PI_32(); return m68ki_read_32(ea);}
-INLINE u32 OPER_AX_PD_8(void)  {u32 ea = EA_AX_PD_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_AX_PD_16(void) {u32 ea = EA_AX_PD_16(); return m68ki_read_16(ea);}
-INLINE u32 OPER_AX_PD_32(void) {u32 ea = EA_AX_PD_32(); return m68ki_read_32(ea);}
-INLINE u32 OPER_AX_DI_8(void)  {u32 ea = EA_AX_DI_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_AX_DI_16(void) {u32 ea = EA_AX_DI_16(); return m68ki_read_16(ea);}
-INLINE u32 OPER_AX_DI_32(void) {u32 ea = EA_AX_DI_32(); return m68ki_read_32(ea);}
-INLINE u32 OPER_AX_IX_8(void)  {u32 ea = EA_AX_IX_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_AX_IX_16(void) {u32 ea = EA_AX_IX_16(); return m68ki_read_16(ea);}
-INLINE u32 OPER_AX_IX_32(void) {u32 ea = EA_AX_IX_32(); return m68ki_read_32(ea);}
+INLINE u32 OPER_AX_AI_8()  {u32 ea = EA_AX_AI_8();  return m68ki_read_8(ea); }
+INLINE u32 OPER_AX_AI_16() {u32 ea = EA_AX_AI_16(); return m68ki_read_16(ea);}
+INLINE u32 OPER_AX_AI_32() {u32 ea = EA_AX_AI_32(); return m68ki_read_32(ea);}
+INLINE u32 OPER_AX_PI_8()  {u32 ea = EA_AX_PI_8();  return m68ki_read_8(ea); }
+INLINE u32 OPER_AX_PI_16() {u32 ea = EA_AX_PI_16(); return m68ki_read_16(ea);}
+INLINE u32 OPER_AX_PI_32() {u32 ea = EA_AX_PI_32(); return m68ki_read_32(ea);}
+INLINE u32 OPER_AX_PD_8()  {u32 ea = EA_AX_PD_8();  return m68ki_read_8(ea); }
+INLINE u32 OPER_AX_PD_16() {u32 ea = EA_AX_PD_16(); return m68ki_read_16(ea);}
+INLINE u32 OPER_AX_PD_32() {u32 ea = EA_AX_PD_32(); return m68ki_read_32(ea);}
+INLINE u32 OPER_AX_DI_8()  {u32 ea = EA_AX_DI_8();  return m68ki_read_8(ea); }
+INLINE u32 OPER_AX_DI_16() {u32 ea = EA_AX_DI_16(); return m68ki_read_16(ea);}
+INLINE u32 OPER_AX_DI_32() {u32 ea = EA_AX_DI_32(); return m68ki_read_32(ea);}
+INLINE u32 OPER_AX_IX_8()  {u32 ea = EA_AX_IX_8();  return m68ki_read_8(ea); }
+INLINE u32 OPER_AX_IX_16() {u32 ea = EA_AX_IX_16(); return m68ki_read_16(ea);}
+INLINE u32 OPER_AX_IX_32() {u32 ea = EA_AX_IX_32(); return m68ki_read_32(ea);}
 
-INLINE u32 OPER_A7_PI_8(void)  {u32 ea = EA_A7_PI_8();  return m68ki_read_8(ea); }
-INLINE u32 OPER_A7_PD_8(void)  {u32 ea = EA_A7_PD_8();  return m68ki_read_8(ea); }
+INLINE u32 OPER_A7_PI_8()  {u32 ea = EA_A7_PI_8();  return m68ki_read_8(ea); }
+INLINE u32 OPER_A7_PD_8()  {u32 ea = EA_A7_PD_8();  return m68ki_read_8(ea); }
 
-INLINE u32 OPER_AW_8(void)     {u32 ea = EA_AW_8();     return m68ki_read_8(ea); }
-INLINE u32 OPER_AW_16(void)    {u32 ea = EA_AW_16();    return m68ki_read_16(ea);}
-INLINE u32 OPER_AW_32(void)    {u32 ea = EA_AW_32();    return m68ki_read_32(ea);}
-INLINE u32 OPER_AL_8(void)     {u32 ea = EA_AL_8();     return m68ki_read_8(ea); }
-INLINE u32 OPER_AL_16(void)    {u32 ea = EA_AL_16();    return m68ki_read_16(ea);}
-INLINE u32 OPER_AL_32(void)    {u32 ea = EA_AL_32();    return m68ki_read_32(ea);}
-INLINE u32 OPER_PCDI_8(void)   {u32 ea = EA_PCDI_8();   return m68ki_read_pcrel_8(ea); }
-INLINE u32 OPER_PCDI_16(void)  {u32 ea = EA_PCDI_16();  return m68ki_read_pcrel_16(ea);}
-INLINE u32 OPER_PCDI_32(void)  {u32 ea = EA_PCDI_32();  return m68ki_read_pcrel_32(ea);}
-INLINE u32 OPER_PCIX_8(void)   {u32 ea = EA_PCIX_8();   return m68ki_read_pcrel_8(ea); }
-INLINE u32 OPER_PCIX_16(void)  {u32 ea = EA_PCIX_16();  return m68ki_read_pcrel_16(ea);}
-INLINE u32 OPER_PCIX_32(void)  {u32 ea = EA_PCIX_32();  return m68ki_read_pcrel_32(ea);}
+INLINE u32 OPER_AW_8()     {u32 ea = EA_AW_8();     return m68ki_read_8(ea); }
+INLINE u32 OPER_AW_16()    {u32 ea = EA_AW_16();    return m68ki_read_16(ea);}
+INLINE u32 OPER_AW_32()    {u32 ea = EA_AW_32();    return m68ki_read_32(ea);}
+INLINE u32 OPER_AL_8()     {u32 ea = EA_AL_8();     return m68ki_read_8(ea); }
+INLINE u32 OPER_AL_16()    {u32 ea = EA_AL_16();    return m68ki_read_16(ea);}
+INLINE u32 OPER_AL_32()    {u32 ea = EA_AL_32();    return m68ki_read_32(ea);}
+INLINE u32 OPER_PCDI_8()   {u32 ea = EA_PCDI_8();   return m68ki_read_pcrel_8(ea); }
+INLINE u32 OPER_PCDI_16()  {u32 ea = EA_PCDI_16();  return m68ki_read_pcrel_16(ea);}
+INLINE u32 OPER_PCDI_32()  {u32 ea = EA_PCDI_32();  return m68ki_read_pcrel_32(ea);}
+INLINE u32 OPER_PCIX_8()   {u32 ea = EA_PCIX_8();   return m68ki_read_pcrel_8(ea); }
+INLINE u32 OPER_PCIX_16()  {u32 ea = EA_PCIX_16();  return m68ki_read_pcrel_16(ea);}
+INLINE u32 OPER_PCIX_32()  {u32 ea = EA_PCIX_32();  return m68ki_read_pcrel_32(ea);}
 
 
 
@@ -1086,7 +1086,7 @@ INLINE void m68ki_push_32(u32 value)
   *(u16 *)(m68ki_cpu.memory_map[((REG_SP + 2)>>16)&0xff].base + ((REG_SP + 2) & 0xffff)) = value & 0xffff;
 }
 
-INLINE u32 m68ki_pull_16(void)
+INLINE u32 m68ki_pull_16()
 {
   u32 sp = REG_SP;
   REG_SP = MASK_OUT_ABOVE_32(REG_SP + 2);
@@ -1094,7 +1094,7 @@ INLINE u32 m68ki_pull_16(void)
   /*return m68ki_read_16(sp);*/
 }
 
-INLINE u32 m68ki_pull_32(void)
+INLINE u32 m68ki_pull_32()
 {
   u32 sp = REG_SP;
   REG_SP = MASK_OUT_ABOVE_32(REG_SP + 4);
@@ -1187,7 +1187,7 @@ INLINE void m68ki_set_sr(u32 value)
 /* ------------------------- Exception Processing ------------------------- */
 
 /* Initiate exception processing */
-INLINE u32 m68ki_init_exception(void)
+INLINE u32 m68ki_init_exception()
 {
   /* Save the old status register */
   u32 sr = m68ki_get_sr();
@@ -1254,7 +1254,7 @@ INLINE void m68ki_exception_trapN(u32 vector)
 
 #if M68K_EMULATE_TRACE
 /* Exception for trace mode */
-INLINE void m68ki_exception_trace(void)
+INLINE void m68ki_exception_trace()
 {
   u32 sr = m68ki_init_exception();
 
@@ -1274,7 +1274,7 @@ INLINE void m68ki_exception_trace(void)
 #endif
 
 /* Exception for privilege violation */
-static void m68ki_exception_privilege_violation(void)
+static void m68ki_exception_privilege_violation()
 {
   u32 sr = m68ki_init_exception();
 
@@ -1290,7 +1290,7 @@ static void m68ki_exception_privilege_violation(void)
 }
 
 /* Exception for A-Line instructions */
-INLINE void m68ki_exception_1010(void)
+INLINE void m68ki_exception_1010()
 {
   u32 sr = m68ki_init_exception();
   m68ki_stack_frame_3word(REG_PC-2, sr);
@@ -1301,7 +1301,7 @@ INLINE void m68ki_exception_1010(void)
 }
 
 /* Exception for F-Line instructions */
-INLINE void m68ki_exception_1111(void)
+INLINE void m68ki_exception_1111()
 {
   u32 sr = m68ki_init_exception();
   m68ki_stack_frame_3word(REG_PC-2, sr);
@@ -1312,7 +1312,7 @@ INLINE void m68ki_exception_1111(void)
 }
 
 /* Exception for illegal instructions */
-INLINE void m68ki_exception_illegal(void)
+INLINE void m68ki_exception_illegal()
 {
   u32 sr = m68ki_init_exception();
 
@@ -1330,7 +1330,7 @@ INLINE void m68ki_exception_illegal(void)
 
 #if M68K_EMULATE_ADDRESS_ERROR
 /* Exception for address error */
-INLINE void m68ki_exception_address_error(void)
+INLINE void m68ki_exception_address_error()
 {
   u32 sr = m68ki_init_exception();
 
@@ -1401,7 +1401,7 @@ INLINE void m68ki_exception_interrupt(u32 int_level)
 }
 
 /* ASG: Check for interrupts */
-INLINE void m68ki_check_interrupts(void)
+INLINE void m68ki_check_interrupts()
 {
   if(CPU_INT_LEVEL > FLAG_INT_MASK)
     m68ki_exception_interrupt(CPU_INT_LEVEL>>8);

@@ -66,12 +66,12 @@
 /* TODO: figure exact DMA transfer rate */
 #define DMA_BYTES_PER_LINE 512
 
-void cdc_init(void)
+void cdc_init()
 {
   memset(&cdc, 0, sizeof(cdc_t));
 }
 
-void cdc_reset(void)
+void cdc_reset()
 {
   /* reset CDC register index */
   scd.regs[0x04>>1].byte.l = 0x00;
@@ -180,7 +180,7 @@ s32 cdc_context_load(u8 *state)
   return bufferptr;
 }
 
-void cdc_dma_update(void)
+void cdc_dma_update()
 {
   /* maximal transfer length */
   s32 length = DMA_BYTES_PER_LINE;
@@ -538,7 +538,7 @@ void cdc_reg_w(u8 data)
   }
 }
 
-u8 cdc_reg_r(void)
+u8 cdc_reg_r()
 {
   switch (scd.regs[0x04>>1].byte.l & 0x0F)
   {
@@ -629,7 +629,7 @@ u8 cdc_reg_r(void)
   }
 }
 
-u16 cdc_host_r(void)
+u16 cdc_host_r()
 {
   /* check if data is available */
   if (!(cdc.ifstat & BIT_DTEN))

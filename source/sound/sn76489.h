@@ -13,11 +13,11 @@
 
 /* Function prototypes */
 extern void SN76489_Init(blip_t* left, blip_t* right, int type);
-extern void SN76489_Reset(void);
+extern void SN76489_Reset();
 extern void SN76489_Config(u32 clocks, int preAmp, int boostNoise, int stereo);
 extern void SN76489_Write(u32 clocks, u32 data);
 extern void SN76489_Update(u32 cycles);
-extern void *SN76489_GetContextPtr(void);
-extern int SN76489_GetContextSize(void);
+extern void *SN76489_GetContextPtr();
+extern int SN76489_GetContextSize();
 
 #endif /* _SN76489_H_ */

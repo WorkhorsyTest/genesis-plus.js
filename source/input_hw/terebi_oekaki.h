@@ -40,8 +40,8 @@
 #define _TEREBI_H_
 
 /* Function prototypes */
-extern void terebi_oekaki_reset(void);
-extern u16 terebi_oekaki_read(void);
+extern void terebi_oekaki_reset();
+extern u16 terebi_oekaki_read();
 extern void terebi_oekaki_write(u8 data);
 
 #endif

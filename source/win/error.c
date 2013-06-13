@@ -7,14 +7,14 @@
 
 static FILE *error_log;
 
-void error_init(void)
+void error_init()
 {
 #ifdef LOGERROR
   error_log = fopen("error.log","w");
 #endif
 }
 
-void error_shutdown(void)
+void error_shutdown()
 {
 #ifdef LOGERROR
   if(error_log) fclose(error_log);

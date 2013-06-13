@@ -40,8 +40,8 @@
 #define _XE_A1PH_
 
 /* Function prototypes */
-extern void xe_a1p_reset(void);
-extern u8 xe_a1p_read(void);
+extern void xe_a1p_reset();
+extern u8 xe_a1p_read();
 extern void xe_a1p_write(u8 data, u8 mask);
 
 #endif

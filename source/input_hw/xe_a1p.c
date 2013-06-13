@@ -45,7 +45,7 @@ static struct
   u8 Latency;
 } xe_a1p;
 
-void xe_a1p_reset(void)
+void xe_a1p_reset()
 {
   input.analog[0][0] = 128;
   input.analog[0][1] = 128;

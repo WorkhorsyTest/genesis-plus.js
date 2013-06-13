@@ -56,7 +56,7 @@ void pcm_init(blip_t* left, blip_t* right)
   blip_set_rates(right, mclk / PCM_SCYCLES_RATIO, snd.sample_rate);
 }
 
-void pcm_reset(void)
+void pcm_reset()
 {
   /* reset chip & clear external RAM */
   memset(&pcm, 0, sizeof(pcm_t));

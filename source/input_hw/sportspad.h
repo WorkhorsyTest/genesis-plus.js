@@ -41,8 +41,8 @@
 
 /* Function prototypes */
 extern void sportspad_reset(int index);
-extern u8 sportspad_1_read(void);
-extern u8 sportspad_2_read(void);
+extern u8 sportspad_1_read();
+extern u8 sportspad_2_read();
 extern void sportspad_1_write(u8 data, u8 mask);
 extern void sportspad_2_write(u8 data, u8 mask);
 

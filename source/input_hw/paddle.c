@@ -90,12 +90,12 @@ INLINE void paddle_write(int index, u8 data, u8 mask)
 }
 
 
-u8 paddle_1_read(void)
+u8 paddle_1_read()
 {
   return paddle_read(0);
 }
 
-u8 paddle_2_read(void)
+u8 paddle_2_read()
 {
   return paddle_read(4);
 }

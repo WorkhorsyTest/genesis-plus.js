@@ -41,7 +41,7 @@
 
 /* Function prototypes */
 extern void mouse_reset(int port);
-extern u8 mouse_read(void);
+extern u8 mouse_read();
 extern void mouse_write(u8 data, u8 mask);
 
 #endif

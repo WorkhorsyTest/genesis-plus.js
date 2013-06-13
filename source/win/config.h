@@ -47,7 +47,7 @@ typedef struct
 
 /* Global variables */
 extern t_config config;
-extern void set_config_defaults(void);
+extern void set_config_defaults();
 
 #endif /* _CONFIG_H_ */
 

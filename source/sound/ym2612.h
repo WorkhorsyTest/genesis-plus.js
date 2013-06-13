@@ -16,12 +16,12 @@
 #ifndef _H_YM2612_
 #define _H_YM2612_
 
-extern void YM2612Init(void);
+extern void YM2612Init();
 extern void YM2612Config(u8 dac_bits);
-extern void YM2612ResetChip(void);
+extern void YM2612ResetChip();
 extern void YM2612Update(int *buffer, int length);
 extern void YM2612Write(u32 a, u32 v);
-extern u32 YM2612Read(void);
+extern u32 YM2612Read();
 extern int YM2612LoadContext(u8 *state);
 extern int YM2612SaveContext(u8 *state);
 

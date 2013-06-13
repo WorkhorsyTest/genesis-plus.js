@@ -57,7 +57,7 @@ static void ggenie_write_byte(u32 address, u32 data);
 static void ggenie_write_word(u32 address, u32 data);
 static void ggenie_write_regs(u32 offset, u32 data);
 
-void ggenie_init(void)
+void ggenie_init()
 {
   int i;
   FILE *f;
@@ -98,7 +98,7 @@ void ggenie_init(void)
   ggenie.enabled = 1;
 }
 
-void ggenie_shutdown(void)
+void ggenie_shutdown()
 {
   if (ggenie.enabled)
   {

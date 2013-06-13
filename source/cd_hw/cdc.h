@@ -58,14 +58,14 @@ typedef struct
 } cdc_t; 
 
 /* Function prototypes */
-extern void cdc_init(void);
-extern void cdc_reset(void);
+extern void cdc_init();
+extern void cdc_reset();
 extern s32 cdc_context_save(u8 *state);
 extern s32 cdc_context_load(u8 *state);
-extern void cdc_dma_update(void);
+extern void cdc_dma_update();
 extern s32 cdc_decoder_update(u32 header);
 extern void cdc_reg_w(u8 data);
-extern u8 cdc_reg_r(void);
-extern u16 cdc_host_r(void);
+extern u8 cdc_reg_r();
+extern u16 cdc_host_r();
 
 #endif

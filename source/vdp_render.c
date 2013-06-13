@@ -598,7 +598,7 @@ void (*update_bg_pattern_cache)(int index);
 /* Sprite pattern name offset look-up table function (Mode 5)               */
 /*--------------------------------------------------------------------------*/
 
-static void make_name_lut(void)
+static void make_name_lut()
 {
   int vcol, vrow;
   int width, height;
@@ -637,7 +637,7 @@ static void make_name_lut(void)
 /* Bitplane to packed pixel look-up table function (Mode 4)                 */
 /*--------------------------------------------------------------------------*/
 
-static void make_bp_lut(void)
+static void make_bp_lut()
 {
   int x,i,j;
   u32 out;
@@ -952,7 +952,7 @@ INLINE void merge(u8 *srca, u8 *srcb, u8 *dst, u8 *table, int width)
 /* Pixel color lookup tables initialization                                 */
 /*--------------------------------------------------------------------------*/
 
-static void palette_init(void)
+static void palette_init()
 {
   int r, g, b, i;
 
@@ -3973,7 +3973,7 @@ void window_clip(u32 data, u32 sw)
 /* Init, reset routines                                                     */
 /*--------------------------------------------------------------------------*/
 
-void render_init(void)
+void render_init()
 {
   int bx, ax;
 
@@ -4004,7 +4004,7 @@ void render_init(void)
   make_bp_lut();
 }
 
-void render_reset(void)
+void render_reset()
 {
   /* Clear display bitmap */
   memset(bitmap.data, 0, bitmap.pitch * bitmap.height);

@@ -55,8 +55,8 @@ extern u8 io_reg[0x10];
 extern u8 region_code;
 
 /* Function prototypes */
-extern void io_init(void);
-extern void io_reset(void);
+extern void io_init();
+extern void io_reset();
 extern void io_68k_write(u32 offset, u32 data);
 extern u32 io_68k_read(u32 offset);
 extern void io_z80_write(u32 offset, u32 data, u32 cycles);

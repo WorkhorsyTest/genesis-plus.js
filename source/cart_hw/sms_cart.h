@@ -44,10 +44,10 @@
 #define HW_TEREBI_OEKAKI  0x02
 
 /* Function prototypes */
-extern void sms_cart_init(void);
-extern void sms_cart_reset(void);
+extern void sms_cart_init();
+extern void sms_cart_reset();
 extern void sms_cart_switch(u8 mode);
-extern int sms_cart_region_detect(void);
+extern int sms_cart_region_detect();
 extern int sms_cart_context_save(u8 *state);
 extern int sms_cart_context_load(u8 *state);
 

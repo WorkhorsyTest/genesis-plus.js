@@ -44,7 +44,7 @@ static struct
   u8 busy;
 } tablet;
 
-void terebi_oekaki_reset(void)
+void terebi_oekaki_reset()
 {
   input.analog[0][0] = 128;
   input.analog[0][1] = 128;
@@ -52,7 +52,7 @@ void terebi_oekaki_reset(void)
   tablet.busy = 1;
 }
 
-u16 terebi_oekaki_read(void)
+u16 terebi_oekaki_read()
 {
   u16 data = (tablet.busy << 15) | input.analog[0][tablet.axis];
 

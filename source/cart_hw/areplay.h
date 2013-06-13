@@ -43,10 +43,10 @@
 #define AR_SWITCH_ON      (1)
 #define AR_SWITCH_TRAINER (2)
 
-extern void areplay_init(void);
-extern void areplay_shutdown(void);
+extern void areplay_init();
+extern void areplay_shutdown();
 extern void areplay_reset(int hard);
 extern void areplay_set_status(int status);
-extern int areplay_get_status(void);
+extern int areplay_get_status();
 
 #endif

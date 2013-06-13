@@ -82,7 +82,7 @@ typedef struct
 
 
 /* Function prototypes */
-extern void md_cart_init(void);
+extern void md_cart_init();
 extern void md_cart_reset(int hard_reset);
 extern int md_cart_context_save(u8 *state);
 extern int md_cart_context_load(u8 *state);

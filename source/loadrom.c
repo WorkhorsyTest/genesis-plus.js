@@ -389,7 +389,7 @@ void getrominfo(char *romheader)
  * Return loaded size (-1 if already loaded)
  *
  ***************************************************************************/
-s32 load_bios(void)
+s32 load_bios()
 {
   s32 size = 0;
 
@@ -1082,7 +1082,7 @@ void get_region(char *romheader)
  * It seems that there can be pretty much anything you like following the
  * copyright (C) symbol!
  ****************************************************************************/
-char *get_company(void)
+char *get_company()
 {
   char *s;
   s32 i;

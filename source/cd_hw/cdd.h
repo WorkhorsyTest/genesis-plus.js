@@ -92,14 +92,14 @@ typedef struct
 
 /* Function prototypes */
 extern void cdd_init(blip_t* left, blip_t* right);
-extern void cdd_reset(void);
+extern void cdd_reset();
 extern int cdd_context_save(u8 *state);
 extern int cdd_context_load(u8 *state);
 extern int cdd_load(char *filename, char *header);
-extern void cdd_unload(void);
+extern void cdd_unload();
 extern void cdd_read_data(u8 *dst);
 extern void cdd_read_audio(u32 samples);
-extern void cdd_update(void);
-extern void cdd_process(void);
+extern void cdd_update();
+extern void cdd_process();
 
 #endif

@@ -241,7 +241,7 @@ INLINE void Detect_STOP()
   }
 }
 
-static void eeprom_i2c_update(void)
+static void eeprom_i2c_update()
 {
   /* EEPROM current state */
   switch (eeprom_i2c.state)
@@ -491,7 +491,7 @@ static void eeprom_i2c_update(void)
   eeprom_i2c.old_sda = eeprom_i2c.sda;
 }
 
-static u8 eeprom_i2c_out(void)
+static u8 eeprom_i2c_out()
 {
   u8 sda_out = eeprom_i2c.sda;
 

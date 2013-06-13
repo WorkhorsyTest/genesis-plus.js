@@ -157,12 +157,12 @@ void SN76489_Reset()
   SN76489.clocks = 0;
 }
 
-void *SN76489_GetContextPtr(void)
+void *SN76489_GetContextPtr()
 {
   return (u8 *)&SN76489;
 }
 
-int SN76489_GetContextSize(void)
+int SN76489_GetContextSize()
 {
   return sizeof(SN76489_Context);
 }

@@ -51,7 +51,7 @@ static u32 fm_cycles_start;
 static u32 fm_cycles_count;
 
 /* YM chip function pointers */
-static void (*YM_Reset)(void);
+static void (*YM_Reset)();
 static void (*YM_Update)(int *buffer, int length);
 static void (*YM_Write)(u32 a, u32 v);
 
@@ -105,7 +105,7 @@ void sound_init( void )
   SN76489_Config(0, config.psg_preamp, config.psgBoostNoise, 0xff);
 }
 
-void sound_reset(void)
+void sound_reset()
 {
   /* reset sound chips */
   YM_Reset();

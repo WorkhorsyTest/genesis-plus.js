@@ -177,7 +177,7 @@ static void cart_prot_write_word(u32 address, u32 data)
 /*--------------------------------------------------------------------------*/
 /* ROM/RAM cartridge initialization                                         */
 /*--------------------------------------------------------------------------*/
-void cd_cart_init(void)
+void cd_cart_init()
 {
   s32 i;
 

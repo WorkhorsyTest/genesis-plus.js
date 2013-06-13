@@ -1,4 +1,4 @@
-static void (* const m68ki_instruction_jump_table[0x10000])(void) =
+static void (* const m68ki_instruction_jump_table[0x10000])() =
 {
   m68k_op_ori_8_d, m68k_op_ori_8_d, m68k_op_ori_8_d, m68k_op_ori_8_d, m68k_op_ori_8_d, m68k_op_ori_8_d, m68k_op_ori_8_d, m68k_op_ori_8_d, 
   m68k_op_illegal, m68k_op_illegal, m68k_op_illegal, m68k_op_illegal, m68k_op_illegal, m68k_op_illegal, m68k_op_illegal, m68k_op_illegal, 

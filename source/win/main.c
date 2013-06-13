@@ -440,7 +440,7 @@ static int sdl_control_update(SDLKey keystate)
    return 1;
 }
 
-int sdl_input_update(void)
+int sdl_input_update()
 {
   u8 *keystate = SDL_GetKeyState(NULL);
 

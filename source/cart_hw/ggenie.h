@@ -43,8 +43,8 @@
 #define _GGENIE_H_
 
 /* Function prototypes */
-extern void ggenie_init(void);
-extern void ggenie_shutdown(void);
+extern void ggenie_init();
+extern void ggenie_shutdown();
 extern void ggenie_reset(int hard);
 extern void ggenie_switch(int enable);
 

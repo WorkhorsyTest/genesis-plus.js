@@ -113,12 +113,12 @@ INLINE void activator_write(int index, u8 data, u8 mask)
   activator[index].State = data;
 }
 
-u8 activator_1_read(void)
+u8 activator_1_read()
 {
   return activator_read(0);
 }
 
-u8 activator_2_read(void)
+u8 activator_2_read()
 {
   return activator_read(1);
 }

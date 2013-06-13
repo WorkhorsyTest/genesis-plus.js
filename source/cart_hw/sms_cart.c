@@ -342,7 +342,7 @@ static struct
 } slot;
 
 /* Function prototypes */
-static void mapper_reset(void);
+static void mapper_reset();
 static void mapper_8k_w(int offset, u32 data);
 static void mapper_16k_w(int offset, u32 data);
 static void write_mapper_none(u32 address, u8 data);
@@ -360,7 +360,7 @@ static u8 read_mapper_terebi(u32 address);
 static u8 read_mapper_korea_8k(u32 address);
 static u8 read_mapper_default(u32 address);
 
-void sms_cart_init(void)
+void sms_cart_init()
 {
   int i;
 
@@ -519,7 +519,7 @@ void sms_cart_init(void)
   }
 }
 
-void sms_cart_reset(void)
+void sms_cart_reset()
 {
   /* reset BIOS ROM paging (SEGA mapper by default) */
   bios_rom.fcr[0] = 0;
@@ -664,7 +664,7 @@ void sms_cart_switch(u8 mode)
   }
 }
 
-int sms_cart_region_detect(void)
+int sms_cart_region_detect()
 {
   int i;
 
@@ -711,7 +711,7 @@ int sms_cart_context_load(u8 *state)
   return bufferptr;
 }
 
-static void mapper_reset(void)
+static void mapper_reset()
 {
   int i;
 

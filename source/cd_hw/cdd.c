@@ -144,7 +144,7 @@ void cdd_init(blip_t* left, blip_t* right)
   blip_set_rates(right, 44100, snd.sample_rate);
 }
 
-void cdd_reset(void)
+void cdd_reset()
 {
   /* reset cycle counter */
   cdd.cycles = 0;
@@ -722,7 +722,7 @@ s32 cdd_load(char *filename, char *header)
   return 1;
 }
 
-void cdd_unload(void)
+void cdd_unload()
 {
   if (cdd.loaded)
   {
@@ -873,7 +873,7 @@ void cdd_read_audio(u32 samples)
 }
 
 
-void cdd_update(void)
+void cdd_update()
 {  
 #ifdef LOG_CDD
   error("LBA = %d (track n\B0%d)(latency=%d)\n", cdd.lba, cdd.index, cdd.latency);
@@ -1027,7 +1027,7 @@ void cdd_update(void)
   }
 }
 
-void cdd_process(void)
+void cdd_process()
 {
   /* Process CDD command */
   switch (scd.regs[0x42>>1].byte.h & 0x0f)

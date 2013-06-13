@@ -24,8 +24,8 @@ typedef struct {
 
 extern svp_t *svp;
 
-extern void svp_init(void);
-extern void svp_reset(void);
+extern void svp_init();
+extern void svp_reset();
 extern void svp_write_dram(u32 address, u32 data);
 extern u32 svp_read_cell_1(u32 address);
 extern u32 svp_read_cell_2(u32 address);

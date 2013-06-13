@@ -42,8 +42,8 @@
 /* Function prototypes */
 extern void teamplayer_init(int port);
 extern void teamplayer_reset(int port);
-extern u8 teamplayer_1_read(void);
-extern u8 teamplayer_2_read(void);
+extern u8 teamplayer_1_read();
+extern u8 teamplayer_2_read();
 extern void teamplayer_1_write(u8 data, u8 mask);
 extern void teamplayer_2_write(u8 data, u8 mask);
 

@@ -41,8 +41,8 @@
 
 /* Function prototypes */
 extern void activator_reset(int index);
-extern u8 activator_1_read(void);
-extern u8 activator_2_read(void);
+extern u8 activator_1_read();
+extern u8 activator_2_read();
 extern void activator_1_write(u8 data, u8 mask);
 extern void activator_2_write(u8 data, u8 mask);
 

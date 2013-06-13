@@ -43,12 +43,12 @@
 /* Function prototypes */
 extern void gamepad_reset(int port);
 extern void gamepad_refresh(int port);
-extern u8 gamepad_1_read(void);
-extern u8 gamepad_2_read(void);
+extern u8 gamepad_1_read();
+extern u8 gamepad_2_read();
 extern void gamepad_1_write(u8 data, u8 mask);
 extern void gamepad_2_write(u8 data, u8 mask);
-extern u8 wayplay_1_read(void);
-extern u8 wayplay_2_read(void);
+extern u8 wayplay_1_read();
+extern u8 wayplay_2_read();
 extern void wayplay_1_write(u8 data, u8 mask);
 extern void wayplay_2_write(u8 data, u8 mask);
 extern u32 jcart_read(u32 address);

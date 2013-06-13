@@ -52,7 +52,7 @@ t_input input;
 int old_system[2] = {-1,-1};
 
 
-void input_init(void)
+void input_init()
 {
   int i;
   int player = 0;
@@ -269,7 +269,7 @@ void input_init(void)
   }
 }
 
-void input_reset(void)
+void input_reset()
 {
   /* Reset input devices */
   int i;
@@ -344,7 +344,7 @@ void input_reset(void)
   }
 }
 
-void input_refresh(void)
+void input_refresh()
 {
   int i;
   for (i=0; i<MAX_DEVICES; i++)

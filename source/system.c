@@ -143,7 +143,7 @@ s32 audio_init(s32 samplerate, double framerate)
   return (0);
 }
 
-void audio_reset(void)
+void audio_reset()
 {
   s32 i,j;
   
@@ -167,7 +167,7 @@ void audio_reset(void)
   audio_set_equalizer();
 }
 
-void audio_set_equalizer(void)
+void audio_set_equalizer()
 {
   init_3band_state(&eq,config.low_freq,config.high_freq,snd.sample_rate);
   eq.lg = (double)(config.lg) / 100.0;
@@ -175,7 +175,7 @@ void audio_set_equalizer(void)
   eq.hg = (double)(config.hg) / 100.0;
 }
 
-void audio_shutdown(void)
+void audio_shutdown()
 {
   s32 i,j;
   
@@ -303,7 +303,7 @@ s32 audio_update(s16 *buffer)
 /****************************************************************
  * Virtual System emulation
  ****************************************************************/
-void system_init(void)
+void system_init()
 {
   gen_init();
   io_init();
@@ -312,7 +312,7 @@ void system_init(void)
   sound_init();
 }
 
-void system_reset(void)
+void system_reset()
 {
   gen_reset(1);
   io_reset();

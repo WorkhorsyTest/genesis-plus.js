@@ -308,7 +308,7 @@ void cell_ram_1_write8(u32 address, u32 data)
 /*      Rotation / Scaling operation (2M Mode)                 */
 /***************************************************************/
 
-void gfx_init(void)
+void gfx_init()
 {
   s32 i, j;
   u16 offset;
@@ -419,7 +419,7 @@ void gfx_init(void)
   }
 }
 
-void gfx_reset(void)
+void gfx_reset()
 { 
   /* Reset cycle counter */
   gfx.cycles = 0;

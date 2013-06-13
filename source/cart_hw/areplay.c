@@ -57,7 +57,7 @@ static void ar_write_regs(u32 address, u32 data);
 static void ar_write_regs_2(u32 address, u32 data);
 static void ar_write_ram_8(u32 address, u32 data);
 
-void areplay_init(void)
+void areplay_init()
 {
   int size;
   FILE *f;
@@ -159,7 +159,7 @@ void areplay_init(void)
   fclose(f);
 }
 
-void areplay_shutdown(void)
+void areplay_shutdown()
 {
   /* clear existing patches */
   areplay_set_status(AR_SWITCH_OFF);
@@ -192,7 +192,7 @@ void areplay_reset(int hard)
   }
 }
 
-int areplay_get_status(void)
+int areplay_get_status()
 {
   if (action_replay.enabled)
   {
