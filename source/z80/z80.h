@@ -1,7 +1,7 @@
 #ifndef Z80_H_
 #define Z80_H_
 
-#include "osd_cpu.h"
+#include "types.h"
 
 enum
 {
@@ -38,34 +38,34 @@ typedef struct
 {
   PAIR  pc,sp,af,bc,de,hl,ix,iy,wz;
   PAIR  af2,bc2,de2,hl2;
-  UINT8  r,r2,iff1,iff2,halt,im,i;
-  UINT8  nmi_state;      /* nmi line state */
-  UINT8  nmi_pending;    /* nmi pending */
-  UINT8  irq_state;      /* irq line state */
-  UINT8  after_ei;       /* are we in the EI shadow? */
-  UINT32 cycles;         /* master clock cycles global counter */
+  u8  r,r2,iff1,iff2,halt,im,i;
+  u8  nmi_state;      /* nmi line state */
+  u8  nmi_pending;    /* nmi pending */
+  u8  irq_state;      /* irq line state */
+  u8  after_ei;       /* are we in the EI shadow? */
+  u32 cycles;         /* master clock cycles global counter */
   const struct z80_irq_daisy_chain *daisy;
-  int    (*irq_callback)(int irqline);
+  s32    (*irq_callback)(s32 irqline);
 }  Z80_Regs;
 
 
 extern Z80_Regs Z80;
 
-extern unsigned char *z80_readmap[64];
-extern unsigned char *z80_writemap[64];
+extern u8 *z80_readmap[64];
+extern u8 *z80_writemap[64];
 
-extern void (*z80_writemem)(unsigned int address, unsigned char data);
-extern unsigned char (*z80_readmem)(unsigned int address);
-extern void (*z80_writeport)(unsigned int port, unsigned char data);
-extern unsigned char (*z80_readport)(unsigned int port);
+extern void (*z80_writemem)(u32 address, u8 data);
+extern u8 (*z80_readmem)(u32 address);
+extern void (*z80_writeport)(u32 port, u8 data);
+extern u8 (*z80_readport)(u32 port);
 
-extern void z80_init(const void *config, int (*irqcallback)(int));
+extern void z80_init(const void *config, s32 (*irqcallback)(s32));
 extern void z80_reset (void);
-extern void z80_run(unsigned int cycles);
+extern void z80_run(u32 cycles);
 extern void z80_get_context (void *dst);
 extern void z80_set_context (void *src);
-extern void z80_set_irq_line(unsigned int state);
-extern void z80_set_nmi_line(unsigned int state);
+extern void z80_set_irq_line(u32 state);
+extern void z80_set_nmi_line(u32 state);
 
 #endif
 

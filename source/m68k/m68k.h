@@ -40,6 +40,7 @@
 /* ======================================================================== */
 
 #include <setjmp.h>
+#include "types.h"
 #include "macros.h"
 
 /* ======================================================================== */
@@ -53,36 +54,12 @@
   #define M68K_INT_GT_32_BIT  0
 #endif
 
-/* Data types used in this emulation core */
-#undef sint8
-#undef sint16
-#undef sint32
-#undef sint64
-#undef uint8
-#undef uint16
-#undef uint32
-#undef uint64
-#undef sint
-#undef uint
-
-#define sint8  signed   char      /* ASG: changed from char to signed char */
-#define sint16 signed   short
-#define sint32 signed   int      /* AWJ: changed from long to int */
-#define uint8  unsigned char
-#define uint16 unsigned short
-#define uint32 unsigned int      /* AWJ: changed from long to int */
-
-/* signed and unsigned int must be at least 32 bits wide */
-#define sint   signed   int
-#define uint   unsigned int
-
-
 #if M68K_USE_64_BIT
 #define sint64 signed   long long
 #define uint64 unsigned long long
 #else
-#define sint64 sint32
-#define uint64 uint32
+#define sint64 s32
+#define uint64 u32
 #endif /* M68K_USE_64_BIT */
 
 
@@ -212,11 +189,11 @@ typedef enum
 /* 68k memory map structure */
 typedef struct 
 {
-  unsigned char *base;                             /* memory-based access (ROM, RAM) */
-  unsigned int (*read8)(unsigned int address);               /* I/O byte read access */
-  unsigned int (*read16)(unsigned int address);              /* I/O word read access */
-  void (*write8)(unsigned int address, unsigned int data);  /* I/O byte write access */
-  void (*write16)(unsigned int address, unsigned int data); /* I/O word write access */
+  u8 *base;                             /* memory-based access (ROM, RAM) */
+  u32 (*read8)(u32 address);               /* I/O byte read access */
+  u32 (*read16)(u32 address);              /* I/O word read access */
+  void (*write8)(u32 address, u32 data);  /* I/O byte write access */
+  void (*write16)(u32 address, u32 data); /* I/O word write access */
 } cpu_memory_map;
 
 /* 68k idle loop detection */
@@ -267,10 +244,10 @@ typedef struct
   uint address_space;   /* Current FC code */
 
   /* Callbacks to host */
-  int  (*int_ack_callback)(int int_line);           /* Interrupt Acknowledge */
+  s32  (*int_ack_callback)(s32 int_line);           /* Interrupt Acknowledge */
   void (*reset_instr_callback)(void);               /* Called when a RESET instruction is encountered */
-  int  (*tas_instr_callback)(void);                 /* Called when a TAS instruction is encountered, allows / disallows writeback */
-  void (*set_fc_callback)(unsigned int new_fc);     /* Called when the CPU function code changes */
+  s32  (*tas_instr_callback)(void);                 /* Called when a TAS instruction is encountered, allows / disallows writeback */
+  void (*set_fc_callback)(u32 new_fc);     /* Called when the CPU function code changes */
 } m68ki_cpu_core;
 
 /* CPU cores */
@@ -301,7 +278,7 @@ extern m68ki_cpu_core s68k;
  * services the interrupt.
  * Default behavior: return M68K_INT_ACK_AUTOVECTOR.
  */
-void m68k_set_int_ack_callback(int  (*callback)(int int_level));
+void m68k_set_int_ack_callback(s32  (*callback)(s32 int_level));
 #endif
 
 #if M68K_EMULATE_RESET == OPT_ON
@@ -319,7 +296,7 @@ void m68k_set_reset_instr_callback(void  (*callback)(void));
  * The CPU calls this callback every time it encounters a TAS instruction.
  * Default behavior: return 1, allow writeback.
  */
-void m68k_set_tas_instr_callback(int  (*callback)(void));
+void m68k_set_tas_instr_callback(s32  (*callback)(void));
 #endif
 
 #if M68K_EMULATE_FC == OPT_ON
@@ -330,7 +307,7 @@ void m68k_set_tas_instr_callback(int  (*callback)(void));
  * access it is (supervisor/user, program/data and such).
  * Default behavior: do nothing.
  */
-void m68k_set_fc_callback(void  (*callback)(unsigned int new_fc));
+void m68k_set_fc_callback(void  (*callback)(u32 new_fc));
 #endif
 
 
@@ -351,17 +328,17 @@ extern void m68k_pulse_reset(void);
 extern void s68k_pulse_reset(void);
 
 /* Run until given cycle count is reached */
-extern void m68k_run(unsigned int cycles);
-extern void s68k_run(unsigned int cycles);
+extern void m68k_run(u32 cycles);
+extern void s68k_run(u32 cycles);
 
 /* Set the IPL0-IPL2 pins on the CPU (IRQ).
  * A transition from < 7 to 7 will cause a non-maskable interrupt (NMI).
  * Setting IRQ to 0 will clear an interrupt request.
  */
-extern void m68k_set_irq(unsigned int int_level);
-extern void m68k_set_irq_delay(unsigned int int_level);
-extern void m68k_update_irq(unsigned int mask);
-extern void s68k_update_irq(unsigned int mask);
+extern void m68k_set_irq(u32 int_level);
+extern void m68k_set_irq_delay(u32 int_level);
+extern void m68k_update_irq(u32 mask);
+extern void s68k_update_irq(u32 mask);
 
 /* Halt the CPU as if you pulsed the HALT pin. */
 extern void m68k_pulse_halt(void);
@@ -374,12 +351,12 @@ extern void s68k_clear_halt(void);
  * retrieved using m68k_get_context() or the currently running context.
  * If context is NULL, the currently running CPU context will be used.
  */
-extern unsigned int m68k_get_reg(m68k_register_t reg);
-extern unsigned int s68k_get_reg(m68k_register_t reg);
+extern u32 m68k_get_reg(m68k_register_t reg);
+extern u32 s68k_get_reg(m68k_register_t reg);
 
 /* Poke values into the internals of the currently running CPU context */
-extern void m68k_set_reg(m68k_register_t reg, unsigned int value);
-extern void s68k_set_reg(m68k_register_t reg, unsigned int value);
+extern void m68k_set_reg(m68k_register_t reg, u32 value);
+extern void s68k_set_reg(m68k_register_t reg, u32 value);
 
 
 /* ======================================================================== */
