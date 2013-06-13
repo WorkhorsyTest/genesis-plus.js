@@ -42,7 +42,7 @@ static u8 brm_format[0x40] =
 };
 
 
-static short soundframe[SOUND_SAMPLES_SIZE];
+static s16 soundframe[SOUND_SAMPLES_SIZE];
 
 static void sdl_sound_callback(void *userdata, u8 *stream, int len)
 {
@@ -89,7 +89,7 @@ static int sdl_sound_init()
   }
 
   sdl_sound.current_emulated_samples = 0;
-  n = SOUND_SAMPLES_SIZE * 2 * sizeof(short) * 20;
+  n = SOUND_SAMPLES_SIZE * 2 * sizeof(s16) * 20;
   sdl_sound.buffer = (char*)malloc(n);
   if(!sdl_sound.buffer) {
     MessageBox(NULL, "Can't allocate audio buffer", "Error", 0);
@@ -107,16 +107,16 @@ static void sdl_sound_update(enabled)
   if (enabled)
   {
     int i;
-    short *out;
+    s16 *out;
 
     SDL_LockAudio();
-    out = (short*)sdl_sound.current_pos;
+    out = (s16*)sdl_sound.current_pos;
     for(i = 0; i < size; i++)
     {
       *out++ = soundframe[i];
     }
     sdl_sound.current_pos = (char*)out;
-    sdl_sound.current_emulated_samples += size * sizeof(short);
+    sdl_sound.current_emulated_samples += size * sizeof(s16);
     SDL_UnlockAudio();
   }
 }

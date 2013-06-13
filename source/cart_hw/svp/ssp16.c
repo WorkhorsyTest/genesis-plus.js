@@ -381,7 +381,7 @@ static void write_ST(u32 d)
 static u32 read_STACK(void)
 {
   --rSTACK;
-  if ((short)rSTACK < 0) {
+  if ((s16)rSTACK < 0) {
     rSTACK = 5;
 #ifdef LOG_SVP
     elprintf(EL_ANOMALY|EL_SVP, "ssp FIXME: stack underflow! (%i) @ %04x", rSTACK, GET_PPC_OFFS());

@@ -72,13 +72,13 @@ enum { md_ntsc_black     = 0 }; /* palette index for black */
 Declares variables, so must be before first statement in a block (unless you're using C++). */
 #define MD_NTSC_BEGIN_ROW( ntsc, pixel0, pixel1, pixel2, pixel3 ) \
   md_ntsc_rgb_t raw_;\
-  unsigned const md_pixel0_ = (pixel0);\
+  u32 const md_pixel0_ = (pixel0);\
   md_ntsc_rgb_t const* kernel0  = MD_NTSC_IN_FORMAT( ntsc, md_pixel0_ );\
-  unsigned const md_pixel1_ = (pixel1);\
+  u32 const md_pixel1_ = (pixel1);\
   md_ntsc_rgb_t const* kernel1  = MD_NTSC_IN_FORMAT( ntsc, md_pixel1_ );\
-  unsigned const md_pixel2_ = (pixel2);\
+  u32 const md_pixel2_ = (pixel2);\
   md_ntsc_rgb_t const* kernel2  = MD_NTSC_IN_FORMAT( ntsc, md_pixel2_ );\
-  unsigned const md_pixel3_ = (pixel3);\
+  u32 const md_pixel3_ = (pixel3);\
   md_ntsc_rgb_t const* kernel3  = MD_NTSC_IN_FORMAT( ntsc, md_pixel3_ );\
   md_ntsc_rgb_t const* kernelx0;\
   md_ntsc_rgb_t const* kernelx1 = kernel0;\
@@ -101,7 +101,7 @@ Declares variables, so must be before first statement in a block (unless you're 
 
 /* private */
 enum { md_ntsc_entry_size = 2 * 16 };
-typedef unsigned long md_ntsc_rgb_t;
+typedef u32 md_ntsc_rgb_t;
 struct md_ntsc_t {
   md_ntsc_rgb_t table [md_ntsc_palette_size] [md_ntsc_entry_size];
 };
@@ -131,7 +131,7 @@ struct md_ntsc_t {
 }
 
 #define MD_NTSC_COLOR_IN_( index, color, ENTRY, table ) {\
-  unsigned color_;\
+  u32 color_;\
   kernelx##index = kernel##index;\
   kernel##index = (color_ = (color), ENTRY( table, color_ ));\
 }

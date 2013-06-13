@@ -44,7 +44,7 @@ pixel_info_t const sms_ntsc_pixels [alignment_count] = {
 
 static void correct_errors( sms_ntsc_rgb_t color, sms_ntsc_rgb_t* out )
 {
-  unsigned i;
+  u32 i;
   for ( i = 0; i < rgb_kernel_size / 2; i++ )
   {
     sms_ntsc_rgb_t error = color -
@@ -92,8 +92,8 @@ void sms_ntsc_blit( sms_ntsc_t const* ntsc, SMS_NTSC_IN_T const* table, u8* inpu
 
   /* handle extra 0, 1, or 2 pixels by placing them at beginning of row */
   int const in_extra = in_width - chunk_count * sms_ntsc_in_chunk;
-  unsigned const extra2 = (unsigned) -(in_extra >> 1 & 1); /* (unsigned) -1 = ~0 */
-  unsigned const extra1 = (unsigned) -(in_extra & 1) | extra2;
+  u32 const extra2 = (u32) -(in_extra >> 1 & 1); /* (u32) -1 = ~0 */
+  u32 const extra1 = (u32) -(in_extra & 1) | extra2;
 
   /* use palette entry 0 for unused pixels */
   SMS_NTSC_IN_T border = table[0];

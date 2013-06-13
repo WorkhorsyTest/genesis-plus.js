@@ -2,6 +2,8 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#include <assert.h>
+
 #define TRUE  1
 #define FALSE 0
 
@@ -13,6 +15,7 @@ typedef signed char           s8;
 typedef signed short          s16;
 typedef signed int            s32;
 typedef signed long long      s64;
+
 
 typedef union {
     u16 w;

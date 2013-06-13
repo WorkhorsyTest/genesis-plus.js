@@ -431,7 +431,7 @@ static void correct_errors( sms_ntsc_rgb_t color, sms_ntsc_rgb_t* out );
   #if UINT_MAX == 0xFFFFFFFF
     typedef u32  sms_ntsc_out_t;
   #elif ULONG_MAX == 0xFFFFFFFF
-    typedef unsigned long sms_ntsc_out_t;
+    typedef u32 sms_ntsc_out_t;
   #else
     #error "Need 32-bit int type"
   #endif

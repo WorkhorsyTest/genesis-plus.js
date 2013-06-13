@@ -44,7 +44,7 @@ pixel_info_t const md_ntsc_pixels [alignment_count] = {
 
 static void correct_errors( md_ntsc_rgb_t color, md_ntsc_rgb_t* out )
 {
-  unsigned i;
+  u32 i;
   for ( i = 0; i < rgb_kernel_size / 4; i++ )
   {
     md_ntsc_rgb_t error = color -

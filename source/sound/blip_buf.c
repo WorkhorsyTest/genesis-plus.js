@@ -220,7 +220,7 @@ static void remove_samples( blip_t* m, int count )
 	memset( &buf [remain], 0, count * sizeof buf [0] );
 }
 
-int blip_read_samples( blip_t* m, short out [], int count)
+int blip_read_samples( blip_t* m, s16 out [], int count)
 {
 #ifdef BLIP_ASSERT
 	assert( count >= 0 );
@@ -258,7 +258,7 @@ int blip_read_samples( blip_t* m, short out [], int count)
 	return count;
 }
 
-int blip_mix_samples( blip_t* m, short out [], int count)
+int blip_mix_samples( blip_t* m, s16 out [], int count)
 {
 #ifdef BLIP_ASSERT
 	assert( count >= 0 );
@@ -306,7 +306,7 @@ int blip_mix_samples( blip_t* m, short out [], int count)
 */
 
 /* Sinc_Generator( 0.9, 0.55, 4.5 ) */
-static short const bl_step [phase_count + 1] [half_width] =
+static s16 const bl_step [phase_count + 1] [half_width] =
 {
 {   43, -115,  350, -488, 1136, -914, 5861,21022},
 {   44, -118,  348, -473, 1076, -799, 5274,21001},
@@ -355,8 +355,8 @@ void blip_add_delta( blip_t* m, unsigned time, int delta )
 	
 	int const phase_shift = frac_bits - phase_bits;
 	int phase = fixed >> phase_shift & (phase_count - 1);
-	short const* in  = bl_step [phase];
-	short const* rev = bl_step [phase_count - phase];
+	s16 const* in  = bl_step [phase];
+	s16 const* rev = bl_step [phase_count - phase];
 	
 	int interp = fixed >> (phase_shift - delta_bits) & (delta_unit - 1);
 	int delta2 = (delta * interp) >> delta_bits;

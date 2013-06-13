@@ -56,11 +56,11 @@ int blip_samples_avail( const blip_t* );
 /** Reads and removes at most 'count' samples and writes them to to every other 
 element of 'out', allowing easy interleaving of two buffers into a stereo sample
 stream. Outputs 16-bit signed samples. Returns number of samples actually read.  */
-int blip_read_samples( blip_t*, short out [], int count);
+int blip_read_samples( blip_t*, s16 out [], int count);
 
 /* Same as above function except sample is added to output buffer previous value */
 /* This allows easy mixing of different blip buffers into a single output stream */
-int blip_mix_samples( blip_t* m, short out [], int count);
+int blip_mix_samples( blip_t* m, s16 out [], int count);
 
 /** Frees buffer. No effect if NULL is passed. */
 void blip_delete( blip_t* );
