@@ -2,7 +2,9 @@
 /*                            SUB 68K CORE                                  */
 /* ======================================================================== */
 
-extern int scd_68k_irq_ack(int level);
+#include "types.h"
+
+extern s32 scd_68k_irq_ack(s32 level);
 
 #define m68ki_cpu s68k
 #define MUL (4)
@@ -24,9 +26,9 @@ extern int scd_68k_irq_ack(int level);
 /* ======================================================================== */
 
 #ifdef BUILD_TABLES
-static unsigned char s68ki_cycles[0x10000];
+static u8 s68ki_cycles[0x10000];
 #endif
-static int irq_latency;
+static s32 irq_latency;
 
 /* IRQ priority */
 static const uint8 irq_level[0x40] = 
@@ -54,7 +56,7 @@ m68ki_cpu_core s68k;
 
 #if M68K_EMULATE_INT_ACK == OPT_ON
 /* Interrupt acknowledge */
-static int default_int_ack_callback(int int_level)
+static s32 default_int_ack_callback(s32 int_level)
 {
   CPU_INT_LEVEL = 0;
   return M68K_INT_ACK_AUTOVECTOR;
@@ -70,7 +72,7 @@ static void default_reset_instr_callback(void)
 
 #if M68K_TAS_HAS_CALLBACK == OPT_ON
 /* Called when a tas instruction is executed */
-static int default_tas_instr_callback(void)
+static s32 default_tas_instr_callback(void)
 {
   return 1; // allow writeback
 }
@@ -78,7 +80,7 @@ static int default_tas_instr_callback(void)
 
 #if M68K_EMULATE_FC == OPT_ON
 /* Called every time there's bus activity (read/write to/from memory */
-static void default_set_fc_callback(unsigned int new_fc)
+static void default_set_fc_callback(u32 new_fc)
 {
 }
 #endif
@@ -89,7 +91,7 @@ static void default_set_fc_callback(unsigned int new_fc)
 /* ======================================================================== */
 
 /* Access the internals of the CPU */
-unsigned int s68k_get_reg(m68k_register_t regnum)
+u32 s68k_get_reg(m68k_register_t regnum)
 {
   switch(regnum)
   {
@@ -130,7 +132,7 @@ unsigned int s68k_get_reg(m68k_register_t regnum)
   }
 }
 
-void s68k_set_reg(m68k_register_t regnum, unsigned int value)
+void s68k_set_reg(m68k_register_t regnum, u32 value)
 {
   switch(regnum)
   {
@@ -173,7 +175,7 @@ void s68k_set_reg(m68k_register_t regnum, unsigned int value)
 
 /* Set the callbacks */
 #if M68K_EMULATE_INT_ACK == OPT_ON
-void s68k_set_int_ack_callback(int  (*callback)(int int_level))
+void s68k_set_int_ack_callback(s32  (*callback)(s32 int_level))
 {
   CALLBACK_INT_ACK = callback ? callback : default_int_ack_callback;
 }
@@ -187,14 +189,14 @@ void s68k_set_reset_instr_callback(void  (*callback)(void))
 #endif
 
 #if M68K_TAS_HAS_CALLBACK == OPT_ON
-void s68k_set_tas_instr_callback(int  (*callback)(void))
+void s68k_set_tas_instr_callback(s32  (*callback)(void))
 {
   CALLBACK_TAS_INSTR = callback ? callback : default_tas_instr_callback;
 }
 #endif
 
 #if M68K_EMULATE_FC == OPT_ON
-void s68k_set_fc_callback(void  (*callback)(unsigned int new_fc))
+void s68k_set_fc_callback(void  (*callback)(u32 new_fc))
 {
   CALLBACK_SET_FC = callback ? callback : default_set_fc_callback;
 }
@@ -204,7 +206,7 @@ extern void error(char *format, ...);
 extern uint16 v_counter;
 
 /* update IRQ level according to triggered interrupts */
-void s68k_update_irq(unsigned int mask)
+void s68k_update_irq(u32 mask)
 {
   /* Get IRQ level (6 interrupt lines) */
   mask = irq_level[mask];
@@ -217,7 +219,7 @@ void s68k_update_irq(unsigned int mask)
 #endif
 }
 
-void s68k_run(unsigned int cycles) 
+void s68k_run(u32 cycles) 
 {
   /* Make sure CPU is not already ahead */
   if (s68k.cycles >= cycles)

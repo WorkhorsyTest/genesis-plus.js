@@ -55,18 +55,18 @@
 #endif
 
 #if M68K_USE_64_BIT
-#define sint64 signed   long long
-#define uint64 unsigned long long
+//#define sint64 signed   long long
+//#define uint64 unsigned long long
 #else
-#define sint64 s32
-#define uint64 u32
+//#define sint64 s32
+//#define uint64 u32
 #endif /* M68K_USE_64_BIT */
 
 
 
 /* Allow for architectures that don't have 8-bit sizes */
 /*#if UCHAR_MAX == 0xff*/
-  #define MAKE_INT_8(A) (sint8)(A)
+  #define MAKE_INT_8(A) (s8)(A)
 /*#else
   #undef  sint8
   #define sint8  signed   int
@@ -81,7 +81,7 @@
 
 /* Allow for architectures that don't have 16-bit sizes */
 /*#if USHRT_MAX == 0xffff*/
-  #define MAKE_INT_16(A) (sint16)(A)
+  #define MAKE_INT_16(A) (s16)(A)
 /*#else
   #undef  sint16
   #define sint16 signed   int
@@ -96,7 +96,7 @@
 
 /* Allow for architectures that don't have 32-bit sizes */
 /*#if UINT_MAX == 0xffffffff*/
-  #define MAKE_INT_32(A) (sint32)(A)
+  #define MAKE_INT_32(A) (s32)(A)
 /*#else
   #undef  sint32
   #define sint32  signed   int
@@ -199,9 +199,9 @@ typedef struct
 /* 68k idle loop detection */
 typedef struct
 {
-  uint pc;
-  uint cycle;
-  uint detected;
+  u32 pc;
+  u32 cycle;
+  u32 detected;
 } cpu_idle_t;
 
 typedef struct
@@ -210,38 +210,38 @@ typedef struct
 
   cpu_idle_t poll;      /* polling detection */
 
-  uint cycles;          /* current master cycle count */ 
-  uint cycle_end;       /* aimed master cycle count for current execution frame */
+  u32 cycles;          /* current master cycle count */ 
+  u32 cycle_end;       /* aimed master cycle count for current execution frame */
 
-  uint dar[16];         /* Data and Address Registers */
-  uint pc;              /* Program Counter */
-  uint sp[5];           /* User and Interrupt Stack Pointers */
-  uint ir;              /* Instruction Register */
-  uint t1_flag;         /* Trace 1 */
-  uint s_flag;          /* Supervisor */
-  uint x_flag;          /* Extend */
-  uint n_flag;          /* Negative */
-  uint not_z_flag;      /* Zero, inverted for speedups */
-  uint v_flag;          /* Overflow */
-  uint c_flag;          /* Carry */
-  uint int_mask;        /* I0-I2 */
-  uint int_level;       /* State of interrupt pins IPL0-IPL2 -- ASG: changed from ints_pending */
-  uint stopped;         /* Stopped state */
+  u32 dar[16];         /* Data and Address Registers */
+  u32 pc;              /* Program Counter */
+  u32 sp[5];           /* User and Interrupt Stack Pointers */
+  u32 ir;              /* Instruction Register */
+  u32 t1_flag;         /* Trace 1 */
+  u32 s_flag;          /* Supervisor */
+  u32 x_flag;          /* Extend */
+  u32 n_flag;          /* Negative */
+  u32 not_z_flag;      /* Zero, inverted for speedups */
+  u32 v_flag;          /* Overflow */
+  u32 c_flag;          /* Carry */
+  u32 int_mask;        /* I0-I2 */
+  u32 int_level;       /* State of interrupt pins IPL0-IPL2 -- ASG: changed from ints_pending */
+  u32 stopped;         /* Stopped state */
 
-  uint pref_addr;       /* Last prefetch address */
-  uint pref_data;       /* Data in the prefetch queue */
+  u32 pref_addr;       /* Last prefetch address */
+  u32 pref_data;       /* Data in the prefetch queue */
 
-  uint instr_mode;      /* Stores whether we are in instruction mode or group 0/1 exception mode */
-  uint run_mode;        /* Stores whether we are processing a reset, bus error, address error, or something else */
-  uint aerr_enabled;    /* Enables/deisables address error checks at runtime */
+  u32 instr_mode;      /* Stores whether we are in instruction mode or group 0/1 exception mode */
+  u32 run_mode;        /* Stores whether we are processing a reset, bus error, address error, or something else */
+  u32 aerr_enabled;    /* Enables/deisables address error checks at runtime */
   jmp_buf aerr_trap;    /* Address error jump */
-  uint aerr_address;    /* Address error location */
-  uint aerr_write_mode; /* Address error write mode */
-  uint aerr_fc;         /* Address error FC code */
+  u32 aerr_address;    /* Address error location */
+  u32 aerr_write_mode; /* Address error write mode */
+  u32 aerr_fc;         /* Address error FC code */
 
-  uint tracing;         /* Tracing enable flag */
+  u32 tracing;         /* Tracing enable flag */
 
-  uint address_space;   /* Current FC code */
+  u32 address_space;   /* Current FC code */
 
   /* Callbacks to host */
   s32  (*int_ack_callback)(s32 int_line);           /* Interrupt Acknowledge */

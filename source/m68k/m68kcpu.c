@@ -2,7 +2,9 @@
 /*                            MAIN 68K CORE                                 */
 /* ======================================================================== */
 
-extern int vdp_68k_irq_ack(int int_level);
+#include "types.h"
+
+extern s32 vdp_68k_irq_ack(s32 int_level);
 
 #define m68ki_cpu m68k
 #define MUL (7)
@@ -24,10 +26,10 @@ extern int vdp_68k_irq_ack(int int_level);
 /* ======================================================================== */
 
 #ifdef BUILD_TABLES
-static unsigned char m68ki_cycles[0x10000];
+static u8 m68ki_cycles[0x10000];
 #endif
 
-static int irq_latency;
+static s32 irq_latency;
 
 m68ki_cpu_core m68k;
 
@@ -42,7 +44,7 @@ m68ki_cpu_core m68k;
 
 #if M68K_EMULATE_INT_ACK == OPT_ON
 /* Interrupt acknowledge */
-static int default_int_ack_callback(int int_level)
+static s32 default_int_ack_callback(s32 int_level)
 {
   CPU_INT_LEVEL = 0;
   return M68K_INT_ACK_AUTOVECTOR;
@@ -58,7 +60,7 @@ static void default_reset_instr_callback(void)
 
 #if M68K_TAS_HAS_CALLBACK == OPT_ON
 /* Called when a tas instruction is executed */
-static int default_tas_instr_callback(void)
+static s32 default_tas_instr_callback(void)
 {
   return 1; // allow writeback
 }
@@ -66,7 +68,7 @@ static int default_tas_instr_callback(void)
 
 #if M68K_EMULATE_FC == OPT_ON
 /* Called every time there's bus activity (read/write to/from memory */
-static void default_set_fc_callback(unsigned int new_fc)
+static void default_set_fc_callback(u32 new_fc)
 {
 }
 #endif
@@ -77,7 +79,7 @@ static void default_set_fc_callback(unsigned int new_fc)
 /* ======================================================================== */
 
 /* Access the internals of the CPU */
-unsigned int m68k_get_reg(m68k_register_t regnum)
+u32 m68k_get_reg(m68k_register_t regnum)
 {
   switch(regnum)
   {
@@ -118,7 +120,7 @@ unsigned int m68k_get_reg(m68k_register_t regnum)
   }
 }
 
-void m68k_set_reg(m68k_register_t regnum, unsigned int value)
+void m68k_set_reg(m68k_register_t regnum, u32 value)
 {
   switch(regnum)
   {
@@ -161,7 +163,7 @@ void m68k_set_reg(m68k_register_t regnum, unsigned int value)
 
 /* Set the callbacks */
 #if M68K_EMULATE_INT_ACK == OPT_ON
-void m68k_set_int_ack_callback(int  (*callback)(int int_level))
+void m68k_set_int_ack_callback(s32  (*callback)(s32 int_level))
 {
   CALLBACK_INT_ACK = callback ? callback : default_int_ack_callback;
 }
@@ -175,14 +177,14 @@ void m68k_set_reset_instr_callback(void  (*callback)(void))
 #endif
 
 #if M68K_TAS_HAS_CALLBACK == OPT_ON
-void m68k_set_tas_instr_callback(int  (*callback)(void))
+void m68k_set_tas_instr_callback(s32  (*callback)(void))
 {
   CALLBACK_TAS_INSTR = callback ? callback : default_tas_instr_callback;
 }
 #endif
 
 #if M68K_EMULATE_FC == OPT_ON
-void m68k_set_fc_callback(void  (*callback)(unsigned int new_fc))
+void m68k_set_fc_callback(void  (*callback)(u32 new_fc))
 {
   CALLBACK_SET_FC = callback ? callback : default_set_fc_callback;
 }
@@ -190,14 +192,14 @@ void m68k_set_fc_callback(void  (*callback)(unsigned int new_fc))
 
 #ifdef LOGVDP
 extern void error(char *format, ...);
-extern uint16 v_counter;
+extern u16 v_counter;
 #endif
 
 /* ASG: rewrote so that the int_level is a mask of the IPL0/IPL1/IPL2 bits */
 /* KS: Modified so that IPL* bits match with mask positions in the SR
  *     and cleaned out remenants of the interrupt controller.
  */
-void m68k_update_irq(unsigned int mask)
+void m68k_update_irq(u32 mask)
 {
   /* Update IRQ level */
   CPU_INT_LEVEL |= (mask << 8);
@@ -207,7 +209,7 @@ void m68k_update_irq(unsigned int mask)
 #endif
 }
 
-void m68k_set_irq(unsigned int int_level)
+void m68k_set_irq(u32 int_level)
 {
   /* Set IRQ level */
   CPU_INT_LEVEL = int_level << 8;
@@ -218,7 +220,7 @@ void m68k_set_irq(unsigned int int_level)
 }
 
 /* IRQ latency (Fatal Rewind, Sesame's Street Counting Cafe)*/
-void m68k_set_irq_delay(unsigned int int_level)
+void m68k_set_irq_delay(u32 int_level)
 {
   /* Prevent reentrance */
   if (!irq_latency)
@@ -253,7 +255,7 @@ void m68k_set_irq_delay(unsigned int int_level)
   m68ki_check_interrupts(); /* Level triggered (IRQ) */
 }
 
-void m68k_run(unsigned int cycles) 
+void m68k_run(u32 cycles) 
 {
   /* Make sure CPU is not already ahead */
   if (m68k.cycles >= cycles)
