@@ -189,10 +189,20 @@
  *   'ld d, (a)' loads from program ROM
  */
 
+#include <stdbool.h>
 #include "shared.h"
 
 
-#define u32 u32
+static ssp1601_t *ssp = NULL;
+static u16 *PC;
+static int g_cycles;
+
+#ifdef USE_DEBUGGER
+static int running = 0;
+static int last_iram = 0;
+#endif
+
+static u32 read_P();
 
 /*#define USE_DEBUGGER*/
 
@@ -216,11 +226,11 @@
 #define rA32   ssp->gr[SSP_A].v
 #define rIJ    ssp->ptr.r
 
-#define IJind  (((op>>6)&4)|(op&3))
+int IJind(int op) { return (((op>>6)&4)|(op&3)); }
 
-#define GET_PC() (PC - (u16 *)svp->iram_rom)
-#define GET_PPC_OFFS() ((u32)PC - (u32)svp->iram_rom - 2)
-#define SET_PC(d) PC = (u16 *)svp->iram_rom + d
+u16 GET_PC() { return (PC - (u16 *)svp->iram_rom); }
+u32 GET_PPC_OFFS() { return ((u32)PC - (u32)svp->iram_rom - 2); }
+void SET_PC(u16 d) { PC = (u16 *)svp->iram_rom + d; }
 
 #define REG_READ(r) (((r) <= 4) ? ssp->gr[r].byte.h : read_handlers[r]())
 #define REG_WRITE(r,d) { \
@@ -230,123 +240,125 @@
 }
 
 /* flags */
-#define SSP_FLAG_L (1<<0xc)
-#define SSP_FLAG_Z (1<<0xd)
-#define SSP_FLAG_V (1<<0xe)
-#define SSP_FLAG_N (1<<0xf)
+int SSP_FLAG_L() { return (1<<0xc); }
+int SSP_FLAG_Z() { return (1<<0xd); }
+int SSP_FLAG_V() { return (1<<0xe); }
+int SSP_FLAG_N() { return (1<<0xf); }
 
 /* update ZN according to 32bit ACC. */
-#define UPD_ACC_ZN \
-  rST &= ~(SSP_FLAG_Z|SSP_FLAG_N); \
-  if (!rA32) rST |= SSP_FLAG_Z; \
-  else rST |= (rA32>>16)&SSP_FLAG_N;
+void UPD_ACC_ZN() {
+  rST &= ~(SSP_FLAG_Z()|SSP_FLAG_N());
+  if (!rA32) rST |= SSP_FLAG_Z();
+  else rST |= (rA32>>16)&SSP_FLAG_N();
+}
 
 /* it seems SVP code never checks for L and OV, so we leave them out. */
-/* rST |= (t>>4)&SSP_FLAG_L; */
-#define UPD_LZVN \
-  rST &= ~(SSP_FLAG_L|SSP_FLAG_Z|SSP_FLAG_V|SSP_FLAG_N); \
-  if (!rA32) rST |= SSP_FLAG_Z; \
-  else rST |= (rA32>>16)&SSP_FLAG_N;
+/* rST |= (t>>4)&SSP_FLAG_L(); */
+void UPD_LZVN() {
+  rST &= ~(SSP_FLAG_L()|SSP_FLAG_Z()|SSP_FLAG_V()|SSP_FLAG_N());
+  if (!rA32) rST |= SSP_FLAG_Z();
+  else rST |= (rA32>>16)&SSP_FLAG_N();
+}
 
 /* standard cond processing. */
 /* again, only Z and N is checked, as SVP doesn't seem to use any other conds. */
-#define COND_CHECK \
+#define COND_CHECK() \
   switch (op&0xf0) { \
     case 0x00: cond = 1; break; /* always true */ \
-    case 0x50: cond = !((rST ^ (op<<5)) & SSP_FLAG_Z); break; /* Z matches f(?) bit */ \
-    case 0x70: cond = !((rST ^ (op<<7)) & SSP_FLAG_N); break; /* N matches f(?) bit */ \
+    case 0x50: cond = !((rST ^ (op<<5)) & SSP_FLAG_Z()); break; /* Z matches f(?) bit */ \
+    case 0x70: cond = !((rST ^ (op<<7)) & SSP_FLAG_N()); break; /* N matches f(?) bit */ \
     default: break;  \
   }
 
 /* ops with accumulator. */
 /* how is low word really affected by these? */
 /* nearly sure 'ld A' doesn't affect flags */
-#define OP_LDA(x) \
-  rA = x
-
-#define OP_LDA32(x) \
-  rA32 = x
-
-#define OP_SUBA(x) { \
-  rA32 -= (x) << 16; \
-  UPD_LZVN \
+void OP_LDA(u32 x) {
+  rA = x;
 }
 
-#define OP_SUBA32(x) { \
-  rA32 -= (x); \
-  UPD_LZVN \
+void OP_LDA32(u32 x) {
+  rA32 = x;
 }
 
-#define OP_CMPA(x) { \
-  u32 t = rA32 - ((x) << 16); \
-  rST &= ~(SSP_FLAG_L|SSP_FLAG_Z|SSP_FLAG_V|SSP_FLAG_N); \
-  if (!t) rST |= SSP_FLAG_Z; \
-  else    rST |= (t>>16)&SSP_FLAG_N; \
+void OP_SUBA(u32 x) {
+  rA32 -= (x) << 16;
+  UPD_LZVN();
 }
 
-#define OP_CMPA32(x) { \
-  u32 t = rA32 - (x); \
-  rST &= ~(SSP_FLAG_L|SSP_FLAG_Z|SSP_FLAG_V|SSP_FLAG_N); \
-  if (!t) rST |= SSP_FLAG_Z; \
-  else    rST |= (t>>16)&SSP_FLAG_N; \
+void OP_SUBA32(u32 x) {
+  rA32 -= (x);
+  UPD_LZVN();
 }
 
-#define OP_ADDA(x) { \
-  rA32 += (x) << 16; \
-  UPD_LZVN \
+void OP_CMPA(u32 x) {
+  u32 t = rA32 - ((x) << 16);
+  rST &= ~(SSP_FLAG_L()|SSP_FLAG_Z()|SSP_FLAG_V()|SSP_FLAG_N());
+  if (!t) rST |= SSP_FLAG_Z();
+  else    rST |= (t>>16)&SSP_FLAG_N();
 }
 
-#define OP_ADDA32(x) { \
-  rA32 += (x); \
-  UPD_LZVN \
+void OP_CMPA32(u32 x) {
+  u32 t = rA32 - (x);
+  rST &= ~(SSP_FLAG_L()|SSP_FLAG_Z()|SSP_FLAG_V()|SSP_FLAG_N());
+  if (!t) rST |= SSP_FLAG_Z();
+  else    rST |= (t>>16)&SSP_FLAG_N();
 }
 
-#define OP_ANDA(x) \
-  rA32 &= (x) << 16; \
-  UPD_ACC_ZN
-
-#define OP_ANDA32(x) \
-  rA32 &= (x); \
-  UPD_ACC_ZN
-
-#define OP_ORA(x) \
-  rA32 |= (x) << 16; \
-  UPD_ACC_ZN
-
-#define OP_ORA32(x) \
-  rA32 |= (x); \
-  UPD_ACC_ZN
-
-#define OP_EORA(x) \
-  rA32 ^= (x) << 16; \
-  UPD_ACC_ZN
-
-#define OP_EORA32(x) \
-  rA32 ^= (x); \
-  UPD_ACC_ZN
-
-
-#define OP_CHECK32(OP) { \
-  if ((op & 0x0f) == SSP_P) { /* A <- P */ \
-    read_P(); /* update P */ \
-    OP(rP.v); \
-    break; \
-  } \
-  if ((op & 0x0f) == SSP_A) { /* A <- A */ \
-    OP(rA32); \
-    break; \
-  } \
+void OP_ADDA(u32 x) {
+  rA32 += (x) << 16;
+  UPD_LZVN();
 }
 
+void OP_ADDA32(u32 x) {
+  rA32 += (x);
+  UPD_LZVN();
+}
 
-static ssp1601_t *ssp = NULL;
-static u16 *PC;
-static int g_cycles;
+void OP_ANDA(u32 x) {
+  rA32 &= (x) << 16;
+  UPD_ACC_ZN();
+}
 
-#ifdef USE_DEBUGGER
-static int running = 0;
-static int last_iram = 0;
-#endif
+void OP_ANDA32(u32 x) {
+  rA32 &= (x);
+  UPD_ACC_ZN();
+}
+
+void OP_ORA(u32 x) {
+  rA32 |= (x) << 16;
+  UPD_ACC_ZN();
+}
+
+void OP_ORA32(u32 x) {
+  rA32 |= (x);
+  UPD_ACC_ZN();
+}
+
+void OP_EORA(u32 x) {
+  rA32 ^= (x) << 16;
+  UPD_ACC_ZN();
+}
+
+void OP_EORA32(u32 x) {
+  rA32 ^= (x);
+  UPD_ACC_ZN();
+}
+
+bool OP_CHECK32(int op, void (*OP)(u32 x)) {
+  if ((op & 0x0f) == SSP_P) { /* A <- P */
+    read_P(); /* update P */
+    OP(rP.v);
+    return TRUE;
+  }
+  if ((op & 0x0f) == SSP_A) { /* A <- A */
+    OP(rA32);
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
 
 /* ----------------------------------------------------- */
 /* register i/o handlers */
@@ -992,8 +1004,8 @@ static void debug_dump()
   printf("PC:    %04x  (%04x)                P: %08x\n", GET_PC(), GET_PC() << 1, ssp->gr[SSP_P].v);
   printf("PM0:   %04x  PM1: %04x  PM2: %04x\n", rPM0, rPM1, rPM2);
   printf("XST:   %04x  PM4: %04x  PMC: %08x\n", rXST, rPM4, ssp->gr[SSP_PMC].v);
-  printf(" ST:   %04x  %c%c%c%c,  GP0_0 %i,  GP0_1 %i\n", rST, rST&SSP_FLAG_N?'N':'n', rST&SSP_FLAG_V?'V':'v',
-    rST&SSP_FLAG_Z?'Z':'z', rST&SSP_FLAG_L?'L':'l', (rST>>5)&1, (rST>>6)&1);
+  printf(" ST:   %04x  %c%c%c%c,  GP0_0 %i,  GP0_1 %i\n", rST, rST&SSP_FLAG_N()?'N':'n', rST&SSP_FLAG_V()?'V':'v',
+    rST&SSP_FLAG_Z()?'Z':'z', rST&SSP_FLAG_L()?'L':'l', (rST>>5)&1, (rST>>6)&1);
   printf("STACK: %i %04x %04x %04x %04x %04x %04x\n", rSTACK, ssp->stack[0], ssp->stack[1],
     ssp->stack[2], ssp->stack[3], ssp->stack[4], ssp->stack[5]);
   printf("r0-r2: %02x %02x %02x  r4-r6: %02x %02x %02x\n", rIJ[0], rIJ[1], rIJ[2], rIJ[4], rIJ[5], rIJ[6]);
@@ -1150,7 +1162,7 @@ void ssp1601_run(int cycles)
       /* call cond, addr */
       case 0x24: {
         int cond = 0;
-        COND_CHECK
+        COND_CHECK();
         if (cond) { int new_PC = *PC++; write_STACK(GET_PC()); write_PC(new_PC); }
         else PC++;
         break;
@@ -1162,7 +1174,7 @@ void ssp1601_run(int cycles)
       /* bra cond, addr */
       case 0x26: {
         int cond = 0;
-        COND_CHECK
+        COND_CHECK();
         if (cond) { int new_PC = *PC++; write_PC(new_PC); }
         else PC++;
         break;
@@ -1171,7 +1183,7 @@ void ssp1601_run(int cycles)
       /* mod cond, op */
       case 0x48: {
         int cond = 0;
-        COND_CHECK
+        COND_CHECK();
         if (cond) {
           switch (op & 7) {
             case 2: rA32 = (s32)rA32 >> 1; break; /* shr (arithmetic) */
@@ -1185,7 +1197,7 @@ void ssp1601_run(int cycles)
 #endif
               break;
           }
-          UPD_ACC_ZN /* ? */
+          UPD_ACC_ZN(); /* ? */
         }
         break;
       }
@@ -1197,7 +1209,7 @@ void ssp1601_run(int cycles)
 #endif
         read_P(); /* update P */
         rA32 -= rP.v;  /* maybe only upper word? */
-        UPD_ACC_ZN      /* there checking flags after this */
+        UPD_ACC_ZN();      /* there checking flags after this */
         rX = ptr1_read_(op&3, 0, (op<<1)&0x18); /* ri (maybe rj?) */
         rY = ptr1_read_((op>>4)&3, 4, (op>>3)&0x18); /* rj */
         break;
@@ -1209,7 +1221,7 @@ void ssp1601_run(int cycles)
 #endif
         read_P(); /* update P */
         rA32 += rP.v; /* confirmed to be 32bit */
-        UPD_ACC_ZN /* ? */
+        UPD_ACC_ZN(); /* ? */
         rX = ptr1_read_(op&3, 0, (op<<1)&0x18); /* ri (maybe rj?) */
         rY = ptr1_read_((op>>4)&3, 4, (op>>3)&0x18); /* rj */
         break;
@@ -1226,12 +1238,12 @@ void ssp1601_run(int cycles)
         break;
 
       /* OP a, s */
-      case 0x10: OP_CHECK32(OP_SUBA32); tmpv = REG_READ(op & 0x0f); OP_SUBA(tmpv); break;
-      case 0x30: OP_CHECK32(OP_CMPA32); tmpv = REG_READ(op & 0x0f); OP_CMPA(tmpv); break;
-      case 0x40: OP_CHECK32(OP_ADDA32); tmpv = REG_READ(op & 0x0f); OP_ADDA(tmpv); break;
-      case 0x50: OP_CHECK32(OP_ANDA32); tmpv = REG_READ(op & 0x0f); OP_ANDA(tmpv); break;
-      case 0x60: OP_CHECK32(OP_ORA32 ); tmpv = REG_READ(op & 0x0f); OP_ORA (tmpv); break;
-      case 0x70: OP_CHECK32(OP_EORA32); tmpv = REG_READ(op & 0x0f); OP_EORA(tmpv); break;
+      case 0x10: if(OP_CHECK32(op, &OP_SUBA32)) break; tmpv = REG_READ(op & 0x0f); OP_SUBA(tmpv); break;
+      case 0x30: if(OP_CHECK32(op, &OP_CMPA32)) break; tmpv = REG_READ(op & 0x0f); OP_CMPA(tmpv); break;
+      case 0x40: if(OP_CHECK32(op, &OP_ADDA32)) break; tmpv = REG_READ(op & 0x0f); OP_ADDA(tmpv); break;
+      case 0x50: if(OP_CHECK32(op, &OP_ANDA32)) break; tmpv = REG_READ(op & 0x0f); OP_ANDA(tmpv); break;
+      case 0x60: if(OP_CHECK32(op, &OP_ORA32 )) break; tmpv = REG_READ(op & 0x0f); OP_ORA (tmpv); break;
+      case 0x70: if(OP_CHECK32(op, &OP_EORA32)) break; tmpv = REG_READ(op & 0x0f); OP_EORA(tmpv); break;
 
       /* OP a, (ri) */
       case 0x11: tmpv = ptr1_read(op); OP_SUBA(tmpv); break;
@@ -1267,12 +1279,12 @@ void ssp1601_run(int cycles)
       case 0x75: tmpv = ptr2_read(op); OP_EORA(tmpv); break;
 
       /* OP a, ri */
-      case 0x19: tmpv = rIJ[IJind]; OP_SUBA(tmpv); break;
-      case 0x39: tmpv = rIJ[IJind]; OP_CMPA(tmpv); break;
-      case 0x49: tmpv = rIJ[IJind]; OP_ADDA(tmpv); break;
-      case 0x59: tmpv = rIJ[IJind]; OP_ANDA(tmpv); break;
-      case 0x69: tmpv = rIJ[IJind]; OP_ORA (tmpv); break;
-      case 0x79: tmpv = rIJ[IJind]; OP_EORA(tmpv); break;
+      case 0x19: tmpv = rIJ[IJind(op)]; OP_SUBA(tmpv); break;
+      case 0x39: tmpv = rIJ[IJind(op)]; OP_CMPA(tmpv); break;
+      case 0x49: tmpv = rIJ[IJind(op)]; OP_ADDA(tmpv); break;
+      case 0x59: tmpv = rIJ[IJind(op)]; OP_ANDA(tmpv); break;
+      case 0x69: tmpv = rIJ[IJind(op)]; OP_ORA (tmpv); break;
+      case 0x79: tmpv = rIJ[IJind(op)]; OP_EORA(tmpv); break;
 
       /* OP simm */
       case 0x1c:
