@@ -56,7 +56,7 @@ static void (*YM_Update)(int *buffer, int length);
 static void (*YM_Write)(u32 a, u32 v);
 
 /* Run FM chip until required M-cycles */
-INLINE void fm_update(u32 cycles)
+void fm_update(u32 cycles)
 {
   if (cycles > fm_cycles_count)
   {

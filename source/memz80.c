@@ -47,14 +47,14 @@
 /*  machine lock up.                                                        */
 /*--------------------------------------------------------------------------*/
 
-INLINE void z80_unused_w(u32 address, u8 data)
+void z80_unused_w(u32 address, u8 data)
 {
 #ifdef LOGERROR
   error("Z80 unused write %04X = %02X (%x)\n", address, data, Z80.pc.w.l);
 #endif
 }
 
-INLINE u8 z80_unused_r(u32 address)
+u8 z80_unused_r(u32 address)
 {
 #ifdef LOGERROR
   error("Z80 unused read %04X (%x)\n", address, Z80.pc.w.l);
@@ -62,7 +62,7 @@ INLINE u8 z80_unused_r(u32 address)
   return 0xFF;
 }
 
-INLINE void z80_lockup_w(u32 address, u8 data)
+void z80_lockup_w(u32 address, u8 data)
 {
 #ifdef LOGERROR
   error("Z80 lockup write %04X = %02X (%x)\n", address, data, Z80.pc.w.l);
@@ -74,7 +74,7 @@ INLINE void z80_lockup_w(u32 address, u8 data)
   }
 }
 
-INLINE u8 z80_lockup_r(u32 address)
+u8 z80_lockup_r(u32 address)
 {
 #ifdef LOGERROR
   error("Z80 lockup read %04X (%x)\n", address, Z80.pc.w.l);

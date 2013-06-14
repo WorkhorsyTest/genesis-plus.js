@@ -469,7 +469,7 @@ s32 gfx_context_load(u8 *state)
   return bufferptr;
 }
 
-INLINE void gfx_render(u32 bufferIndex, u32 width)
+void gfx_render(u32 bufferIndex, u32 width)
 {
   u8 pixel_in, pixel_out;
   u16 stamp_data;

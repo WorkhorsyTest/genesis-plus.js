@@ -505,7 +505,7 @@ static s32  LFO_PM;
 static YM2413 ym2413;
 
 /* advance LFO to next sample */
-INLINE void advance_lfo()
+static void advance_lfo()
 {
   /* LFO */
   ym2413.lfo_am_cnt += ym2413.lfo_am_inc;
@@ -519,7 +519,7 @@ INLINE void advance_lfo()
 }
 
 /* advance to next sample */
-INLINE void advance()
+void advance()
 {
   YM2413_OPLL_CH *CH;
   YM2413_OPLL_SLOT *op;
@@ -748,7 +748,7 @@ INLINE void advance()
 }
 
 
-INLINE s32 op_calc(u32 phase, u32 env, s32 pm, u32 wave_tab)
+static s32 op_calc(u32 phase, u32 env, s32 pm, u32 wave_tab)
 {
   u32 p = (env<<5) + sin_tab[wave_tab + ((((s32)((phase & ~FREQ_MASK) + (pm<<17))) >> FREQ_SH ) & SIN_MASK) ];
 
@@ -757,7 +757,7 @@ INLINE s32 op_calc(u32 phase, u32 env, s32 pm, u32 wave_tab)
   return tl_tab[p];
 }
 
-INLINE s32 op_calc1(u32 phase, u32 env, s32 pm, u32 wave_tab)
+static s32 op_calc1(u32 phase, u32 env, s32 pm, u32 wave_tab)
 {
   u32 p = (env<<5) + sin_tab[wave_tab + ((((s32)((phase & ~FREQ_MASK) + pm)) >> FREQ_SH ) & SIN_MASK) ];
 
@@ -769,7 +769,7 @@ INLINE s32 op_calc1(u32 phase, u32 env, s32 pm, u32 wave_tab)
 #define volume_calc(OP) ((OP)->TLL + ((u32)(OP)->volume) + (LFO_AM & (OP)->AMmask))
 
 /* calculate output */
-INLINE void chan_calc( YM2413_OPLL_CH *CH )
+static void chan_calc( YM2413_OPLL_CH *CH )
 {
   YM2413_OPLL_SLOT *SLOT;
   u32 env;
@@ -840,7 +840,7 @@ number   number    BLK/FNUM2 FNUM    Drum  Hat   Drum  Tom  Cymbal
 
 /* calculate rhythm */
 
-INLINE void rhythm_calc( YM2413_OPLL_CH *CH, u32 noise )
+void rhythm_calc( YM2413_OPLL_CH *CH, u32 noise )
 {
   YM2413_OPLL_SLOT *SLOT;
   s32 out;
@@ -1100,7 +1100,7 @@ static void OPLL_initalize()
   ym2413.eg_timer_overflow = ( 1 ) * (1<<EG_SH);
 }
 
-INLINE void KEY_ON(YM2413_OPLL_SLOT *SLOT, u32 key_set)
+void KEY_ON(YM2413_OPLL_SLOT *SLOT, u32 key_set)
 {
   if( !SLOT->key )
   {
@@ -1111,7 +1111,7 @@ INLINE void KEY_ON(YM2413_OPLL_SLOT *SLOT, u32 key_set)
   SLOT->key |= key_set;
 }
 
-INLINE void KEY_OFF(YM2413_OPLL_SLOT *SLOT, u32 key_clr)
+void KEY_OFF(YM2413_OPLL_SLOT *SLOT, u32 key_clr)
 {
   if( SLOT->key )
   {
@@ -1127,7 +1127,7 @@ INLINE void KEY_OFF(YM2413_OPLL_SLOT *SLOT, u32 key_clr)
 }
 
 /* update phase increment counter of operator (also update the EG rates if necessary) */
-INLINE void CALC_FCSLOT(YM2413_OPLL_CH *CH,YM2413_OPLL_SLOT *SLOT)
+void CALC_FCSLOT(YM2413_OPLL_CH *CH,YM2413_OPLL_SLOT *SLOT)
 {
   s32 ksr;
   u32 SLOT_rs;
@@ -1173,7 +1173,7 @@ INLINE void CALC_FCSLOT(YM2413_OPLL_CH *CH,YM2413_OPLL_SLOT *SLOT)
 }
 
 /* set multi,am,vib,EG-TYP,KSR,mul */
-INLINE void set_mul(s32 slot,s32 v)
+void set_mul(s32 slot,s32 v)
 {
   YM2413_OPLL_CH   *CH   = &ym2413.P_CH[slot/2];
   YM2413_OPLL_SLOT *SLOT = &CH->SLOT[slot&1];
@@ -1187,7 +1187,7 @@ INLINE void set_mul(s32 slot,s32 v)
 }
 
 /* set ksl, tl */
-INLINE void set_ksl_tl(s32 chan,s32 v)
+void set_ksl_tl(s32 chan,s32 v)
 {
   YM2413_OPLL_CH   *CH   = &ym2413.P_CH[chan];
   /* modulator */
@@ -1201,7 +1201,7 @@ INLINE void set_ksl_tl(s32 chan,s32 v)
 }
 
 /* set ksl , waveforms, feedback */
-INLINE void set_ksl_wave_fb(s32 chan,s32 v)
+void set_ksl_wave_fb(s32 chan,s32 v)
 {
   YM2413_OPLL_CH   *CH   = &ym2413.P_CH[chan];
   /* modulator */
@@ -1218,7 +1218,7 @@ INLINE void set_ksl_wave_fb(s32 chan,s32 v)
 }
 
 /* set attack rate & decay rate  */
-INLINE void set_ar_dr(s32 slot,s32 v)
+void set_ar_dr(s32 slot,s32 v)
 {
   YM2413_OPLL_CH   *CH   = &ym2413.P_CH[slot/2];
   YM2413_OPLL_SLOT *SLOT = &CH->SLOT[slot&1];
@@ -1242,7 +1242,7 @@ INLINE void set_ar_dr(s32 slot,s32 v)
 }
 
 /* set sustain level & release rate */
-INLINE void set_sl_rr(s32 slot,s32 v)
+static void set_sl_rr(s32 slot,s32 v)
 {
   YM2413_OPLL_CH   *CH   = &ym2413.P_CH[slot/2];
   YM2413_OPLL_SLOT *SLOT = &CH->SLOT[slot&1];

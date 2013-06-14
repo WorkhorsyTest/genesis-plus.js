@@ -168,7 +168,7 @@ int SN76489_GetContextSize()
 }
 
 /* Updates tone amplitude in delta buffer. Call whenever amplitude might have changed. */
-INLINE void UpdateToneAmplitude(int i, int time)
+void UpdateToneAmplitude(int i, int time)
 {
   int delta;
 
@@ -190,7 +190,7 @@ INLINE void UpdateToneAmplitude(int i, int time)
 }
 
 /* Updates noise amplitude in delta buffer. Call whenever amplitude might have changed. */
-INLINE void UpdateNoiseAmplitude(int time)
+void UpdateNoiseAmplitude(int time)
 {
   int delta;
 

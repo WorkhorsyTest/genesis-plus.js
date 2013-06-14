@@ -49,7 +49,7 @@ void paddle_reset(int index)
   paddle[index].State = 0x40;
 }
 
-INLINE u8 paddle_read(int port)
+u8 paddle_read(int port)
 {
   /* FIRE button status (active low) */
   u8 temp = ~(input.pad[port] & 0x10);
@@ -83,7 +83,7 @@ INLINE u8 paddle_read(int port)
   return temp;
 }
 
-INLINE void paddle_write(int index, u8 data, u8 mask)
+void paddle_write(int index, u8 data, u8 mask)
 {
   /* update bits set as output only */
   paddle[index].State = (paddle[index].State & ~mask) | (data & mask);

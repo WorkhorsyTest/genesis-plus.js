@@ -80,7 +80,7 @@ void teamplayer_reset(int port)
   teamplayer[port].Counter = 0;
 }
 
-INLINE u32 teamplayer_read(int port)
+u32 teamplayer_read(int port)
 {
   u32 counter = teamplayer[port].Counter;
 
@@ -131,7 +131,7 @@ INLINE u32 teamplayer_read(int port)
   }
 }
 
-INLINE void teamplayer_write(int port, u8 data, u8 mask)
+void teamplayer_write(int port, u8 data, u8 mask)
 {
   /* update bits set as output only */
   u32 state = (teamplayer[port].State & ~mask) | (data & mask);

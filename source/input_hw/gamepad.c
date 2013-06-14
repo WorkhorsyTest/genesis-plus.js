@@ -71,7 +71,7 @@ void gamepad_refresh(int port)
   }
 }
 
-INLINE u8 gamepad_read(int port)
+u8 gamepad_read(int port)
 {
   /* bit 7 is latched, returns current TH state */
   u32 data = (gamepad[port].State & 0x40) | 0x3F;
@@ -142,7 +142,7 @@ INLINE u8 gamepad_read(int port)
   return data;
 }
 
-INLINE void gamepad_write(int port, u8 data, u8 mask)
+void gamepad_write(int port, u8 data, u8 mask)
 {
   /* update bits set as output only */
   data = (gamepad[port].State & ~mask) | (data & mask);

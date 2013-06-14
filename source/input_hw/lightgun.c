@@ -155,7 +155,7 @@ void lightgun_refresh(int port)
 /*  Sega Phaser                                                             */
 /*--------------------------------------------------------------------------*/
 
-INLINE u8 phaser_read(int port)
+u8 phaser_read(int port)
 {
   /* TL returns TRIGGER (INPUT_A) button status (active low) */
   u8 temp = ~((input.pad[port] >> 2) & 0x10);

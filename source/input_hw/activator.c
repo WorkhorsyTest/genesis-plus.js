@@ -51,7 +51,7 @@ void activator_reset(int index)
   activator[index].Counter = 0;
 }
 
-INLINE u8 activator_read(int port)
+u8 activator_read(int port)
 {
   /* IR sensors 1-16 data (active low) */
   u16 data = ~input.pad[port << 2];
@@ -85,7 +85,7 @@ INLINE u8 activator_read(int port)
   return temp;
 }
 
-INLINE void activator_write(int index, u8 data, u8 mask)
+void activator_write(int index, u8 data, u8 mask)
 {
   /* update bits set as output only */
   data = (activator[index].State & ~mask) | (data & mask);

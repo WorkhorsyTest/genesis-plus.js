@@ -212,7 +212,7 @@ void eeprom_i2c_init()
   }
 }
 
-INLINE void Detect_START()
+void Detect_START()
 {
   if (eeprom_i2c.old_scl && eeprom_i2c.scl)
   {
@@ -230,7 +230,7 @@ INLINE void Detect_START()
   }
 }
 
-INLINE void Detect_STOP()
+void Detect_STOP()
 {
   if (eeprom_i2c.old_scl && eeprom_i2c.scl)
   {

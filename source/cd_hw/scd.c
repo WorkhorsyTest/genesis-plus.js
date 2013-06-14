@@ -425,7 +425,7 @@ static u32 scd_read_word(u32 address)
   return scd.regs[(address >> 1) & 0xff].w;
 }
 
-INLINE void word_ram_switch(u8 mode)
+void word_ram_switch(u8 mode)
 {
   s32 i;
   u16 *ptr1 = (u16 *)(scd.word_ram_2M);

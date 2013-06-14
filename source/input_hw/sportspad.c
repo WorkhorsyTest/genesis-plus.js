@@ -52,7 +52,7 @@ void sportspad_reset(int index)
   sportspad[index].Counter = 0;
 }
 
-INLINE u8 sportspad_read(int port)
+u8 sportspad_read(int port)
 {
   /* Buttons 1(B) & 2(C) status (active low) */
   u8 temp = ~(input.pad[port] & 0x30);
@@ -98,7 +98,7 @@ INLINE u8 sportspad_read(int port)
   return temp;
 }
 
-INLINE void sportspad_write(int index, u8 data, u8 mask)
+void sportspad_write(int index, u8 data, u8 mask)
 {
   /* update bits set as output only */
   data = (sportspad[index].State & ~mask) | (data & mask);
