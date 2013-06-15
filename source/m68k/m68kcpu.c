@@ -76,6 +76,23 @@ u32 MASK_OUT_BELOW_2(u32 A) { return A & ~3; }
 u32 MASK_OUT_BELOW_8(u32 A) { return A & ~0xff; }
 u32 MASK_OUT_BELOW_16(u32 A) { return A & ~0xffff; }
 
+/* Shift & Rotate Macros. */
+u32 LSL(u32 A, u32 C) { return A << C; }
+u32 LSR(u32 A, u32 C) { return A >> C; }
+
+u32 ROL_8(u32 A, u32 C)  { return   MASK_OUT_ABOVE_8(LSL(A, C) | LSR(A, 8-(C))); }
+u32 ROL_9(u32 A, u32 C)  { return                   (LSL(A, C) | LSR(A, 9-(C))); }
+u32 ROL_16(u32 A, u32 C) { return  MASK_OUT_ABOVE_16(LSL(A, C) | LSR(A, 16-(C))); }
+u32 ROL_17(u32 A, u32 C) { return   (LSL(A, C) | LSR(A, 17-(C))); }
+u32 ROL_32(u32 A, u32 C) { return  MASK_OUT_ABOVE_32(LSL_32(A, C) | LSR_32(A, 32-(C))); }
+u32 ROL_33(u32 A, u32 C) { return                   (LSL_32(A, C) | LSR_32(A, 33-(C))); }
+
+u32 ROR_8(u32 A, u32 C)  { return   MASK_OUT_ABOVE_8(LSR(A, C) | LSL(A, 8-(C))); }
+u32 ROR_9(u32 A, u32 C)  { return                   (LSR(A, C) | LSL(A, 9-(C))); }
+u32 ROR_16(u32 A, u32 C) { return  MASK_OUT_ABOVE_16(LSR(A, C) | LSL(A, 16-(C))); }
+u32 ROR_17(u32 A, u32 C) { return                   (LSR(A, C) | LSL(A, 17-(C))); }
+u32 ROR_32(u32 A, u32 C) { return  MASK_OUT_ABOVE_32(LSR_32(A, C) | LSL_32(A, 32-(C))); }
+u32 ROR_33(u32 A, u32 C) { return                   (LSR_32(A, C) | LSL_32(A, 33-(C))); }
 /* ======================================================================== */
 /* ================================= DATA ================================= */
 /* ======================================================================== */
@@ -96,37 +113,6 @@ m68ki_cpu_core m68k;
 /* Default callbacks used if the callback hasn't been set yet, or if the
  * callback is set to NULL
  */
-
-#if M68K_EMULATE_INT_ACK == OPT_ON
-/* Interrupt acknowledge */
-static s32 default_int_ack_callback(s32 int_level)
-{
-  CPU_INT_LEVEL = 0;
-  return M68K_INT_ACK_AUTOVECTOR;
-}
-#endif
-
-#if M68K_EMULATE_RESET == OPT_ON
-/* Called when a reset instruction is executed */
-static void default_reset_instr_callback()
-{
-}
-#endif
-
-#if M68K_TAS_HAS_CALLBACK == OPT_ON
-/* Called when a tas instruction is executed */
-static s32 default_tas_instr_callback()
-{
-  return 1; // allow writeback
-}
-#endif
-
-#if M68K_EMULATE_FC == OPT_ON
-/* Called every time there's bus activity (read/write to/from memory */
-static void default_set_fc_callback(u32 new_fc)
-{
-}
-#endif
 
 
 /* ======================================================================== */
@@ -166,10 +152,6 @@ u32 m68k_get_reg(m68k_register_t regnum)
     case M68K_REG_SP:  return m68ki_cpu.dar[15];
     case M68K_REG_USP:  return m68ki_cpu.s_flag ? m68ki_cpu.sp[0] : m68ki_cpu.dar[15];
     case M68K_REG_ISP:  return m68ki_cpu.s_flag ? m68ki_cpu.dar[15] : m68ki_cpu.sp[4];
-#if M68K_EMULATE_PREFETCH
-    case M68K_REG_PREF_ADDR:  return m68ki_cpu.pref_addr;
-    case M68K_REG_PREF_DATA:  return m68ki_cpu.pref_data;
-#endif
     case M68K_REG_IR:  return m68ki_cpu.ir;
     default:      return 0;
   }
@@ -209,41 +191,11 @@ void m68k_set_reg(m68k_register_t regnum, u32 value)
                 REG_ISP = MASK_OUT_ABOVE_32(value);
               return;
     case M68K_REG_IR:  REG_IR = MASK_OUT_ABOVE_16(value); return;
-#if M68K_EMULATE_PREFETCH
-    case M68K_REG_PREF_ADDR:  CPU_PREF_ADDR = MASK_OUT_ABOVE_32(value); return;
-#endif
     default:      return;
   }
 }
 
 /* Set the callbacks */
-#if M68K_EMULATE_INT_ACK == OPT_ON
-void m68k_set_int_ack_callback(s32  (*callback)(s32 int_level))
-{
-  CALLBACK_INT_ACK = callback ? callback : default_int_ack_callback;
-}
-#endif
-
-#if M68K_EMULATE_RESET == OPT_ON
-void m68k_set_reset_instr_callback(void  (*callback)())
-{
-  CALLBACK_RESET_INSTR = callback ? callback : default_reset_instr_callback;
-}
-#endif
-
-#if M68K_TAS_HAS_CALLBACK == OPT_ON
-void m68k_set_tas_instr_callback(s32  (*callback)())
-{
-  CALLBACK_TAS_INSTR = callback ? callback : default_tas_instr_callback;
-}
-#endif
-
-#if M68K_EMULATE_FC == OPT_ON
-void m68k_set_fc_callback(void  (*callback)(u32 new_fc))
-{
-  CALLBACK_SET_FC = callback ? callback : default_set_fc_callback;
-}
-#endif
 
 #ifdef LOGVDP
 extern void error(char *format, ...);
@@ -370,19 +322,6 @@ void m68k_init()
     emulation_initialized = 1;
   }
 #endif
-
-#if M68K_EMULATE_INT_ACK == OPT_ON
-  m68k_set_int_ack_callback(NULL);
-#endif
-#if M68K_EMULATE_RESET == OPT_ON
-  m68k_set_reset_instr_callback(NULL);
-#endif
-#if M68K_TAS_HAS_CALLBACK == OPT_ON
-  m68k_set_tas_instr_callback(NULL);
-#endif
-#if M68K_EMULATE_FC == OPT_ON
-  m68k_set_fc_callback(NULL);
-#endif
 }
 
 /* Pulse the RESET line on the CPU */
@@ -405,12 +344,6 @@ void m68k_pulse_reset()
 
   /* Go to supervisor mode */
   m68ki_set_s_flag(SFLAG_SET);
-
-  /* Invalidate the prefetch queue */
-#if M68K_EMULATE_PREFETCH
-  /* Set to arbitrary number since our first fetch is from 0 */
-  CPU_PREF_ADDR = 0x1000;
-#endif /* M68K_EMULATE_PREFETCH */
 
   /* Read the initial stack pointer and program counter */
   m68ki_jump(0);
@@ -451,58 +384,18 @@ void m68k_clear_halt()
 u32 m68ki_read_imm_16()
 {
   m68ki_set_fc(FLAG_S | FUNCTION_CODE_USER_PROGRAM) /* auto-disable (see m68kcpu.h) */
-#if M68K_CHECK_PC_ADDRESS_ERROR
-  m68ki_check_address_error(REG_PC, MODE_READ, FLAG_S | FUNCTION_CODE_USER_PROGRAM) /* auto-disable (see m68kcpu.h) */
-#endif
-#if M68K_EMULATE_PREFETCH
-  if(MASK_OUT_BELOW_2(REG_PC) != CPU_PREF_ADDR)
-  {
-    CPU_PREF_ADDR = MASK_OUT_BELOW_2(REG_PC);
-    CPU_PREF_DATA = m68k_read_immediate_32(CPU_PREF_ADDR);
-  }
-  REG_PC += 2;
-  return MASK_OUT_ABOVE_16(CPU_PREF_DATA >> ((2-((REG_PC-2)&2))<<3));
-#else
+
   u32 pc = REG_PC;
   REG_PC += 2;
   return m68k_read_immediate_16(pc);
-#endif /* M68K_EMULATE_PREFETCH */
 }
 
 u32 m68ki_read_imm_32()
 {
-#if M68K_EMULATE_PREFETCH
-  u32 temp_val;
-
   m68ki_set_fc(FLAG_S | FUNCTION_CODE_USER_PROGRAM) /* auto-disable (see m68kcpu.h) */
-#if M68K_CHECK_PC_ADDRESS_ERROR
-  m68ki_check_address_error(REG_PC, MODE_READ, FLAG_S | FUNCTION_CODE_USER_PROGRAM) /* auto-disable (see m68kcpu.h) */
-#endif
-  if(MASK_OUT_BELOW_2(REG_PC) != CPU_PREF_ADDR)
-  {
-    CPU_PREF_ADDR = MASK_OUT_BELOW_2(REG_PC);
-    CPU_PREF_DATA = m68k_read_immediate_32(CPU_PREF_ADDR);
-  }
-  temp_val = CPU_PREF_DATA;
-  REG_PC += 2;
-  if(MASK_OUT_BELOW_2(REG_PC) != CPU_PREF_ADDR)
-  {
-    CPU_PREF_ADDR = MASK_OUT_BELOW_2(REG_PC);
-    CPU_PREF_DATA = m68k_read_immediate_32(CPU_PREF_ADDR);
-    temp_val = MASK_OUT_ABOVE_32((temp_val << 16) | (CPU_PREF_DATA >> 16));
-  }
-  REG_PC += 2;
-
-  return temp_val;
-#else
-  m68ki_set_fc(FLAG_S | FUNCTION_CODE_USER_PROGRAM) /* auto-disable (see m68kcpu.h) */
-#if M68K_CHECK_PC_ADDRESS_ERROR
-  m68ki_check_address_error(REG_PC, MODE_READ, FLAG_S | FUNCTION_CODE_USER_PROGRAM) /* auto-disable (see m68kcpu.h) */
-#endif
   u32 pc = REG_PC;
   REG_PC += 4;
   return m68k_read_immediate_32(pc);
-#endif /* M68K_EMULATE_PREFETCH */
 }
 
 
@@ -903,35 +796,12 @@ void m68ki_exception_trapN(u32 vector)
   USE_CYCLES(CYC_EXCEPTION[vector]);
 }
 
-#if M68K_EMULATE_TRACE
-/* Exception for trace mode */
-void m68ki_exception_trace()
-{
-  u32 sr = m68ki_init_exception();
-
-  #if M68K_EMULATE_ADDRESS_ERROR == OPT_ON
-  CPU_INSTR_MODE = INSTRUCTION_NO;
-  #endif /* M68K_EMULATE_ADDRESS_ERROR */
-
-  m68ki_stack_frame_3word(REG_PC, sr);
-  m68ki_jump_vector(EXCEPTION_TRACE);
-
-  /* Trace nullifies a STOP instruction */
-  CPU_STOPPED &= ~STOP_LEVEL_STOP;
-
-  /* Use up some clock cycles */
-  USE_CYCLES(CYC_EXCEPTION[EXCEPTION_TRACE]);
-}
-#endif
-
 /* Exception for privilege violation */
 void m68ki_exception_privilege_violation()
 {
   u32 sr = m68ki_init_exception();
 
-  #if M68K_EMULATE_ADDRESS_ERROR == OPT_ON
   CPU_INSTR_MODE = INSTRUCTION_NO;
-  #endif /* M68K_EMULATE_ADDRESS_ERROR */
 
   m68ki_stack_frame_3word(REG_PC-2, sr);
   m68ki_jump_vector(EXCEPTION_PRIVILEGE_VIOLATION);
@@ -967,9 +837,7 @@ void m68ki_exception_illegal()
 {
   u32 sr = m68ki_init_exception();
 
-  #if M68K_EMULATE_ADDRESS_ERROR == OPT_ON
   CPU_INSTR_MODE = INSTRUCTION_NO;
-  #endif /* M68K_EMULATE_ADDRESS_ERROR */
 
   m68ki_stack_frame_3word(REG_PC-2, sr);
   m68ki_jump_vector(EXCEPTION_ILLEGAL_INSTRUCTION);
@@ -1012,9 +880,7 @@ void m68ki_exception_interrupt(u32 int_level)
 {
   u32 vector, sr, new_pc;
 
-  #if M68K_EMULATE_ADDRESS_ERROR == OPT_ON
   CPU_INSTR_MODE = INSTRUCTION_NO;
-  #endif /* M68K_EMULATE_ADDRESS_ERROR */
 
   /* Turn off the stopped state */
   CPU_STOPPED &= STOP_LEVEL_HALT;

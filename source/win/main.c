@@ -630,7 +630,6 @@ int sdl_input_update()
   return 1;
 }
 
-
 int main (int argc, char **argv)
 {
   FILE *fp;

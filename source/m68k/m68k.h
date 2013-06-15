@@ -117,15 +117,6 @@ typedef enum
   M68K_REG_USP,   /* User Stack Pointer */
   M68K_REG_ISP,   /* Interrupt Stack Pointer */
 
-#if M68K_EMULATE_PREFETCH
-  /* Assumed registers */
-  /* These are cheat registers which emulate the 1-longword prefetch
-   * present in the 68000 and 68010.
-   */
-  M68K_REG_PREF_ADDR,  /* Last prefetch address */
-  M68K_REG_PREF_DATA,  /* Last prefetch data */
-#endif
-
   /* Convenience registers */
   M68K_REG_IR    /* Instruction register */
 } m68k_register_t;
@@ -212,48 +203,6 @@ extern m68ki_cpu_core s68k;
  * callback or have assigned a callback of NULL.
  */
 
-#if M68K_EMULATE_INT_ACK == OPT_ON
-/* Set the callback for an interrupt acknowledge.
- * You must enable M68K_EMULATE_INT_ACK in m68kconf.h.
- * The CPU will call the callback with the interrupt level being acknowledged.
- * The host program must return either a vector from 0x02-0xff, or one of the
- * special interrupt acknowledge values specified earlier in this header.
- * If this is not implemented, the CPU will always assume an autovectored
- * interrupt, and will automatically clear the interrupt request when it
- * services the interrupt.
- * Default behavior: return M68K_INT_ACK_AUTOVECTOR.
- */
-void m68k_set_int_ack_callback(s32  (*callback)(s32 int_level));
-#endif
-
-#if M68K_EMULATE_RESET == OPT_ON
-/* Set the callback for the RESET instruction.
- * You must enable M68K_EMULATE_RESET in m68kconf.h.
- * The CPU calls this callback every time it encounters a RESET instruction.
- * Default behavior: do nothing.
- */
-void m68k_set_reset_instr_callback(void  (*callback)());
-#endif
-
-#if M68K_TAS_HAS_CALLBACK == OPT_ON
-/* Set the callback for the TAS instruction.
- * You must enable M68K_TAS_HAS_CALLBACK in m68kconf.h.
- * The CPU calls this callback every time it encounters a TAS instruction.
- * Default behavior: return 1, allow writeback.
- */
-void m68k_set_tas_instr_callback(s32  (*callback)());
-#endif
-
-#if M68K_EMULATE_FC == OPT_ON
-/* Set the callback for CPU function code changes.
- * You must enable M68K_EMULATE_FC in m68kconf.h.
- * The CPU calls this callback with the function code before every memory
- * access to set the CPU's function code according to what kind of memory
- * access it is (supervisor/user, program/data and such).
- * Default behavior: do nothing.
- */
-void m68k_set_fc_callback(void  (*callback)(u32 new_fc));
-#endif
 
 
 /* ======================================================================== */

@@ -54,36 +54,6 @@ m68ki_cpu_core s68k;
  * callback is set to NULL
  */
 
-#if M68K_EMULATE_INT_ACK == OPT_ON
-/* Interrupt acknowledge */
-static s32 default_int_ack_callback(s32 int_level)
-{
-  CPU_INT_LEVEL = 0;
-  return M68K_INT_ACK_AUTOVECTOR;
-}
-#endif
-
-#if M68K_EMULATE_RESET == OPT_ON
-/* Called when a reset instruction is executed */
-static void default_reset_instr_callback()
-{
-}
-#endif
-
-#if M68K_TAS_HAS_CALLBACK == OPT_ON
-/* Called when a tas instruction is executed */
-static s32 default_tas_instr_callback()
-{
-  return 1; // allow writeback
-}
-#endif
-
-#if M68K_EMULATE_FC == OPT_ON
-/* Called every time there's bus activity (read/write to/from memory */
-static void default_set_fc_callback(u32 new_fc)
-{
-}
-#endif
 
 
 /* ======================================================================== */
@@ -123,10 +93,6 @@ u32 s68k_get_reg(m68k_register_t regnum)
     case M68K_REG_SP:  return m68ki_cpu.dar[15];
     case M68K_REG_USP:  return m68ki_cpu.s_flag ? m68ki_cpu.sp[0] : m68ki_cpu.dar[15];
     case M68K_REG_ISP:  return m68ki_cpu.s_flag ? m68ki_cpu.dar[15] : m68ki_cpu.sp[4];
-#if M68K_EMULATE_PREFETCH
-    case M68K_REG_PREF_ADDR:  return m68ki_cpu.pref_addr;
-    case M68K_REG_PREF_DATA:  return m68ki_cpu.pref_data;
-#endif
     case M68K_REG_IR:  return m68ki_cpu.ir;
     default:      return 0;
   }
@@ -166,42 +132,11 @@ void s68k_set_reg(m68k_register_t regnum, u32 value)
                 REG_ISP = MASK_OUT_ABOVE_32(value);
               return;
     case M68K_REG_IR:  REG_IR = MASK_OUT_ABOVE_16(value); return;
-#if M68K_EMULATE_PREFETCH
-    case M68K_REG_PREF_ADDR:  CPU_PREF_ADDR = MASK_OUT_ABOVE_32(value); return;
-#endif
     default:      return;
   }
 }
 
 /* Set the callbacks */
-#if M68K_EMULATE_INT_ACK == OPT_ON
-void s68k_set_int_ack_callback(s32  (*callback)(s32 int_level))
-{
-  CALLBACK_INT_ACK = callback ? callback : default_int_ack_callback;
-}
-#endif
-
-#if M68K_EMULATE_RESET == OPT_ON
-void s68k_set_reset_instr_callback(void  (*callback)())
-{
-  CALLBACK_RESET_INSTR = callback ? callback : default_reset_instr_callback;
-}
-#endif
-
-#if M68K_TAS_HAS_CALLBACK == OPT_ON
-void s68k_set_tas_instr_callback(s32  (*callback)())
-{
-  CALLBACK_TAS_INSTR = callback ? callback : default_tas_instr_callback;
-}
-#endif
-
-#if M68K_EMULATE_FC == OPT_ON
-void s68k_set_fc_callback(void  (*callback)(u32 new_fc))
-{
-  CALLBACK_SET_FC = callback ? callback : default_set_fc_callback;
-}
-#endif
-
 extern void error(char *format, ...);
 extern u16 v_counter;
 
@@ -279,19 +214,6 @@ void s68k_init()
     emulation_initialized = 1;
   }
 #endif
-
-#if M68K_EMULATE_INT_ACK == OPT_ON
-  s68k_set_int_ack_callback(NULL);
-#endif
-#if M68K_EMULATE_RESET == OPT_ON
-  s68k_set_reset_instr_callback(NULL);
-#endif
-#if M68K_TAS_HAS_CALLBACK == OPT_ON
-  s68k_set_tas_instr_callback(NULL);
-#endif
-#if M68K_EMULATE_FC == OPT_ON
-  s68k_set_fc_callback(NULL);
-#endif
 }
 
 /* Pulse the RESET line on the CPU */
@@ -314,12 +236,6 @@ void s68k_pulse_reset()
 
   /* Go to supervisor mode */
   m68ki_set_s_flag(SFLAG_SET);
-
-  /* Invalidate the prefetch queue */
-#if M68K_EMULATE_PREFETCH
-  /* Set to arbitrary number since our first fetch is from 0 */
-  CPU_PREF_ADDR = 0x1000;
-#endif /* M68K_EMULATE_PREFETCH */
 
   /* Read the initial stack pointer and program counter */
   m68ki_jump(0);

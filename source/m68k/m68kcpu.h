@@ -122,21 +122,21 @@ u32 MASK_OUT_BELOW_8(u32 A);
 u32 MASK_OUT_BELOW_16(u32 A);
 
 /* No need to mask if we are 32 bit */
-#if M68K_INT_GT_32_BIT || M68K_USE_64_BIT
+#if M68K_INT_GT_32_BIT
   #define MASK_OUT_ABOVE_32(A) ((A) & 0xffffffff)
   #define MASK_OUT_BELOW_32(A) ((A) & ~0xffffffff)
 #else
   #define MASK_OUT_ABOVE_32(A) (A)
   #define MASK_OUT_BELOW_32(A) 0
-#endif /* M68K_INT_GT_32_BIT || M68K_USE_64_BIT */
+#endif /* M68K_INT_GT_32_BIT */
 
 /* Simulate address lines of 68k family */
 #define ADDRESS_68K(A) ((A)&CPU_ADDRESS_MASK)
 
 
 /* Shift & Rotate Macros. */
-#define LSL(A, C) ((A) << (C))
-#define LSR(A, C) ((A) >> (C))
+u32 LSL(u32 A, u32 C);
+u32 LSR(u32 A, u32 C);
 
 /* Some > 32-bit optimizations */
 #if M68K_INT_GT_32_BIT
@@ -151,26 +151,19 @@ u32 MASK_OUT_BELOW_16(u32 A);
   #define LSL_32(A, C) ((C) < 32 ? (A) << (C) : 0)
 #endif /* M68K_INT_GT_32_BIT */
 
-#if M68K_USE_64_BIT
-  #define LSL_32_64(A, C) ((A) << (C))
-  #define LSR_32_64(A, C) ((A) >> (C))
-  #define ROL_33_64(A, C) (LSL_32_64(A, C) | LSR_32_64(A, 33-(C)))
-  #define ROR_33_64(A, C) (LSR_32_64(A, C) | LSL_32_64(A, 33-(C)))
-#endif /* M68K_USE_64_BIT */
+u32 ROL_8(u32 A, u32 C);
+u32 ROL_9(u32 A, u32 C);
+u32 ROL_16(u32 A, u32 C);
+u32 ROL_17(u32 A, u32 C);
+u32 ROL_32(u32 A, u32 C);
+u32 ROL_33(u32 A, u32 C);
 
-#define ROL_8(A, C)      MASK_OUT_ABOVE_8(LSL(A, C) | LSR(A, 8-(C)))
-#define ROL_9(A, C)                      (LSL(A, C) | LSR(A, 9-(C)))
-#define ROL_16(A, C)    MASK_OUT_ABOVE_16(LSL(A, C) | LSR(A, 16-(C)))
-#define ROL_17(A, C)                     (LSL(A, C) | LSR(A, 17-(C)))
-#define ROL_32(A, C)    MASK_OUT_ABOVE_32(LSL_32(A, C) | LSR_32(A, 32-(C)))
-#define ROL_33(A, C)                     (LSL_32(A, C) | LSR_32(A, 33-(C)))
-
-#define ROR_8(A, C)      MASK_OUT_ABOVE_8(LSR(A, C) | LSL(A, 8-(C)))
-#define ROR_9(A, C)                      (LSR(A, C) | LSL(A, 9-(C)))
-#define ROR_16(A, C)    MASK_OUT_ABOVE_16(LSR(A, C) | LSL(A, 16-(C)))
-#define ROR_17(A, C)                     (LSR(A, C) | LSL(A, 17-(C)))
-#define ROR_32(A, C)    MASK_OUT_ABOVE_32(LSR_32(A, C) | LSL_32(A, 32-(C)))
-#define ROR_33(A, C)                     (LSR_32(A, C) | LSL_32(A, 33-(C)))
+u32 ROR_8(u32 A, u32 C);
+u32 ROR_9(u32 A, u32 C);
+u32 ROR_16(u32 A, u32 C);
+u32 ROR_17(u32 A, u32 C);
+u32 ROR_32(u32 A, u32 C);
+u32 ROR_33(u32 A, u32 C);
 
 
 
@@ -198,10 +191,6 @@ u32 MASK_OUT_BELOW_16(u32 A);
 
 #define CPU_INT_LEVEL    m68ki_cpu.int_level /* ASG: changed from CPU_INTS_PENDING */
 #define CPU_STOPPED      m68ki_cpu.stopped
-#if M68K_EMULATE_PREFETCH
-#define CPU_PREF_ADDR    m68ki_cpu.pref_addr
-#define CPU_PREF_DATA    m68ki_cpu.pref_data
-#endif
 #define CPU_ADDRESS_MASK  0x00ffffff
 #if M68K_EMULATE_ADDRESS_ERROR
 #define CPU_INSTR_MODE   m68ki_cpu.instr_mode
@@ -220,45 +209,15 @@ u32 MASK_OUT_BELOW_16(u32 A);
 #define CYC_SHIFT         (  2 * MUL)
 #define CYC_RESET         (132 * MUL)
 
-#if M68K_EMULATE_INT_ACK == OPT_ON
-#define CALLBACK_INT_ACK      m68ki_cpu.int_ack_callback
-#endif
-#if M68K_EMULATE_RESET == OPT_ON
-#define CALLBACK_RESET_INSTR  m68ki_cpu.reset_instr_callback
-#endif
-#if M68K_TAS_HAS_CALLBACK == OPT_ON
-#define CALLBACK_TAS_INSTR    m68ki_cpu.tas_instr_callback
-#endif
-#if M68K_EMULATE_FC == OPT_ON
-#define CALLBACK_SET_FC       m68ki_cpu.set_fc_callback
-#endif
-
 
 /* ----------------------------- Configuration ---------------------------- */
 
 /* These defines are dependant on the configuration defines in m68kconf.h */
 
 /* Enable or disable callback functions */
-#if M68K_EMULATE_INT_ACK
-  #if M68K_EMULATE_INT_ACK == OPT_SPECIFY_HANDLER
-    #define m68ki_int_ack(A) M68K_INT_ACK_CALLBACK(A);
-  #else
-    #define m68ki_int_ack(A) CALLBACK_INT_ACK(A);
-  #endif
-#else
-  /* Default action is to used autovector mode, which is most common */
-  #define m68ki_int_ack(A) M68K_INT_ACK_AUTOVECTOR
-#endif /* M68K_EMULATE_INT_ACK */
+#define m68ki_int_ack(A) M68K_INT_ACK_CALLBACK(A);
 
-#if M68K_EMULATE_RESET
-  #if M68K_EMULATE_RESET == OPT_SPECIFY_HANDLER
-    #define m68ki_output_reset() M68K_RESET_CALLBACK();
-  #else
-    #define m68ki_output_reset() CALLBACK_RESET_INSTR();
-  #endif
-#else
-  #define m68ki_output_reset()
-#endif /* M68K_EMULATE_RESET */
+#define m68ki_output_reset()
 
 #if M68K_TAS_HAS_CALLBACK
   #if M68K_TAS_HAS_CALLBACK == OPT_SPECIFY_HANDLER
@@ -272,36 +231,16 @@ u32 MASK_OUT_BELOW_16(u32 A);
 
 
 /* Enable or disable function code emulation */
-#if M68K_EMULATE_FC
-  #if M68K_EMULATE_FC == OPT_SPECIFY_HANDLER
-    #define m68ki_set_fc(A) M68K_SET_FC_CALLBACK(A);
-  #else
-    #define m68ki_set_fc(A) CALLBACK_SET_FC(A);
-  #endif
-  #define m68ki_use_data_space() m68ki_cpu.address_space = FUNCTION_CODE_USER_DATA;
-  #define m68ki_use_program_space() m68ki_cpu.address_space = FUNCTION_CODE_USER_PROGRAM;
-  #define m68ki_get_address_space() m68ki_cpu.address_space
-#else
-  #define m68ki_set_fc(A)
-  #define m68ki_use_data_space()
-  #define m68ki_use_program_space()
-  #define m68ki_get_address_space() FUNCTION_CODE_USER_DATA
-#endif /* M68K_EMULATE_FC */
+#define m68ki_set_fc(A)
+#define m68ki_use_data_space()
+#define m68ki_use_program_space()
+#define m68ki_get_address_space() FUNCTION_CODE_USER_DATA
 
 
 /* Enable or disable trace emulation */
-#if M68K_EMULATE_TRACE
-  /* Initiates trace checking before each instruction (t1) */
-  #define m68ki_trace_t1() m68ki_cpu.tracing = FLAG_T1;
-  /* Clear all tracing */
-  #define m68ki_clear_trace() m68ki_cpu.tracing = 0;
-  /* Cause a trace exception if we are tracing */
-  #define m68ki_exception_if_trace() if(m68ki_cpu.tracing) m68ki_exception_trace();
-#else
-  #define m68ki_trace_t1()
-  #define m68ki_clear_trace()
-  #define m68ki_exception_if_trace()
-#endif /* M68K_EMULATE_TRACE */
+#define m68ki_trace_t1()
+#define m68ki_clear_trace()
+#define m68ki_exception_if_trace()
 
 
 /* Enable or disable Address error emulation */
@@ -768,9 +707,6 @@ void m68ki_stack_frame_buserr(u32 sr);
 #endif
 void m68ki_exception_trap(u32 vector);
 void m68ki_exception_trapN(u32 vector);
-#if M68K_EMULATE_TRACE
-void m68ki_exception_trace();
-#endif
 void m68ki_exception_privilege_violation(); /* do not inline in order to reduce function size and allow inlining of read/write functions by the compile */
 void m68ki_exception_1010();
 void m68ki_exception_1111();
