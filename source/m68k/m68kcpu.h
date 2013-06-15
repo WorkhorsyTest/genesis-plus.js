@@ -60,10 +60,6 @@
 #define RUN_MODE_BERR_AERR_RESET 1
 #endif
 
-#ifndef NULL
-#define NULL ((void*)0)
-#endif
-
 /* ======================================================================== */
 /* ================================ MACROS ================================ */
 /* ======================================================================== */
@@ -72,60 +68,58 @@
 /* ---------------------------- General Macros ---------------------------- */
 
 /* Bit Isolation Macros */
-#define BIT_0(A)  ((A) & 0x00000001)
-#define BIT_1(A)  ((A) & 0x00000002)
-#define BIT_2(A)  ((A) & 0x00000004)
-#define BIT_3(A)  ((A) & 0x00000008)
-#define BIT_4(A)  ((A) & 0x00000010)
-#define BIT_5(A)  ((A) & 0x00000020)
-#define BIT_6(A)  ((A) & 0x00000040)
-#define BIT_7(A)  ((A) & 0x00000080)
-#define BIT_8(A)  ((A) & 0x00000100)
-#define BIT_9(A)  ((A) & 0x00000200)
-#define BIT_A(A)  ((A) & 0x00000400)
-#define BIT_B(A)  ((A) & 0x00000800)
-#define BIT_C(A)  ((A) & 0x00001000)
-#define BIT_D(A)  ((A) & 0x00002000)
-#define BIT_E(A)  ((A) & 0x00004000)
-#define BIT_F(A)  ((A) & 0x00008000)
-#define BIT_10(A) ((A) & 0x00010000)
-#define BIT_11(A) ((A) & 0x00020000)
-#define BIT_12(A) ((A) & 0x00040000)
-#define BIT_13(A) ((A) & 0x00080000)
-#define BIT_14(A) ((A) & 0x00100000)
-#define BIT_15(A) ((A) & 0x00200000)
-#define BIT_16(A) ((A) & 0x00400000)
-#define BIT_17(A) ((A) & 0x00800000)
-#define BIT_18(A) ((A) & 0x01000000)
-#define BIT_19(A) ((A) & 0x02000000)
-#define BIT_1A(A) ((A) & 0x04000000)
-#define BIT_1B(A) ((A) & 0x08000000)
-#define BIT_1C(A) ((A) & 0x10000000)
-#define BIT_1D(A) ((A) & 0x20000000)
-#define BIT_1E(A) ((A) & 0x40000000)
-#define BIT_1F(A) ((A) & 0x80000000)
+u32 BIT_0(u32 A);
+u32 BIT_1(u32 A);
+u32 BIT_2(u32 A);
+u32 BIT_3(u32 A);
+u32 BIT_4(u32 A);
+u32 BIT_5(u32 A);
+u32 BIT_6(u32 A);
+u32 BIT_7(u32 A);
+u32 BIT_8(u32 A);
+u32 BIT_9(u32 A);
+u32 BIT_A(u32 A);
+u32 BIT_B(u32 A);
+u32 BIT_C(u32 A);
+u32 BIT_D(u32 A);
+u32 BIT_E(u32 A);
+u32 BIT_F(u32 A);
+u32 BIT_10(u32 A);
+u32 BIT_11(u32 A);
+u32 BIT_12(u32 A);
+u32 BIT_13(u32 A);
+u32 BIT_14(u32 A);
+u32 BIT_15(u32 A);
+u32 BIT_16(u32 A);
+u32 BIT_17(u32 A);
+u32 BIT_18(u32 A);
+u32 BIT_19(u32 A);
+u32 BIT_1A(u32 A);
+u32 BIT_1B(u32 A);
+u32 BIT_1C(u32 A);
+u32 BIT_1D(u32 A);
+u32 BIT_1E(u32 A);
+u32 BIT_1F(u32 A);
 
 /* Get the most significant bit for specific sizes */
-#define GET_MSB_8(A)  ((A) & 0x80)
-#define GET_MSB_9(A)  ((A) & 0x100)
-#define GET_MSB_16(A) ((A) & 0x8000)
-#define GET_MSB_17(A) ((A) & 0x10000)
-#define GET_MSB_32(A) ((A) & 0x80000000)
-#if M68K_USE_64_BIT
-#define GET_MSB_33(A) ((A) & 0x100000000)
-#endif /* M68K_USE_64_BIT */
+u32 GET_MSB_8(u32 A);
+u32 GET_MSB_9(u32 A);
+u32 GET_MSB_16(u32 A);
+u32 GET_MSB_17(u32 A);
+u32 GET_MSB_32(u32 A);
+//u32 GET_MSB_33(u32 A);
 
 /* Isolate nibbles */
-#define LOW_NIBBLE(A)  ((A) & 0x0f)
-#define HIGH_NIBBLE(A) ((A) & 0xf0)
+u32 LOW_NIBBLE(u32 A);
+u32 HIGH_NIBBLE(u32 A);
 
 /* These are used to isolate 8, 16, and 32 bit sizes */
-#define MASK_OUT_ABOVE_2(A)  ((A) & 3)
-#define MASK_OUT_ABOVE_8(A)  ((A) & 0xff)
-#define MASK_OUT_ABOVE_16(A) ((A) & 0xffff)
-#define MASK_OUT_BELOW_2(A)  ((A) & ~3)
-#define MASK_OUT_BELOW_8(A)  ((A) & ~0xff)
-#define MASK_OUT_BELOW_16(A) ((A) & ~0xffff)
+u32 MASK_OUT_ABOVE_2(u32 A);
+u32 MASK_OUT_ABOVE_8(u32 A);
+u32 MASK_OUT_ABOVE_16(u32 A);
+u32 MASK_OUT_BELOW_2(u32 A);
+u32 MASK_OUT_BELOW_8(u32 A);
+u32 MASK_OUT_BELOW_16(u32 A);
 
 /* No need to mask if we are 32 bit */
 #if M68K_INT_GT_32_BIT || M68K_USE_64_BIT
@@ -361,7 +355,7 @@
 #define EA_AY_PD_8()   (--AY)                                /* predecrement (size = byte) */
 #define EA_AY_PD_16()  (AY-=2)                               /* predecrement (size = word) */
 #define EA_AY_PD_32()  (AY-=4)                               /* predecrement (size = long) */
-#define EA_AY_DI_8()   (AY+MAKE_INT_16(m68ki_read_imm_16())) /* displacement */
+#define EA_AY_DI_8()   (AY+ (s16) m68ki_read_imm_16()) /* displacement */
 #define EA_AY_DI_16()  EA_AY_DI_8()
 #define EA_AY_DI_32()  EA_AY_DI_8()
 #define EA_AY_IX_8()   m68ki_get_ea_ix(AY)                   /* indirect + index */
@@ -377,7 +371,7 @@
 #define EA_AX_PD_8()   (--AX)
 #define EA_AX_PD_16()  (AX-=2)
 #define EA_AX_PD_32()  (AX-=4)
-#define EA_AX_DI_8()   (AX+MAKE_INT_16(m68ki_read_imm_16()))
+#define EA_AX_DI_8()   (AX+ (s16) m68ki_read_imm_16())
 #define EA_AX_DI_16()  EA_AX_DI_8()
 #define EA_AX_DI_32()  EA_AX_DI_8()
 #define EA_AX_IX_8()   m68ki_get_ea_ix(AX)
@@ -387,7 +381,7 @@
 #define EA_A7_PI_8()   ((REG_A[7]+=2)-2)
 #define EA_A7_PD_8()   (REG_A[7]-=2)
 
-#define EA_AW_8()      MAKE_INT_16(m68ki_read_imm_16())      /* absolute word */
+#define EA_AW_8()      (s16) m68ki_read_imm_16()      /* absolute word */
 #define EA_AW_16()     EA_AW_8()
 #define EA_AW_32()     EA_AW_8()
 #define EA_AL_8()      m68ki_read_imm_32()                   /* absolute long */

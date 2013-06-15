@@ -21,6 +21,61 @@ extern s32 vdp_68k_irq_ack(s32 int_level);
 #include "m68kcpu.h"
 #include "m68kops.h"
 
+
+/* Bit Isolation Macros */
+u32 BIT_0(u32 A) { return A & 0x00000001; }
+u32 BIT_1(u32 A) { return A & 0x00000002; }
+u32 BIT_2(u32 A) { return A & 0x00000004; }
+u32 BIT_3(u32 A) { return A & 0x00000008; }
+u32 BIT_4(u32 A) { return A & 0x00000010; }
+u32 BIT_5(u32 A) { return A & 0x00000020; }
+u32 BIT_6(u32 A) { return A & 0x00000040; }
+u32 BIT_7(u32 A) { return A & 0x00000080; }
+u32 BIT_8(u32 A) { return A & 0x00000100; }
+u32 BIT_9(u32 A) { return A & 0x00000200; }
+u32 BIT_A(u32 A) { return A & 0x00000400; }
+u32 BIT_B(u32 A) { return A & 0x00000800; }
+u32 BIT_C(u32 A) { return A & 0x00001000; }
+u32 BIT_D(u32 A) { return A & 0x00002000; }
+u32 BIT_E(u32 A) { return A & 0x00004000; }
+u32 BIT_F(u32 A) { return A & 0x00008000; }
+u32 BIT_10(u32 A){ return A & 0x00010000; }
+u32 BIT_11(u32 A){ return A & 0x00020000; }
+u32 BIT_12(u32 A){ return A & 0x00040000; }
+u32 BIT_13(u32 A){ return A & 0x00080000; }
+u32 BIT_14(u32 A){ return A & 0x00100000; }
+u32 BIT_15(u32 A){ return A & 0x00200000; }
+u32 BIT_16(u32 A){ return A & 0x00400000; }
+u32 BIT_17(u32 A){ return A & 0x00800000; }
+u32 BIT_18(u32 A){ return A & 0x01000000; }
+u32 BIT_19(u32 A){ return A & 0x02000000; }
+u32 BIT_1A(u32 A){ return A & 0x04000000; }
+u32 BIT_1B(u32 A){ return A & 0x08000000; }
+u32 BIT_1C(u32 A){ return A & 0x10000000; }
+u32 BIT_1D(u32 A){ return A & 0x20000000; }
+u32 BIT_1E(u32 A){ return A & 0x40000000; }
+u32 BIT_1F(u32 A){ return A & 0x80000000; }
+
+/* Get the most significant bit for specific sizes */
+u32 GET_MSB_8(u32 A) { return A & 0x80; }
+u32 GET_MSB_9(u32 A) { return A & 0x100; }
+u32 GET_MSB_16(u32 A) { return A & 0x8000; }
+u32 GET_MSB_17(u32 A) { return A & 0x10000; }
+u32 GET_MSB_32(u32 A) { return A & 0x80000000; }
+//u32 GET_MSB_33(u32 A) { return A & 0x100000000; }
+
+/* Isolate nibbles */
+u32 LOW_NIBBLE(u32 A) { return A & 0x0f; }
+u32 HIGH_NIBBLE(u32 A) { return A & 0xf0; }
+
+/* These are used to isolate 8, 16, and 32 bit sizes */
+u32 MASK_OUT_ABOVE_2(u32 A) { return A & 3; }
+u32 MASK_OUT_ABOVE_8(u32 A) { return A & 0xff; }
+u32 MASK_OUT_ABOVE_16(u32 A) { return A & 0xffff; }
+u32 MASK_OUT_BELOW_2(u32 A) { return A & ~3; }
+u32 MASK_OUT_BELOW_8(u32 A) { return A & ~0xff; }
+u32 MASK_OUT_BELOW_16(u32 A) { return A & ~0xffff; }
+
 /* ======================================================================== */
 /* ================================= DATA ================================= */
 /* ======================================================================== */
@@ -543,7 +598,7 @@ u32 m68ki_get_ea_pcdi()
 {
   u32 old_pc = REG_PC;
   m68ki_use_program_space() /* auto-disable */
-  return old_pc + MAKE_INT_16(m68ki_read_imm_16());
+  return old_pc + (s16) m68ki_read_imm_16();
 }
 
 
@@ -605,10 +660,10 @@ u32 m68ki_get_ea_ix(u32 An)
   /* Calculate index */
   Xn = REG_DA[extension>>12];     /* Xn */
   if(!BIT_B(extension))           /* W/L */
-    Xn = MAKE_INT_16(Xn);
+    Xn = (s16) Xn;
 
   /* Add base register and displacement and return */
-  return An + Xn + MAKE_INT_8(extension);
+  return An + Xn + (s8) extension;
 }
 
 
@@ -724,12 +779,12 @@ void m68ki_jump_vector(u32 vector)
  */
 void m68ki_branch_8(u32 offset)
 {
-  REG_PC += MAKE_INT_8(offset);
+  REG_PC += (s8) offset;
 }
 
 void m68ki_branch_16(u32 offset)
 {
-  REG_PC += MAKE_INT_16(offset);
+  REG_PC += (s16) offset;
 }
 
 void m68ki_branch_32(u32 offset)

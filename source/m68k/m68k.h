@@ -54,61 +54,6 @@
   #define M68K_INT_GT_32_BIT  0
 #endif
 
-#if M68K_USE_64_BIT
-//#define s64 signed   long long
-//#define u64 unsigned long long
-#else
-//#define s64 s32
-//#define u64 u32
-#endif /* M68K_USE_64_BIT */
-
-
-
-/* Allow for architectures that don't have 8-bit sizes */
-/*#if UCHAR_MAX == 0xff*/
-  #define MAKE_INT_8(A) (s8)(A)
-/*#else
-  #undef  s8
-  #define s8  signed   int
-  #undef  u8
-  #define u8  u32
-  INLINE sint MAKE_INT_8(uint value)
-  {
-    return (value & 0x80) ? value | ~0xff : value & 0xff;
-  }*/
-/*#endif *//* UCHAR_MAX == 0xff */
-
-
-/* Allow for architectures that don't have 16-bit sizes */
-/*#if USHRT_MAX == 0xffff*/
-  #define MAKE_INT_16(A) (s16)(A)
-/*#else
-  #undef  s16
-  #define s16 signed   int
-  #undef  u16
-  #define u16 u32
-  INLINE sint MAKE_INT_16(uint value)
-  {
-    return (value & 0x8000) ? value | ~0xffff : value & 0xffff;
-  }*/
-/*#endif *//* USHRT_MAX == 0xffff */
-
-
-/* Allow for architectures that don't have 32-bit sizes */
-/*#if UINT_MAX == 0xffffffff*/
-  #define MAKE_INT_32(A) (s32)(A)
-/*#else
-  #undef  s32
-  #define s32  signed   int
-  #undef  u32
-  #define u32  u32
-  INLINE sint MAKE_INT_32(uint value)
-  {
-    return (value & 0x80000000) ? value | ~0xffffffff : value & 0xffffffff;
-  }*/
-/*#endif *//* UINT_MAX == 0xffffffff */
-
-
 
 /* ======================================================================== */
 /* ============================ GENERAL DEFINES =========================== */
@@ -137,13 +82,13 @@
  * This happens in a real 68K if VPA or AVEC is asserted during an interrupt
  * acknowledge cycle instead of DTACK.
  */
-#define M68K_INT_ACK_AUTOVECTOR    0xffffffff
+#define M68K_INT_ACK_AUTOVECTOR   0xffffffff
 
 /* Causes the spurious interrupt vector (0x18) to be taken
  * This happens in a real 68K if BERR is asserted during the interrupt
  * acknowledge cycle (i.e. no devices responded to the acknowledge).
  */
-#define M68K_INT_ACK_SPURIOUS      0xfffffffe
+#define M68K_INT_ACK_SPURIOUS     0xfffffffe
 
 
 /* Registers used by m68k_get_reg() and m68k_set_reg() */
