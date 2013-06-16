@@ -42,13 +42,8 @@
 #define STATE_SIZE    0xfd000
 #define STATE_VERSION "GENPLUS-GX 1.7.1"
 
-#define load_param(param, size) \
-  memcpy(param, &state[bufferptr], size); \
-  bufferptr+= size;
-
-#define save_param(param, size) \
-  memcpy(&state[bufferptr], param, size); \
-  bufferptr+= size;
+extern void load_param(int* bufferptr, u8* state, void* param, size_t size);
+extern void save_param(int* bufferptr, u8* state, void* param, size_t size);
 
 /* Function prototypes */
 extern int state_load(u8 *state);

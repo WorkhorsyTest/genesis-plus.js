@@ -403,23 +403,23 @@ int vdp_context_save(u8 *state)
 {
   int bufferptr = 0;
 
-  save_param(sat, sizeof(sat));
-  save_param(vram, sizeof(vram));
-  save_param(cram, sizeof(cram));
-  save_param(vsram, sizeof(vsram));
-  save_param(reg, sizeof(reg));
-  save_param(&addr, sizeof(addr));
-  save_param(&addr_latch, sizeof(addr_latch));
-  save_param(&code, sizeof(code));
-  save_param(&pending, sizeof(pending));
-  save_param(&status, sizeof(status));
-  save_param(&dmafill, sizeof(dmafill));
-  save_param(&hint_pending, sizeof(hint_pending));
-  save_param(&vint_pending, sizeof(vint_pending));
-  save_param(&dma_length, sizeof(dma_length));
-  save_param(&dma_type, sizeof(dma_type));
-  save_param(&dma_src, sizeof(dma_src));
-  save_param(&cached_write, sizeof(cached_write));
+  save_param(&bufferptr, state, sat, sizeof(sat));
+  save_param(&bufferptr, state, vram, sizeof(vram));
+  save_param(&bufferptr, state, cram, sizeof(cram));
+  save_param(&bufferptr, state, vsram, sizeof(vsram));
+  save_param(&bufferptr, state, reg, sizeof(reg));
+  save_param(&bufferptr, state, &addr, sizeof(addr));
+  save_param(&bufferptr, state, &addr_latch, sizeof(addr_latch));
+  save_param(&bufferptr, state, &code, sizeof(code));
+  save_param(&bufferptr, state, &pending, sizeof(pending));
+  save_param(&bufferptr, state, &status, sizeof(status));
+  save_param(&bufferptr, state, &dmafill, sizeof(dmafill));
+  save_param(&bufferptr, state, &hint_pending, sizeof(hint_pending));
+  save_param(&bufferptr, state, &vint_pending, sizeof(vint_pending));
+  save_param(&bufferptr, state, &dma_length, sizeof(dma_length));
+  save_param(&bufferptr, state, &dma_type, sizeof(dma_type));
+  save_param(&bufferptr, state, &dma_src, sizeof(dma_src));
+  save_param(&bufferptr, state, &cached_write, sizeof(cached_write));
   return bufferptr;
 }
 
@@ -428,11 +428,11 @@ int vdp_context_load(u8 *state)
   int i, bufferptr = 0;
   u8 temp_reg[0x20];
 
-  load_param(sat, sizeof(sat));
-  load_param(vram, sizeof(vram));
-  load_param(cram, sizeof(cram));
-  load_param(vsram, sizeof(vsram));
-  load_param(temp_reg, sizeof(temp_reg));
+  load_param(&bufferptr, state, sat, sizeof(sat));
+  load_param(&bufferptr, state, vram, sizeof(vram));
+  load_param(&bufferptr, state, cram, sizeof(cram));
+  load_param(&bufferptr, state, vsram, sizeof(vsram));
+  load_param(&bufferptr, state, temp_reg, sizeof(temp_reg));
 
   /* restore VDP registers */
   if (system_hw < SYSTEM_MD)
@@ -464,19 +464,19 @@ int vdp_context_load(u8 *state)
     }
   }
 
-  load_param(&addr, sizeof(addr));
-  load_param(&addr_latch, sizeof(addr_latch));
-  load_param(&code, sizeof(code));
-  load_param(&pending, sizeof(pending));
-  load_param(&status, sizeof(status));
-  load_param(&dmafill, sizeof(dmafill));
-  load_param(&hint_pending, sizeof(hint_pending));
-  load_param(&vint_pending, sizeof(vint_pending));
-  load_param(&dma_length, sizeof(dma_length));
-  load_param(&dma_type, sizeof(dma_type));
-  load_param(&dma_src, sizeof(dma_src));
+  load_param(&bufferptr, state, &addr, sizeof(addr));
+  load_param(&bufferptr, state, &addr_latch, sizeof(addr_latch));
+  load_param(&bufferptr, state, &code, sizeof(code));
+  load_param(&bufferptr, state, &pending, sizeof(pending));
+  load_param(&bufferptr, state, &status, sizeof(status));
+  load_param(&bufferptr, state, &dmafill, sizeof(dmafill));
+  load_param(&bufferptr, state, &hint_pending, sizeof(hint_pending));
+  load_param(&bufferptr, state, &vint_pending, sizeof(vint_pending));
+  load_param(&bufferptr, state, &dma_length, sizeof(dma_length));
+  load_param(&bufferptr, state, &dma_type, sizeof(dma_type));
+  load_param(&bufferptr, state, &dma_src, sizeof(dma_src));
 
-  load_param(&cached_write, sizeof(cached_write));
+  load_param(&bufferptr, state, &cached_write, sizeof(cached_write));
 
   /* restore FIFO timings */
   fifo_latency = (reg[12] & 1) ? 190 : 214;

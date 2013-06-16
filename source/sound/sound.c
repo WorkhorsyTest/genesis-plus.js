@@ -212,12 +212,12 @@ int sound_context_save(u8 *state)
   }
   else
   {
-    save_param(YM2413GetContextPtr(),YM2413GetContextSize());
+    save_param(&bufferptr, state, YM2413GetContextPtr(),YM2413GetContextSize());
   }
 
-  save_param(SN76489_GetContextPtr(),SN76489_GetContextSize());
+  save_param(&bufferptr, state, SN76489_GetContextPtr(),SN76489_GetContextSize());
 
-  save_param(&fm_cycles_start,sizeof(fm_cycles_start));
+  save_param(&bufferptr, state, &fm_cycles_start,sizeof(fm_cycles_start));
 
   return bufferptr;
 }
@@ -232,12 +232,12 @@ int sound_context_load(u8 *state)
   }
   else
   {
-    load_param(YM2413GetContextPtr(),YM2413GetContextSize());
+    load_param(&bufferptr, state, YM2413GetContextPtr(),YM2413GetContextSize());
   }
 
-  load_param(SN76489_GetContextPtr(),SN76489_GetContextSize());
+  load_param(&bufferptr, state, SN76489_GetContextPtr(),SN76489_GetContextSize());
 
-  load_param(&fm_cycles_start,sizeof(fm_cycles_start));
+  load_param(&bufferptr, state, &fm_cycles_start,sizeof(fm_cycles_start));
   fm_cycles_count = fm_cycles_start;
 
   return bufferptr;

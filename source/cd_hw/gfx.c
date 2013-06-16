@@ -430,19 +430,19 @@ s32 gfx_context_save(u8 *state)
   u32 tmp32;
   s32 bufferptr = 0;
 
-  save_param(&gfx.cycles, sizeof(gfx.cycles));
-  save_param(&gfx.cyclesPerLine, sizeof(gfx.cyclesPerLine));
-  save_param(&gfx.dotMask, sizeof(gfx.dotMask));
-  save_param(&gfx.stampShift, sizeof(gfx.stampShift));
-  save_param(&gfx.mapShift, sizeof(gfx.mapShift));
-  save_param(&gfx.bufferOffset, sizeof(gfx.bufferOffset));
-  save_param(&gfx.bufferStart, sizeof(gfx.bufferStart));
+  save_param(&bufferptr, state, &gfx.cycles, sizeof(gfx.cycles));
+  save_param(&bufferptr, state, &gfx.cyclesPerLine, sizeof(gfx.cyclesPerLine));
+  save_param(&bufferptr, state, &gfx.dotMask, sizeof(gfx.dotMask));
+  save_param(&bufferptr, state, &gfx.stampShift, sizeof(gfx.stampShift));
+  save_param(&bufferptr, state, &gfx.mapShift, sizeof(gfx.mapShift));
+  save_param(&bufferptr, state, &gfx.bufferOffset, sizeof(gfx.bufferOffset));
+  save_param(&bufferptr, state, &gfx.bufferStart, sizeof(gfx.bufferStart));
 
   tmp32 = (u8 *)(gfx.tracePtr) - scd.word_ram_2M;
-  save_param(&tmp32, 4);
+  save_param(&bufferptr, state, &tmp32, 4);
 
   tmp32 = (u8 *)(gfx.mapPtr) - scd.word_ram_2M;
-  save_param(&tmp32, 4);
+  save_param(&bufferptr, state, &tmp32, 4);
 
   return bufferptr;
 }
@@ -452,18 +452,18 @@ s32 gfx_context_load(u8 *state)
   u32 tmp32;
   s32 bufferptr = 0;
 
-  load_param(&gfx.cycles, sizeof(gfx.cycles));
-  load_param(&gfx.cyclesPerLine, sizeof(gfx.cyclesPerLine));
-  load_param(&gfx.dotMask, sizeof(gfx.dotMask));
-  load_param(&gfx.stampShift, sizeof(gfx.stampShift));
-  load_param(&gfx.mapShift, sizeof(gfx.mapShift));
-  load_param(&gfx.bufferOffset, sizeof(gfx.bufferOffset));
-  load_param(&gfx.bufferStart, sizeof(gfx.bufferStart));
+  load_param(&bufferptr, state, &gfx.cycles, sizeof(gfx.cycles));
+  load_param(&bufferptr, state, &gfx.cyclesPerLine, sizeof(gfx.cyclesPerLine));
+  load_param(&bufferptr, state, &gfx.dotMask, sizeof(gfx.dotMask));
+  load_param(&bufferptr, state, &gfx.stampShift, sizeof(gfx.stampShift));
+  load_param(&bufferptr, state, &gfx.mapShift, sizeof(gfx.mapShift));
+  load_param(&bufferptr, state, &gfx.bufferOffset, sizeof(gfx.bufferOffset));
+  load_param(&bufferptr, state, &gfx.bufferStart, sizeof(gfx.bufferStart));
 
-  load_param(&tmp32, 4);
+  load_param(&bufferptr, state, &tmp32, 4);
   gfx.tracePtr = (u16 *)(scd.word_ram_2M + tmp32);
 
-  load_param(&tmp32, 4);
+  load_param(&bufferptr, state, &tmp32, 4);
   gfx.mapPtr = (u16 *)(scd.word_ram_2M + tmp32);
 
   return bufferptr;

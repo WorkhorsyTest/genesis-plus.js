@@ -172,13 +172,13 @@ s32 cdd_context_save(u8 *state)
 {
   s32 bufferptr = 0;
 
-  save_param(&cdd.cycles, sizeof(cdd.cycles));
-  save_param(&cdd.latency, sizeof(cdd.latency));
-  save_param(&cdd.index, sizeof(cdd.index));
-  save_param(&cdd.lba, sizeof(cdd.lba));
-  save_param(&cdd.scanOffset, sizeof(cdd.scanOffset));
-  save_param(&cdd.volume, sizeof(cdd.volume));
-  save_param(&cdd.status, sizeof(cdd.status));
+  save_param(&bufferptr, state, &cdd.cycles, sizeof(cdd.cycles));
+  save_param(&bufferptr, state, &cdd.latency, sizeof(cdd.latency));
+  save_param(&bufferptr, state, &cdd.index, sizeof(cdd.index));
+  save_param(&bufferptr, state, &cdd.lba, sizeof(cdd.lba));
+  save_param(&bufferptr, state, &cdd.scanOffset, sizeof(cdd.scanOffset));
+  save_param(&bufferptr, state, &cdd.volume, sizeof(cdd.volume));
+  save_param(&bufferptr, state, &cdd.status, sizeof(cdd.status));
 
   return bufferptr;
 }
@@ -188,13 +188,13 @@ s32 cdd_context_load(u8 *state)
   s32 lba;
   s32 bufferptr = 0;
 
-  load_param(&cdd.cycles, sizeof(cdd.cycles));
-  load_param(&cdd.latency, sizeof(cdd.latency));
-  load_param(&cdd.index, sizeof(cdd.index));
-  load_param(&cdd.lba, sizeof(cdd.lba));
-  load_param(&cdd.scanOffset, sizeof(cdd.scanOffset));
-  load_param(&cdd.volume, sizeof(cdd.volume));
-  load_param(&cdd.status, sizeof(cdd.status));
+  load_param(&bufferptr, state, &cdd.cycles, sizeof(cdd.cycles));
+  load_param(&bufferptr, state, &cdd.latency, sizeof(cdd.latency));
+  load_param(&bufferptr, state, &cdd.index, sizeof(cdd.index));
+  load_param(&bufferptr, state, &cdd.lba, sizeof(cdd.lba));
+  load_param(&bufferptr, state, &cdd.scanOffset, sizeof(cdd.scanOffset));
+  load_param(&bufferptr, state, &cdd.volume, sizeof(cdd.volume));
+  load_param(&bufferptr, state, &cdd.status, sizeof(cdd.status));
 
   /* adjust current LBA within track limit */
   lba = cdd.lba;

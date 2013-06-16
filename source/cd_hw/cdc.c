@@ -141,8 +141,8 @@ s32 cdc_context_save(u8 *state)
     tmp8 = 0;
   }
 
-  save_param(&cdc, sizeof(cdc));
-  save_param(&tmp8, 1);
+  save_param(&bufferptr, state, &cdc, sizeof(cdc));
+  save_param(&bufferptr, state, &tmp8, 1);
 
   return bufferptr;
 }
@@ -152,8 +152,8 @@ s32 cdc_context_load(u8 *state)
   u8 tmp8;
   s32 bufferptr = 0;
 
-  load_param(&cdc, sizeof(cdc));
-  load_param(&tmp8, 1);
+  load_param(&bufferptr, state, &cdc, sizeof(cdc));
+  load_param(&bufferptr, state, &tmp8, 1);
 
   switch (tmp8)
   {

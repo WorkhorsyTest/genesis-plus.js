@@ -783,14 +783,14 @@ int md_cart_context_save(u8 *state)
   }
 
   /* hardware registers */
-  save_param(cart.hw.regs, sizeof(cart.hw.regs));
+  save_param(&bufferptr, state, cart.hw.regs, sizeof(cart.hw.regs));
 
   /* SVP */
   if (svp)
   {
-    save_param(svp->iram_rom, 0x800);
-    save_param(svp->dram,sizeof(svp->dram));
-    save_param(&svp->ssp1601,sizeof(ssp1601_t));
+    save_param(&bufferptr, state, svp->iram_rom, 0x800);
+    save_param(&bufferptr, state, svp->dram,sizeof(svp->dram));
+    save_param(&bufferptr, state, &svp->ssp1601,sizeof(ssp1601_t));
   }
 
   return bufferptr;
@@ -821,14 +821,14 @@ int md_cart_context_load(u8 *state)
   }
 
   /* hardware registers */
-  load_param(cart.hw.regs, sizeof(cart.hw.regs));
+  load_param(&bufferptr, state, cart.hw.regs, sizeof(cart.hw.regs));
 
   /* SVP */
   if (svp)
   {
-    load_param(svp->iram_rom, 0x800);
-    load_param(svp->dram,sizeof(svp->dram));
-    load_param(&svp->ssp1601,sizeof(ssp1601_t));
+    load_param(&bufferptr, state, svp->iram_rom, 0x800);
+    load_param(&bufferptr, state, svp->dram,sizeof(svp->dram));
+    load_param(&bufferptr, state, &svp->ssp1601,sizeof(ssp1601_t));
   }
 
   return bufferptr;

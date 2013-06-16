@@ -2120,14 +2120,14 @@ s32 YM2612LoadContext(u8 *state)
   s32 bufferptr = 0;
 
   /* restore YM2612 context */
-  load_param(&ym2612, sizeof(ym2612));
+  load_param(&bufferptr, state, &ym2612, sizeof(ym2612));
 
   /* restore DT table address pointer for each channel slots */
   for (c=0; c<6; c++)
   {
     for (s=0; s<4; s++)
     {
-      load_param(&index,sizeof(index));
+      load_param(&bufferptr, state, &index,sizeof(index));
       bufferptr += sizeof(index);
       ym2612.CH[c].SLOT[s].DT = ym2612.OPN.ST.dt_tab[index&7];
     }
@@ -2151,7 +2151,7 @@ s32 YM2612SaveContext(u8 *state)
   s32 bufferptr = 0;
 
   /* save YM2612 context */
-  save_param(&ym2612, sizeof(ym2612));
+  save_param(&bufferptr, state, &ym2612, sizeof(ym2612));
 
   /* save DT table index for each channel slots */
   for (c=0; c<6; c++)
@@ -2159,7 +2159,7 @@ s32 YM2612SaveContext(u8 *state)
     for (s=0; s<4; s++)
     {
       index = (ym2612.CH[c].SLOT[s].DT - ym2612.OPN.ST.dt_tab[0]) >> 5;
-      save_param(&index,sizeof(index));
+      save_param(&bufferptr, state, &index,sizeof(index));
       bufferptr += sizeof(index);
     }
   }

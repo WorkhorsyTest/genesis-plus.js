@@ -89,13 +89,13 @@ s32 pcm_context_save(u8 *state)
 
   tmp8 = (pcm.bank - pcm.ram) >> 12;
 
-  save_param(pcm.chan, sizeof(pcm.chan));
-  save_param(pcm.out, sizeof(pcm.out));
-  save_param(&tmp8, 1);
-  save_param(&pcm.enabled, sizeof(pcm.enabled));
-  save_param(&pcm.status, sizeof(pcm.status));
-  save_param(&pcm.index, sizeof(pcm.index));
-  save_param(pcm.ram, sizeof(pcm.ram));
+  save_param(&bufferptr, state, pcm.chan, sizeof(pcm.chan));
+  save_param(&bufferptr, state, pcm.out, sizeof(pcm.out));
+  save_param(&bufferptr, state, &tmp8, 1);
+  save_param(&bufferptr, state, &pcm.enabled, sizeof(pcm.enabled));
+  save_param(&bufferptr, state, &pcm.status, sizeof(pcm.status));
+  save_param(&bufferptr, state, &pcm.index, sizeof(pcm.index));
+  save_param(&bufferptr, state, pcm.ram, sizeof(pcm.ram));
 
   return bufferptr;
 }
@@ -105,16 +105,16 @@ s32 pcm_context_load(u8 *state)
   u8 tmp8;
   s32 bufferptr = 0;
 
-  load_param(pcm.chan, sizeof(pcm.chan));
-  load_param(pcm.out, sizeof(pcm.out));
+  load_param(&bufferptr, state, pcm.chan, sizeof(pcm.chan));
+  load_param(&bufferptr, state, pcm.out, sizeof(pcm.out));
 
-  load_param(&tmp8, 1);
+  load_param(&bufferptr, state, &tmp8, 1);
   pcm.bank = &pcm.ram[(tmp8 & 0x0f) << 12];
 
-  load_param(&pcm.enabled, sizeof(pcm.enabled));
-  load_param(&pcm.status, sizeof(pcm.status));
-  load_param(&pcm.index, sizeof(pcm.index));
-  load_param(pcm.ram, sizeof(pcm.ram));
+  load_param(&bufferptr, state, &pcm.enabled, sizeof(pcm.enabled));
+  load_param(&bufferptr, state, &pcm.status, sizeof(pcm.status));
+  load_param(&bufferptr, state, &pcm.index, sizeof(pcm.index));
+  load_param(&bufferptr, state, pcm.ram, sizeof(pcm.ram));
 
   return bufferptr;
 }

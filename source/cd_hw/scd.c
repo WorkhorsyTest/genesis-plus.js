@@ -1337,11 +1337,11 @@ s32 scd_context_save(u8 *state)
   s32 bufferptr = 0;
 
   /* internal harware */
-  save_param(scd.regs, sizeof(scd.regs));
-  save_param(&scd.cycles, sizeof(scd.cycles));
-  save_param(&scd.timer, sizeof(scd.timer));
-  save_param(&scd.pending, sizeof(scd.pending));
-  save_param(&scd.dmna, sizeof(scd.dmna));
+  save_param(&bufferptr, state, scd.regs, sizeof(scd.regs));
+  save_param(&bufferptr, state, &scd.cycles, sizeof(scd.cycles));
+  save_param(&bufferptr, state, &scd.timer, sizeof(scd.timer));
+  save_param(&bufferptr, state, &scd.pending, sizeof(scd.pending));
+  save_param(&bufferptr, state, &scd.dmna, sizeof(scd.dmna));
 
   /* GFX processor */
   bufferptr += gfx_context_save(&state[bufferptr]);
@@ -1356,54 +1356,54 @@ s32 scd_context_save(u8 *state)
   bufferptr += pcm_context_save(&state[bufferptr]);
 
   /* PRG-RAM */
-  save_param(scd.prg_ram, sizeof(scd.prg_ram));
+  save_param(&bufferptr, state, scd.prg_ram, sizeof(scd.prg_ram));
 
   /* Word-RAM */
   if (scd.regs[0x03>>1].byte.l & 0x04)
   {
     /* 1M mode */
-    save_param(scd.word_ram, sizeof(scd.word_ram));
+    save_param(&bufferptr, state, scd.word_ram, sizeof(scd.word_ram));
   }
   else
   {
     /* 2M mode */
-    save_param(scd.word_ram_2M, sizeof(scd.word_ram_2M));
+    save_param(&bufferptr, state, scd.word_ram_2M, sizeof(scd.word_ram_2M));
   }
 
   /* MAIN-CPU & SUB-CPU polling */
-  save_param(&m68k.poll, sizeof(m68k.poll));
-  save_param(&s68k.poll, sizeof(s68k.poll));
+  save_param(&bufferptr, state, &m68k.poll, sizeof(m68k.poll));
+  save_param(&bufferptr, state, &s68k.poll, sizeof(s68k.poll));
 
   /* H-INT default vector */
   tmp16 = *(u16 *)(m68k.memory_map[0].base + 0x72);
-  save_param(&tmp16, 2);
+  save_param(&bufferptr, state, &tmp16, 2);
 
   /* SUB-CPU internal state */
-  save_param(&s68k.cycles, sizeof(s68k.cycles));
-  save_param(&s68k.int_level, sizeof(s68k.int_level));
-  save_param(&s68k.stopped, sizeof(s68k.stopped));
+  save_param(&bufferptr, state, &s68k.cycles, sizeof(s68k.cycles));
+  save_param(&bufferptr, state, &s68k.int_level, sizeof(s68k.int_level));
+  save_param(&bufferptr, state, &s68k.stopped, sizeof(s68k.stopped));
 
   /* SUB-CPU registers */
-  tmp32 = s68k_get_reg(M68K_REG_D0);  save_param(&tmp32, 4);
-  tmp32 = s68k_get_reg(M68K_REG_D1);  save_param(&tmp32, 4);
-  tmp32 = s68k_get_reg(M68K_REG_D2);  save_param(&tmp32, 4);
-  tmp32 = s68k_get_reg(M68K_REG_D3);  save_param(&tmp32, 4);
-  tmp32 = s68k_get_reg(M68K_REG_D4);  save_param(&tmp32, 4);
-  tmp32 = s68k_get_reg(M68K_REG_D5);  save_param(&tmp32, 4);
-  tmp32 = s68k_get_reg(M68K_REG_D6);  save_param(&tmp32, 4);
-  tmp32 = s68k_get_reg(M68K_REG_D7);  save_param(&tmp32, 4);
-  tmp32 = s68k_get_reg(M68K_REG_A0);  save_param(&tmp32, 4);
-  tmp32 = s68k_get_reg(M68K_REG_A1);  save_param(&tmp32, 4);
-  tmp32 = s68k_get_reg(M68K_REG_A2);  save_param(&tmp32, 4);
-  tmp32 = s68k_get_reg(M68K_REG_A3);  save_param(&tmp32, 4);
-  tmp32 = s68k_get_reg(M68K_REG_A4);  save_param(&tmp32, 4);
-  tmp32 = s68k_get_reg(M68K_REG_A5);  save_param(&tmp32, 4);
-  tmp32 = s68k_get_reg(M68K_REG_A6);  save_param(&tmp32, 4);
-  tmp32 = s68k_get_reg(M68K_REG_A7);  save_param(&tmp32, 4);
-  tmp32 = s68k_get_reg(M68K_REG_PC);  save_param(&tmp32, 4);
-  tmp16 = s68k_get_reg(M68K_REG_SR);  save_param(&tmp16, 2); 
-  tmp32 = s68k_get_reg(M68K_REG_USP); save_param(&tmp32, 4);
-  tmp32 = s68k_get_reg(M68K_REG_ISP); save_param(&tmp32, 4);
+  tmp32 = s68k_get_reg(M68K_REG_D0);  save_param(&bufferptr, state, &tmp32, 4);
+  tmp32 = s68k_get_reg(M68K_REG_D1);  save_param(&bufferptr, state, &tmp32, 4);
+  tmp32 = s68k_get_reg(M68K_REG_D2);  save_param(&bufferptr, state, &tmp32, 4);
+  tmp32 = s68k_get_reg(M68K_REG_D3);  save_param(&bufferptr, state, &tmp32, 4);
+  tmp32 = s68k_get_reg(M68K_REG_D4);  save_param(&bufferptr, state, &tmp32, 4);
+  tmp32 = s68k_get_reg(M68K_REG_D5);  save_param(&bufferptr, state, &tmp32, 4);
+  tmp32 = s68k_get_reg(M68K_REG_D6);  save_param(&bufferptr, state, &tmp32, 4);
+  tmp32 = s68k_get_reg(M68K_REG_D7);  save_param(&bufferptr, state, &tmp32, 4);
+  tmp32 = s68k_get_reg(M68K_REG_A0);  save_param(&bufferptr, state, &tmp32, 4);
+  tmp32 = s68k_get_reg(M68K_REG_A1);  save_param(&bufferptr, state, &tmp32, 4);
+  tmp32 = s68k_get_reg(M68K_REG_A2);  save_param(&bufferptr, state, &tmp32, 4);
+  tmp32 = s68k_get_reg(M68K_REG_A3);  save_param(&bufferptr, state, &tmp32, 4);
+  tmp32 = s68k_get_reg(M68K_REG_A4);  save_param(&bufferptr, state, &tmp32, 4);
+  tmp32 = s68k_get_reg(M68K_REG_A5);  save_param(&bufferptr, state, &tmp32, 4);
+  tmp32 = s68k_get_reg(M68K_REG_A6);  save_param(&bufferptr, state, &tmp32, 4);
+  tmp32 = s68k_get_reg(M68K_REG_A7);  save_param(&bufferptr, state, &tmp32, 4);
+  tmp32 = s68k_get_reg(M68K_REG_PC);  save_param(&bufferptr, state, &tmp32, 4);
+  tmp16 = s68k_get_reg(M68K_REG_SR);  save_param(&bufferptr, state, &tmp16, 2); 
+  tmp32 = s68k_get_reg(M68K_REG_USP); save_param(&bufferptr, state, &tmp32, 4);
+  tmp32 = s68k_get_reg(M68K_REG_ISP); save_param(&bufferptr, state, &tmp32, 4);
 
   /* bootable MD cartridge */
   if (scd.cartridge.boot)
@@ -1422,11 +1422,11 @@ s32 scd_context_load(u8 *state)
   s32 bufferptr = 0;
 
   /* internal harware */
-  load_param(scd.regs, sizeof(scd.regs));
-  load_param(&scd.cycles, sizeof(scd.cycles));
-  load_param(&scd.timer, sizeof(scd.timer));
-  load_param(&scd.pending, sizeof(scd.pending));
-  load_param(&scd.dmna, sizeof(scd.dmna));
+  load_param(&bufferptr, state, scd.regs, sizeof(scd.regs));
+  load_param(&bufferptr, state, &scd.cycles, sizeof(scd.cycles));
+  load_param(&bufferptr, state, &scd.timer, sizeof(scd.timer));
+  load_param(&bufferptr, state, &scd.pending, sizeof(scd.pending));
+  load_param(&bufferptr, state, &scd.dmna, sizeof(scd.dmna));
 
   /* GFX processor */
   bufferptr += gfx_context_load(&state[bufferptr]);
@@ -1441,7 +1441,7 @@ s32 scd_context_load(u8 *state)
   bufferptr += pcm_context_load(&state[bufferptr]);
 
   /* PRG-RAM */
-  load_param(scd.prg_ram, sizeof(scd.prg_ram));
+  load_param(&bufferptr, state, scd.prg_ram, sizeof(scd.prg_ram));
 
   /* PRG-RAM 128k bank mapped to $020000-$03FFFF (resp. $420000-$43FFFF) */
   m68k.memory_map[scd.cartridge.boot + 0x02].base = scd.prg_ram + ((scd.regs[0x03>>1].byte.l & 0xc0) << 11);
@@ -1451,7 +1451,7 @@ s32 scd_context_load(u8 *state)
   if (scd.regs[0x03>>1].byte.l & 0x04)
   {
     /* 1M Mode */
-    load_param(scd.word_ram, sizeof(scd.word_ram));
+    load_param(&bufferptr, state, scd.word_ram, sizeof(scd.word_ram));
   
     if (scd.regs[0x03>>1].byte.l & 0x01)
     {
@@ -1537,7 +1537,7 @@ s32 scd_context_load(u8 *state)
   else
   {
     /* 2M mode */
-    load_param(scd.word_ram_2M, sizeof(scd.word_ram_2M));
+    load_param(&bufferptr, state, scd.word_ram_2M, sizeof(scd.word_ram_2M));
 
     for (i=scd.cartridge.boot+0x20; i<scd.cartridge.boot+0x24; i++)
     {
@@ -1571,39 +1571,39 @@ s32 scd_context_load(u8 *state)
   }
 
   /* MAIN-CPU & SUB-CPU polling */
-  load_param(&m68k.poll, sizeof(m68k.poll));
-  load_param(&s68k.poll, sizeof(s68k.poll));
+  load_param(&bufferptr, state, &m68k.poll, sizeof(m68k.poll));
+  load_param(&bufferptr, state, &s68k.poll, sizeof(s68k.poll));
 
   /* H-INT default vector */
-  load_param(&tmp16, 2);
+  load_param(&bufferptr, state, &tmp16, 2);
   *(u16 *)(m68k.memory_map[0].base + 0x72) = tmp16;
 
   /* SUB-CPU internal state */
-  load_param(&s68k.cycles, sizeof(s68k.cycles));
-  load_param(&s68k.int_level, sizeof(s68k.int_level));
-  load_param(&s68k.stopped, sizeof(s68k.stopped));
+  load_param(&bufferptr, state, &s68k.cycles, sizeof(s68k.cycles));
+  load_param(&bufferptr, state, &s68k.int_level, sizeof(s68k.int_level));
+  load_param(&bufferptr, state, &s68k.stopped, sizeof(s68k.stopped));
 
   /* SUB-CPU registers */
-  load_param(&tmp32, 4); s68k_set_reg(M68K_REG_D0, tmp32);
-  load_param(&tmp32, 4); s68k_set_reg(M68K_REG_D1, tmp32);
-  load_param(&tmp32, 4); s68k_set_reg(M68K_REG_D2, tmp32);
-  load_param(&tmp32, 4); s68k_set_reg(M68K_REG_D3, tmp32);
-  load_param(&tmp32, 4); s68k_set_reg(M68K_REG_D4, tmp32);
-  load_param(&tmp32, 4); s68k_set_reg(M68K_REG_D5, tmp32);
-  load_param(&tmp32, 4); s68k_set_reg(M68K_REG_D6, tmp32);
-  load_param(&tmp32, 4); s68k_set_reg(M68K_REG_D7, tmp32);
-  load_param(&tmp32, 4); s68k_set_reg(M68K_REG_A0, tmp32);
-  load_param(&tmp32, 4); s68k_set_reg(M68K_REG_A1, tmp32);
-  load_param(&tmp32, 4); s68k_set_reg(M68K_REG_A2, tmp32);
-  load_param(&tmp32, 4); s68k_set_reg(M68K_REG_A3, tmp32);
-  load_param(&tmp32, 4); s68k_set_reg(M68K_REG_A4, tmp32);
-  load_param(&tmp32, 4); s68k_set_reg(M68K_REG_A5, tmp32);
-  load_param(&tmp32, 4); s68k_set_reg(M68K_REG_A6, tmp32);
-  load_param(&tmp32, 4); s68k_set_reg(M68K_REG_A7, tmp32);
-  load_param(&tmp32, 4); s68k_set_reg(M68K_REG_PC, tmp32);  
-  load_param(&tmp16, 2); s68k_set_reg(M68K_REG_SR, tmp16);
-  load_param(&tmp32, 4); s68k_set_reg(M68K_REG_USP,tmp32);
-  load_param(&tmp32, 4); s68k_set_reg(M68K_REG_ISP,tmp32);
+  load_param(&bufferptr, state, &tmp32, 4); s68k_set_reg(M68K_REG_D0, tmp32);
+  load_param(&bufferptr, state, &tmp32, 4); s68k_set_reg(M68K_REG_D1, tmp32);
+  load_param(&bufferptr, state, &tmp32, 4); s68k_set_reg(M68K_REG_D2, tmp32);
+  load_param(&bufferptr, state, &tmp32, 4); s68k_set_reg(M68K_REG_D3, tmp32);
+  load_param(&bufferptr, state, &tmp32, 4); s68k_set_reg(M68K_REG_D4, tmp32);
+  load_param(&bufferptr, state, &tmp32, 4); s68k_set_reg(M68K_REG_D5, tmp32);
+  load_param(&bufferptr, state, &tmp32, 4); s68k_set_reg(M68K_REG_D6, tmp32);
+  load_param(&bufferptr, state, &tmp32, 4); s68k_set_reg(M68K_REG_D7, tmp32);
+  load_param(&bufferptr, state, &tmp32, 4); s68k_set_reg(M68K_REG_A0, tmp32);
+  load_param(&bufferptr, state, &tmp32, 4); s68k_set_reg(M68K_REG_A1, tmp32);
+  load_param(&bufferptr, state, &tmp32, 4); s68k_set_reg(M68K_REG_A2, tmp32);
+  load_param(&bufferptr, state, &tmp32, 4); s68k_set_reg(M68K_REG_A3, tmp32);
+  load_param(&bufferptr, state, &tmp32, 4); s68k_set_reg(M68K_REG_A4, tmp32);
+  load_param(&bufferptr, state, &tmp32, 4); s68k_set_reg(M68K_REG_A5, tmp32);
+  load_param(&bufferptr, state, &tmp32, 4); s68k_set_reg(M68K_REG_A6, tmp32);
+  load_param(&bufferptr, state, &tmp32, 4); s68k_set_reg(M68K_REG_A7, tmp32);
+  load_param(&bufferptr, state, &tmp32, 4); s68k_set_reg(M68K_REG_PC, tmp32);  
+  load_param(&bufferptr, state, &tmp16, 2); s68k_set_reg(M68K_REG_SR, tmp16);
+  load_param(&bufferptr, state, &tmp32, 4); s68k_set_reg(M68K_REG_USP,tmp32);
+  load_param(&bufferptr, state, &tmp32, 4); s68k_set_reg(M68K_REG_ISP,tmp32);
 
   /* bootable MD cartridge hardware */
   if (scd.cartridge.boot)

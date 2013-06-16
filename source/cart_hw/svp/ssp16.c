@@ -1106,7 +1106,7 @@ void ssp1601_run(int cycles)
 
   do
   {
-    int op;
+    u32 op;
     u32 tmpv;
 
     op = *PC++;
