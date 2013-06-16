@@ -1,35 +1,26 @@
 #ifndef _MACROS_H_
 #define _MACROS_H_
 
+#include <types.h>
+
 #ifdef LSB_FIRST
 
-#define READ_BYTE(BASE, ADDR) (BASE)[(ADDR)^1]
-
-#define READ_WORD(BASE, ADDR) (((BASE)[ADDR]<<8) | (BASE)[(ADDR)+1])
-
-#define READ_WORD_LONG(BASE, ADDR) (((BASE)[(ADDR)+1]<<24) |      \
-                                    ((BASE)[(ADDR)]<<16) |  \
-                                    ((BASE)[(ADDR)+3]<<8) |   \
-                                    (BASE)[(ADDR)+2])
-
-#define WRITE_BYTE(BASE, ADDR, VAL) (BASE)[(ADDR)^1] = (VAL)&0xff
-
-#define WRITE_WORD(BASE, ADDR, VAL) (BASE)[ADDR] = ((VAL)>>8) & 0xff; \
-                                      (BASE)[(ADDR)+1] = (VAL)&0xff
-
-#define WRITE_WORD_LONG(BASE, ADDR, VAL) (BASE)[(ADDR+1)] = ((VAL)>>24) & 0xff;    \
-                                          (BASE)[(ADDR)] = ((VAL)>>16)&0xff;  \
-                                          (BASE)[(ADDR+3)] = ((VAL)>>8)&0xff;   \
-                                          (BASE)[(ADDR+2)] = (VAL)&0xff
+u8 READ_BYTE(u8* BASE, u32 ADDR);
+u16 READ_WORD(u8* BASE, u32 ADDR);
+u32 READ_WORD_LONG(u8* BASE, u32 ADDR);
+void WRITE_BYTE(u8* BASE, u32 ADDR, u8 VAL);
+void WRITE_WORD(u8* BASE, u32 ADDR, u16 VAL);
+void WRITE_WORD_LONG(u8* BASE, u32 ADDR, u32 VAL);
 
 #else
 
-#define READ_BYTE(BASE, ADDR) (BASE)[ADDR]
-#define READ_WORD(BASE, ADDR) *(u16 *)((BASE) + (ADDR))
-#define READ_WORD_LONG(BASE, ADDR) *(u32 *)((BASE) + (ADDR))
-#define WRITE_BYTE(BASE, ADDR, VAL) (BASE)[ADDR] = VAL & 0xff
-#define WRITE_WORD(BASE, ADDR, VAL) *(u16 *)((BASE) + (ADDR)) = VAL & 0xffff
-#define WRITE_WORD_LONG(BASE, ADDR, VAL) *(u32 *)((BASE) + (ADDR)) = VAL & 0xffffffff
+u8 READ_BYTE(u8* BASE, u32 ADDR);
+u16 READ_WORD(u8* BASE, u32 ADDR);
+u32 READ_WORD_LONG(u8* BASE, u32 ADDR);
+void WRITE_BYTE(u8* BASE, u32 ADDR, u8 VAL);
+void WRITE_WORD(u8* BASE, u32 ADDR, u16 VAL);
+void WRITE_WORD_LONG(u8* BASE, u32 ADDR, u32 VAL);
+
 #endif
 
 /* C89 compatibility */

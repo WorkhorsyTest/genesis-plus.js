@@ -1354,3 +1354,64 @@ void system_frame_sms(s32 do_skip)
   /* adjust Z80 cycle count for next frame */
   Z80.cycles -= mcycles_vdp;
 }
+
+#ifdef LSB_FIRST
+
+u8 READ_BYTE(u8* BASE, u32 ADDR) {
+    return BASE[ADDR^1];
+}
+
+u16 READ_WORD(u8* BASE, u32 ADDR) {
+    return (((BASE)[ADDR]<<8) | (BASE)[(ADDR)+1]);
+}
+
+u32 READ_WORD_LONG(u8* BASE, u32 ADDR) { 
+    return (((BASE)[(ADDR)+1]<<24) |
+           ((BASE)[(ADDR)]<<16) |
+           ((BASE)[(ADDR)+3]<<8) |
+           (BASE)[(ADDR)+2]);
+}
+
+void WRITE_BYTE(u8* BASE, u32 ADDR, u8 VAL) {
+    (BASE)[(ADDR)^1] = (VAL)&0xff;
+}
+
+void WRITE_WORD(u8* BASE, u32 ADDR, u16 VAL) {
+    (BASE)[ADDR] = ((VAL)>>8) & 0xff;
+    (BASE)[(ADDR)+1] = (VAL)&0xff;
+}
+
+void WRITE_WORD_LONG(u8* BASE, u32 ADDR, u32 VAL) {
+    (BASE)[(ADDR+1)] = ((VAL)>>24) & 0xff;
+    (BASE)[(ADDR)] = ((VAL)>>16)&0xff;
+    (BASE)[(ADDR+3)] = ((VAL)>>8)&0xff;
+    (BASE)[(ADDR+2)] = (VAL)&0xff;
+}
+
+#else
+
+u8 READ_BYTE(u8* BASE, u32 ADDR) {
+    return BASE[ADDR];
+}
+
+u16 READ_WORD(u8* BASE, u32 ADDR) {
+    return *(u16 *)((BASE) + (ADDR));
+}
+
+u32 READ_WORD_LONG(u8* BASE, u32 ADDR) {
+    *(u32 *)((BASE) + (ADDR));
+}
+
+void WRITE_BYTE(u8* BASE, u32 ADDR, u8 VAL) {
+    (BASE)[ADDR] = VAL & 0xff;
+}
+
+void WRITE_WORD(u8* BASE, u32 ADDR, u16 VAL) {
+    *(u16 *)((BASE) + (ADDR)) = VAL & 0xffff;
+}
+
+void WRITE_WORD_LONG(u8* BASE, u32 ADDR, u32 VAL) {
+    *(u32 *)((BASE) + (ADDR)) = VAL & 0xffffffff;
+}
+
+#endif
