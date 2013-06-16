@@ -586,7 +586,7 @@ void vdp_dma_update(u32 cycles)
 #endif
 
   /* Check if DMA can be finished before the end of current line */
-  if (dma_length < dma_bytes)
+  if (dma_length < (u32) dma_bytes)
   {
     /* Adjust remaining DMA bytes */
     dma_bytes = dma_length;
@@ -1417,11 +1417,9 @@ u32 vdp_hvc_r(u32 cycles)
 /* Test registers                                                           */
 /*--------------------------------------------------------------------------*/
 
-void vdp_test_w(u32 data)
+void vdp_test_w()
 {
-#ifdef LOGERROR
-  error("Unused VDP Write 0x%x (%08x)\n", data, m68k_get_reg(M68K_REG_PC));
-#endif
+
 }
 
 
@@ -1429,7 +1427,7 @@ void vdp_test_w(u32 data)
 /* 68k interrupt handler (TODO: check how interrupts are handled in Mode 4) */
 /*--------------------------------------------------------------------------*/
 
-int vdp_68k_irq_ack(int int_level)
+int vdp_68k_irq_ack()
 {
 #ifdef LOGVDP
   error("[%d(%d)][%d(%d)] INT Level %d ack (%x)\n", v_counter, m68k.cycles/MCYCLES_PER_LINE-1, m68k.cycles, m68k.cycles%MCYCLES_PER_LINE,int_level, m68k_get_reg(M68K_REG_PC));

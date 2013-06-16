@@ -1364,6 +1364,7 @@ void render_bg_m3x(int line, int width)
 /* Invalid (2+3/1+2+3) */
 void render_bg_inv(int line, int width)
 {
+  assert(line == line);
   u8 color = reg[7];
 
   u8 *lb = &linebuf[0][0x20];
@@ -1503,8 +1504,9 @@ void render_bg_m5(int line, int width)
   u32 atex, atbuf, *src, *dst;
 
   /* Common data */
+  u32* vsram32 = (u32 *)&vsram;
   u32 xscroll = *(u32 *)&vram[hscb + ((line & hscroll_mask) << 2)];
-  u32 yscroll = *(u32 *)&vsram[0];
+  u32 yscroll = vsram32[0];
   u32 pf_col_mask  = playfield_col_mask;
   u32 pf_row_mask  = playfield_row_mask;
   u32 pf_shift     = playfield_shift;
@@ -1839,8 +1841,9 @@ void render_bg_m5_im2(int line, int width)
 
   /* Common data */
   int odd = odd_frame;
+  u32* vsram32 = (u32 *)&vsram;
   u32 xscroll      = *(u32 *)&vram[hscb + ((line & hscroll_mask) << 2)];
-  u32 yscroll      = *(u32 *)&vsram[0];
+  u32 yscroll      = vsram32[0];
   u32 pf_col_mask  = playfield_col_mask;
   u32 pf_row_mask  = playfield_row_mask;
   u32 pf_shift     = playfield_shift;
@@ -3927,14 +3930,14 @@ void update_bg_pattern_cache_m5(int index)
 void window_clip(u32 data, u32 sw)
 {
   /* Window size and invert flags */
-  int hp = (data & 0x1f);
-  int hf = (data >> 7) & 1;
+  u32 hp = (data & 0x1f);
+  u32 hf = (data >> 7) & 1;
 
   /* Perform horizontal clipping; the results are applied in reverse
      if the horizontal inversion flag is set
    */
-  int a = hf;
-  int w = hf ^ 1;
+  u32 a = hf;
+  u32 w = hf ^ 1;
 
   /* Display width (16 or 20 columns) */
   sw = 16 + (sw << 2);

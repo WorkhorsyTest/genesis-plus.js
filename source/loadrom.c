@@ -557,6 +557,7 @@ s32 load_rom(char *filename)
   {
     /* load file into ROM buffer */
     char extension[4];
+    u32* extension32 = (u32*) &extension;
     size = load_archive(filename, cart.rom, sizeof(cart.rom), extension);
     if (!size)
     {
@@ -578,7 +579,7 @@ s32 load_rom(char *filename)
     }
 
     /* convert lower case to upper case */
-    *(u32 *)(extension) &= 0xdfdfdfdf;
+    extension32[0] &= 0xdfdfdfdf;
 
     /* auto-detect system hardware from ROM file extension */
     if (!memcmp("SMS", &extension[0], 3))
@@ -673,7 +674,7 @@ s32 load_rom(char *filename)
   else if (system_hw == SYSTEM_MD)
   {
     /* Byteswap ROM to optimize 16-bit access */
-    for (i = 0; i < cart.romsize; i += 2)
+    for (u32 i = 0; i < cart.romsize; i += 2)
     {
       u8 temp = cart.rom[i];
       cart.rom[i] = cart.rom[i+1];

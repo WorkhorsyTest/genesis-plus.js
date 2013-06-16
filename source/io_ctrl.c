@@ -61,6 +61,8 @@ static struct port_t
 
 static void dummy_write(u8 data, u8 mask)
 {
+	assert(data == data); // Make sure parameter is used to keep compiler happy
+	assert(mask == mask); // Make sure parameter is used to keep compiler happy
 }
 
 static u8 dummy_read()

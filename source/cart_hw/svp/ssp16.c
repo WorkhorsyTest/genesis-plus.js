@@ -374,6 +374,7 @@ static u32 read_unknown()
 
 static void write_unknown(u32 d)
 {
+	assert(d == d);
 #ifdef LOG_SVP
   elprintf(EL_ANOMALY|EL_SVP, "ssp FIXME: unknown write @ %04x", GET_PPC_OFFS());
 #endif

@@ -3776,7 +3776,7 @@ static void take_interrupt()
   else
   {
     /* call back the cpu interface to retrieve the vector */
-    s32 irq_vector = (*Z80.irq_callback)(0);
+    s32 irq_vector = (*Z80.irq_callback)();
 
     /* Interrupt mode 2. Call [Z80.i:databyte] */
     if( IM == 2 )

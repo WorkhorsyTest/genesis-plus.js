@@ -184,21 +184,12 @@ void s68k_run(u32 cycles)
  
   while (s68k.cycles < cycles)
   {
-    /* Set tracing accodring to T1. */
-    m68ki_trace_t1() /* auto-disable (see m68kcpu.h) */
-
-    /* Set the address space for reads */
-    m68ki_use_data_space() /* auto-disable (see m68kcpu.h) */
-
     /* Decode next instruction */
     REG_IR = m68ki_read_imm_16();
 
     /* Execute instruction */
 	m68ki_instruction_jump_table[REG_IR]();
     USE_CYCLES(CYC_INSTRUCTION[REG_IR]);
-
-    /* Trace m68k_exception, if necessary */
-    m68ki_exception_if_trace(); /* auto-disable (see m68kcpu.h) */
   }
 }
 
@@ -227,7 +218,6 @@ void s68k_pulse_reset()
 
   /* Turn off tracing */
   FLAG_T1 = 0;
-  m68ki_clear_trace()
 
   /* Interrupt mask to level 7 */
   FLAG_INT_MASK = 0x0700;

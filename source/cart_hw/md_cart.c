@@ -461,10 +461,12 @@ void md_cart_init()
       /* load Sonic & Knuckles ROM (2 MB) */
       f = fopen(SK_ROM,"rb");
       if (!f) break;
+      size_t len = 0;
       for (i=0; i<0x200000; i+=0x1000)
       {
-        fread(cart.rom + 0x600000 + i, 0x1000, 1, f);
+        len = fread(cart.rom + 0x600000 + i, 0x1000, 1, f);
       }
+      assert(len == len);
       fclose(f);
 
       /* load Sonic 2 UPMEM ROM (256 KB) */
@@ -472,8 +474,9 @@ void md_cart_init()
       if (!f) break;
       for (i=0; i<0x40000; i+=0x1000)
       {
-        fread(cart.rom + 0x900000 + i, 0x1000, 1, f);
+        len = fread(cart.rom + 0x900000 + i, 0x1000, 1, f);
       }
+      assert(len == len);
       fclose(f);
           
 #ifdef LSB_FIRST
@@ -946,7 +949,7 @@ static void mapper_sf001_w(u32 address, u32 data)
         }
 
         /* 256K ROM banks #2 to #15 mapped to $040000-$3BFFFF (last revision) or $040000-$3FFFFF (older revisions) */
-        for (i=0x04; i<(sram.start >> 16); i++)
+        for (u32 i=0x04; i<(sram.start >> 16); i++)
         {
           m68k.memory_map[i].base     = cart.rom + (i << 16);
           m68k.memory_map[i].read8    = NULL;
@@ -1007,6 +1010,7 @@ static void mapper_sf001_w(u32 address, u32 data)
 */
 static void mapper_sf002_w(u32 address, u32 data)
 {
+  assert(address == address);
   int i;
   if (data & 0x80)
   {
@@ -1163,6 +1167,7 @@ static void mapper_sf004_w(u32 address, u32 data)
 
 static u32 mapper_sf004_r(u32 address)
 {
+  assert(address == address);
   /* return first page 256K bank index ($00,$10,$20,...,$70) */
   return (((m68k.memory_map[0x00].base - cart.rom) >> 18) << 4);
 }

@@ -45,7 +45,7 @@ typedef struct
   u8  after_ei;       /* are we in the EI shadow? */
   u32 cycles;         /* master clock cycles global counter */
   const struct z80_irq_daisy_chain *daisy;
-  s32    (*irq_callback)(s32 irqline);
+  s32    (*irq_callback)();
 }  Z80_Regs;
 
 

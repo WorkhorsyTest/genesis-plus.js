@@ -64,6 +64,8 @@ u32 m68k_read_bus_16(u32 address)
 
 void m68k_unused_8_w(u32 address, u32 data)
 {
+	assert(address == address);
+	assert(data == data);
 #ifdef LOGERROR
   error("Unused write8 %08X = %02X (%08X)\n", address, data, m68k_get_reg(M68K_REG_PC));
 #endif
@@ -71,6 +73,8 @@ void m68k_unused_8_w(u32 address, u32 data)
 
 void m68k_unused_16_w(u32 address, u32 data)
 {
+	assert(address == address);
+	assert(data == data);
 #ifdef LOGERROR
   error("Unused write16 %08X = %04X (%08X)\n", address, data, m68k_get_reg(M68K_REG_PC));
 #endif
@@ -83,6 +87,8 @@ void m68k_unused_16_w(u32 address, u32 data)
 
 void m68k_lockup_w_8 (u32 address, u32 data)
 {
+	assert(address == address);
+	assert(data == data);
 #ifdef LOGERROR
   error ("Lockup %08X = %02X (%08X)\n", address, data, m68k_get_reg(M68K_REG_PC));
 #endif
@@ -95,6 +101,8 @@ void m68k_lockup_w_8 (u32 address, u32 data)
 
 void m68k_lockup_w_16 (u32 address, u32 data)
 {
+	assert(address == address);
+	assert(data == data);
 #ifdef LOGERROR
   error ("Lockup %08X = %04X (%08X)\n", address, data, m68k_get_reg(M68K_REG_PC));
 #endif
@@ -223,10 +231,10 @@ void z80_write_word(u32 address, u32 data)
 /* I/O Control                                                              */
 /*--------------------------------------------------------------------------*/
 
-static void m68k_poll_detect(reg)
+static void m68k_poll_detect(u32 reg)
 {
   /* detect MAIN-CPU register polling */
-  if (m68k.poll.detected == (1 << reg))
+  if (m68k.poll.detected == (u32) (1 << reg))
   {
     if (m68k.cycles <= m68k.poll.cycle)
     {
@@ -260,7 +268,7 @@ static void m68k_poll_detect(reg)
   m68k.poll.pc = m68k.pc;
 }
 
-static void m68k_poll_sync(reg)
+static void m68k_poll_sync(u32 reg)
 {
   /* relative SUB-CPU cycle counter */
   u32 cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;

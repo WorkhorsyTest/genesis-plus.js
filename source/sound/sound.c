@@ -161,7 +161,7 @@ int sound_update(u32 cycles)
       /* increment time counter */
       time += fm_cycles_ratio;
     }
-    while (time < cycles);
+    while (time < (int) cycles);
   }
   else
   {
@@ -181,7 +181,7 @@ int sound_update(u32 cycles)
       /* increment time counter */
       time += fm_cycles_ratio;
     }
-    while (time < cycles);
+    while (time < (int) cycles);
   }
 
   /* reset FM buffer pointer */
@@ -266,6 +266,8 @@ void fm_write(u32 cycles, u32 address, u32 data)
 
 u32 fm_read(u32 cycles, u32 address)
 {
+	assert(cycles == cycles);
+	assert(address == address);
   /* synchronize FM chip with CPU */
   fm_update(cycles);
 

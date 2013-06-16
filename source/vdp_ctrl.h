@@ -98,7 +98,7 @@ extern void vdp_tms_ctrl_w(u32 data);
 extern u32 vdp_68k_ctrl_r(u32 cycles);
 extern u32 vdp_z80_ctrl_r(u32 cycles);
 extern u32 vdp_hvc_r(u32 cycles);
-extern void vdp_test_w(u32 data);
-extern int vdp_68k_irq_ack(int int_level);
+extern void vdp_test_w();
+extern int vdp_68k_irq_ack();
 
 #endif /* _VDP_H_ */

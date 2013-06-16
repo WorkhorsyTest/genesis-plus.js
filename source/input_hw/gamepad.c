@@ -229,12 +229,14 @@ void wayplay_2_write(u8 data, u8 mask)
 
 u32 jcart_read(u32 address)
 {
+	assert(address == address);
    /* TH2 output read is fixed to zero (fixes Micro Machines 2) */
    return ((gamepad_read(5) & 0x7F) | ((gamepad_read(6) & 0x3F) << 8));
 }
 
 void jcart_write(u32 address, u32 data)
 {
+	assert(address == address);
   gamepad_write(5, (data & 1) << 6, 0x40);
   gamepad_write(6, (data & 1) << 6, 0x40);
   return;

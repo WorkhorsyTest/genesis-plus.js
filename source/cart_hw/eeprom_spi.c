@@ -353,6 +353,7 @@ void eeprom_spi_write(u8 data)
 
 u32 eeprom_spi_read(u32 address)
 {
+  assert(address == address);
   return (spi_eeprom.out << BIT_DATA);
 }
 

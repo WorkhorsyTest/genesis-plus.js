@@ -49,6 +49,8 @@
 
 void z80_unused_w(u32 address, u8 data)
 {
+	assert(address == address);
+	assert(data == data);
 #ifdef LOGERROR
   error("Z80 unused write %04X = %02X (%x)\n", address, data, Z80.pc.w.l);
 #endif
@@ -56,6 +58,7 @@ void z80_unused_w(u32 address, u8 data)
 
 u8 z80_unused_r(u32 address)
 {
+	assert(address == address);
 #ifdef LOGERROR
   error("Z80 unused read %04X (%x)\n", address, Z80.pc.w.l);
 #endif
@@ -64,6 +67,8 @@ u8 z80_unused_r(u32 address)
 
 void z80_lockup_w(u32 address, u8 data)
 {
+	assert(address == address);
+	assert(data == data);
 #ifdef LOGERROR
   error("Z80 lockup write %04X = %02X (%x)\n", address, data, Z80.pc.w.l);
 #endif
@@ -76,6 +81,7 @@ void z80_lockup_w(u32 address, u8 data)
 
 u8 z80_lockup_r(u32 address)
 {
+	assert(address == address);
 #ifdef LOGERROR
   error("Z80 lockup read %04X (%x)\n", address, Z80.pc.w.l);
 #endif
@@ -196,6 +202,7 @@ void z80_memory_w(u32 address, u8 data)
 
 u8 z80_unused_port_r(u32 port)
 {
+	assert(port == port);
 #if LOGERROR
   error("Z80 unused read from port %04X (%x)\n", port, Z80.pc.w.l);
 #endif
@@ -209,6 +216,8 @@ u8 z80_unused_port_r(u32 port)
 
 void z80_unused_port_w(u32 port, u8 data)
 {
+	assert(port == port);
+	assert(data == data);
 #if LOGERROR
   error("Z80 unused write to port %04X = %02X (%x)\n", port, data, Z80.pc.w.l);
 #endif

@@ -46,6 +46,7 @@
 
 u32 zbank_unused_r(u32 address)
 {
+	assert(address == address);
 #ifdef LOGERROR
   error("Z80 bank unused read %06X (%x)\n", address, Z80.pc.d);
 #endif
@@ -54,6 +55,8 @@ u32 zbank_unused_r(u32 address)
 
 void zbank_unused_w(u32 address, u32 data)
 {
+	assert(address == address);
+	assert(data == data);
 #ifdef LOGERROR
   error("Z80 bank unused write %06X = %02X (%x)\n", address, data, Z80.pc.d);
 #endif
@@ -61,6 +64,7 @@ void zbank_unused_w(u32 address, u32 data)
 
 u32 zbank_lockup_r(u32 address)
 {
+	assert(address == address);
 #ifdef LOGERROR
   error("Z80 bank lockup read %06X (%x)\n", address, Z80.pc.d);
 #endif
@@ -74,6 +78,8 @@ u32 zbank_lockup_r(u32 address)
 
 void zbank_lockup_w(u32 address, u32 data)
 {
+	assert(address == address);
+	assert(data == data);
 #ifdef LOGERROR
   error("Z80 bank lockup write %06X = %02X (%x)\n", address, data, Z80.pc.d);
 #endif

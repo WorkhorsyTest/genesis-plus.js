@@ -242,11 +242,8 @@ void m68k_set_irq_delay(u32 int_level)
 
       /* One instruction delay before interrupt */
       irq_latency = 1;
-      m68ki_trace_t1() /* auto-disable (see m68kcpu.h) */
-      m68ki_use_data_space() /* auto-disable (see m68kcpu.h) */
       REG_IR = m68ki_read_imm_16();
       m68ki_instruction_jump_table[REG_IR]();
-      m68ki_exception_if_trace() /* auto-disable (see m68kcpu.h) */
       irq_latency = 0;
     }
 
@@ -292,21 +289,12 @@ void m68k_run(u32 cycles)
    
   while (m68k.cycles < cycles)
   {
-    /* Set tracing accodring to T1. */
-    m68ki_trace_t1() /* auto-disable (see m68kcpu.h) */
-
-    /* Set the address space for reads */
-    m68ki_use_data_space() /* auto-disable (see m68kcpu.h) */
-
     /* Decode next instruction */
     REG_IR = m68ki_read_imm_16();
 	
     /* Execute instruction */
 	m68ki_instruction_jump_table[REG_IR]();
     USE_CYCLES(CYC_INSTRUCTION[REG_IR]);
-
-    /* Trace m68k_exception, if necessary */
-    m68ki_exception_if_trace(); /* auto-disable (see m68kcpu.h) */
   }
 }
 
@@ -335,7 +323,6 @@ void m68k_pulse_reset()
 
   /* Turn off tracing */
   FLAG_T1 = 0;
-  m68ki_clear_trace()
 
   /* Interrupt mask to level 7 */
   FLAG_INT_MASK = 0x0700;
@@ -383,8 +370,6 @@ void m68k_clear_halt()
  */
 u32 m68ki_read_imm_16()
 {
-  m68ki_set_fc(FLAG_S | FUNCTION_CODE_USER_PROGRAM) /* auto-disable (see m68kcpu.h) */
-
   u32 pc = REG_PC;
   REG_PC += 2;
   return m68k_read_immediate_16(pc);
@@ -392,7 +377,6 @@ u32 m68ki_read_imm_16()
 
 u32 m68ki_read_imm_32()
 {
-  m68ki_set_fc(FLAG_S | FUNCTION_CODE_USER_PROGRAM) /* auto-disable (see m68kcpu.h) */
   u32 pc = REG_PC;
   REG_PC += 4;
   return m68k_read_immediate_32(pc);
@@ -408,11 +392,9 @@ u32 m68ki_read_imm_32()
  * These functions will also check for address error and set the function
  * code if they are enabled in m68kconf.h.
  */
-u32 m68ki_read_8_fc(u32 address, u32 fc)
+u32 m68ki_read_8_fc(u32 address)
 {
-  cpu_memory_map *temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];;
-
-  m68ki_set_fc(fc) /* auto-disable (see m68kcpu.h) */
+  cpu_memory_map *temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
 
   if (temp->read8) return (*temp->read8)(ADDRESS_68K(address));
   else return READ_BYTE(temp->base, (address) & 0xffff);
@@ -421,8 +403,6 @@ u32 m68ki_read_8_fc(u32 address, u32 fc)
 u32 m68ki_read_16_fc(u32 address, u32 fc)
 {
   cpu_memory_map *temp;
-
-  m68ki_set_fc(fc) /* auto-disable (see m68kcpu.h) */
   m68ki_check_address_error(address, MODE_READ, fc) /* auto-disable (see m68kcpu.h) */
   
   temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
@@ -434,7 +414,6 @@ u32 m68ki_read_32_fc(u32 address, u32 fc)
 {
   cpu_memory_map *temp;
 
-  m68ki_set_fc(fc) /* auto-disable (see m68kcpu.h) */
   m68ki_check_address_error(address, MODE_READ, fc) /* auto-disable (see m68kcpu.h) */
 
   temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
@@ -442,11 +421,9 @@ u32 m68ki_read_32_fc(u32 address, u32 fc)
   else return m68k_read_immediate_32(address);
 }
 
-void m68ki_write_8_fc(u32 address, u32 fc, u32 value)
+void m68ki_write_8_fc(u32 address, u32 value)
 {
   cpu_memory_map *temp;
-
-  m68ki_set_fc(fc) /* auto-disable (see m68kcpu.h) */
 
   temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
   if (temp->write8) (*temp->write8)(ADDRESS_68K(address),value);
@@ -457,7 +434,6 @@ void m68ki_write_16_fc(u32 address, u32 fc, u32 value)
 {
   cpu_memory_map *temp;
 
-  m68ki_set_fc(fc) /* auto-disable (see m68kcpu.h) */
   m68ki_check_address_error(address, MODE_WRITE, fc); /* auto-disable (see m68kcpu.h) */
 
   temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
@@ -469,7 +445,6 @@ void m68ki_write_32_fc(u32 address, u32 fc, u32 value)
 {
   cpu_memory_map *temp;
 
-  m68ki_set_fc(fc) /* auto-disable (see m68kcpu.h) */
   m68ki_check_address_error(address, MODE_WRITE, fc) /* auto-disable (see m68kcpu.h) */
 
   temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
@@ -490,14 +465,12 @@ void m68ki_write_32_fc(u32 address, u32 fc, u32 value)
 u32 m68ki_get_ea_pcdi()
 {
   u32 old_pc = REG_PC;
-  m68ki_use_program_space() /* auto-disable */
   return old_pc + (s16) m68ki_read_imm_16();
 }
 
 
 u32 m68ki_get_ea_pcix()
 {
-  m68ki_use_program_space() /* auto-disable */
   return m68ki_get_ea_ix(REG_PC);
 }
 
@@ -738,7 +711,6 @@ u32 m68ki_init_exception()
 
   /* Turn off trace flag, clear pending traces */
   FLAG_T1 = 0;
-  m68ki_clear_trace()
 
   /* Enter supervisor mode */
   m68ki_set_s_flag(SFLAG_SET);

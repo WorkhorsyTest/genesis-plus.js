@@ -71,7 +71,7 @@ extern u32 gen_bankswitch_r();
 extern void gen_zbusreq_w(u32 state, u32 cycles);
 extern void gen_zreset_w(u32 state, u32 cycles);
 extern void gen_zbank_w(u32 state);
-extern int z80_irq_callback(int param);
+extern int z80_irq_callback();
 
 #endif /* _GEN_H_ */
 

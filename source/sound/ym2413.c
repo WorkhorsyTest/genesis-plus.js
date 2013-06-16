@@ -509,7 +509,7 @@ static void advance_lfo()
 {
   /* LFO */
   ym2413.lfo_am_cnt += ym2413.lfo_am_inc;
-  if (ym2413.lfo_am_cnt >= (LFO_AM_TAB_ELEMENTS<<LFO_SH) )  /* lfo_am_table is 210 elements long */
+  if (ym2413.lfo_am_cnt >= (u32) (LFO_AM_TAB_ELEMENTS<<LFO_SH) )  /* lfo_am_table is 210 elements long */
     ym2413.lfo_am_cnt -= (LFO_AM_TAB_ELEMENTS<<LFO_SH);
 
   LFO_AM = lfo_am_table[ ym2413.lfo_am_cnt >> LFO_SH ] >> 1;
@@ -581,7 +581,7 @@ void advance()
           {
             op->volume += eg_inc[op->eg_sel_dr + ((ym2413.eg_cnt>>op->eg_sh_dr)&7)];
 
-            if ( op->volume >= op->sl )
+            if ( op->volume >= (s32) op->sl )
               op->state = EG_SUS;
           }
           break;
@@ -1487,7 +1487,7 @@ static void OPLLWriteReg(s32 r, s32 v)
     case 0x10:
     case 0x20:
     {
-      s32 block_fnum;
+      u32 block_fnum;
 
       s32 chan = r&0x0f;
 
@@ -1665,6 +1665,7 @@ void YM2413Write(u32 a, u32 v)
 
 u32 YM2413Read(u32 a)
 {
+  assert(a == a);
   /* D0=latched bit, D1-D2 need to be zero (Master System specific) */
   return 0xF8 | ym2413.status;
 }

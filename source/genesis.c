@@ -537,7 +537,7 @@ void gen_zbank_w (u32 data)
 /* Z80 interrupt callback                                                */
 /* ----------------------------------------------------------------------*/
 
-int z80_irq_callback (int param)
+int z80_irq_callback ()
 {
   return -1;
 }

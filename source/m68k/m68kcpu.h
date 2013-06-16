@@ -231,16 +231,7 @@ u32 ROR_33(u32 A, u32 C);
 
 
 /* Enable or disable function code emulation */
-#define m68ki_set_fc(A)
-#define m68ki_use_data_space()
-#define m68ki_use_program_space()
 #define m68ki_get_address_space() FUNCTION_CODE_USER_DATA
-
-
-/* Enable or disable trace emulation */
-#define m68ki_trace_t1()
-#define m68ki_clear_trace()
-#define m68ki_exception_if_trace()
 
 
 /* Enable or disable Address error emulation */
@@ -463,12 +454,12 @@ u32 ROR_33(u32 A, u32 C);
 #define m68k_read_pcrelative_32(address) m68k_read_immediate_32(address)
 
 /* Read from the current address space */
-#define m68ki_read_8(A)  m68ki_read_8_fc (A, FLAG_S | m68ki_get_address_space())
+#define m68ki_read_8(A)  m68ki_read_8_fc (A)
 #define m68ki_read_16(A) m68ki_read_16_fc(A, FLAG_S | m68ki_get_address_space())
 #define m68ki_read_32(A) m68ki_read_32_fc(A, FLAG_S | m68ki_get_address_space())
 
 /* Write to the current data space */
-#define m68ki_write_8(A, V)  m68ki_write_8_fc (A, FLAG_S | FUNCTION_CODE_USER_DATA, V)
+#define m68ki_write_8(A, V)  m68ki_write_8_fc (A, V)
 #define m68ki_write_16(A, V) m68ki_write_16_fc(A, FLAG_S | FUNCTION_CODE_USER_DATA, V)
 #define m68ki_write_32(A, V) m68ki_write_32_fc(A, FLAG_S | FUNCTION_CODE_USER_DATA, V)
 
@@ -481,12 +472,12 @@ u32 ROR_33(u32 A, u32 C);
 #define m68ki_read_pcrel_32(A) m68k_read_pcrelative_32(A)
 
 /* Read from the program space */
-#define m68ki_read_program_8(A)   m68ki_read_8_fc(A, FLAG_S | FUNCTION_CODE_USER_PROGRAM)
+#define m68ki_read_program_8(A)   m68ki_read_8_fc(A)
 #define m68ki_read_program_16(A)   m68ki_read_16_fc(A, FLAG_S | FUNCTION_CODE_USER_PROGRAM)
 #define m68ki_read_program_32(A)   m68ki_read_32_fc(A, FLAG_S | FUNCTION_CODE_USER_PROGRAM)
 
 /* Read from the data space */
-#define m68ki_read_data_8(A)   m68ki_read_8_fc(A, FLAG_S | FUNCTION_CODE_USER_DATA)
+#define m68ki_read_data_8(A)   m68ki_read_8_fc(A)
 #define m68ki_read_data_16(A)   m68ki_read_16_fc(A, FLAG_S | FUNCTION_CODE_USER_DATA)
 #define m68ki_read_data_32(A)   m68ki_read_32_fc(A, FLAG_S | FUNCTION_CODE_USER_DATA)
 
@@ -618,12 +609,12 @@ u32 m68ki_read_imm_16();
 u32 m68ki_read_imm_32();
 
 /* Read data with specific function code */
-u32 m68ki_read_8_fc  (u32 address, u32 fc);
+u32 m68ki_read_8_fc  (u32 address);
 u32 m68ki_read_16_fc (u32 address, u32 fc);
 u32 m68ki_read_32_fc (u32 address, u32 fc);
 
 /* Write data with specific function code */
-void m68ki_write_8_fc (u32 address, u32 fc, u32 value);
+void m68ki_write_8_fc (u32 address, u32 value);
 void m68ki_write_16_fc(u32 address, u32 fc, u32 value);
 void m68ki_write_32_fc(u32 address, u32 fc, u32 value);
 

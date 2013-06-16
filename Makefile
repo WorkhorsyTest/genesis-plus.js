@@ -22,7 +22,7 @@
 NAME	  = gen_sdl.exe
 
 CC        = gcc
-CFLAGS    = `sdl-config --cflags` -g -O2
+CFLAGS    = `sdl-config --cflags` -g -O2 -std=c99 -Wall -Wextra -Wunused # -Werror
 #CFLAGS    = `sdl-config --cflags` -march=i686 -O6 -fomit-frame-pointer -Wall -Wno-strict-aliasing -ansi -std=c89 -pedantic-errors
 #-g -ggdb -pg
 #-fomit-frame-pointer

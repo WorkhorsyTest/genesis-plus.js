@@ -96,7 +96,8 @@ void areplay_init()
     {
       /* read Stack Pointer */
       u8 sp[4];
-      fread(&sp, 4, 1, f);
+      size_t len = fread(&sp, 4, 1, f);
+      assert(len == len);
       fseek(f, 0, SEEK_SET);
 
       /* Detect board version */
@@ -139,10 +140,12 @@ void areplay_init()
   {
     /* Load ROM */
     int i = 0;
+    size_t len = 0;
     for (i=0; i<size; i+=0x1000)
     {
-      fread(action_replay.rom + i, 0x1000, 1, f);
+      len = fread(action_replay.rom + i, 0x1000, 1, f);
     }
+    assert(len == len);
 
 #ifdef LSB_FIRST
     for (i= 0; i<size; i+=2)

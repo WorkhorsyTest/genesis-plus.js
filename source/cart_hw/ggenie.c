@@ -61,6 +61,7 @@ void ggenie_init()
 {
   int i;
   FILE *f;
+  size_t len = 0;
   
   memset(&ggenie,0,sizeof(ggenie));
 
@@ -75,8 +76,9 @@ void ggenie_init()
   /* Load ROM */
   for (i=0; i<0x8000; i+=0x1000)
   {
-    fread(ggenie.rom + i, 0x1000, 1, f);
+    len = fread(ggenie.rom + i, 0x1000, 1, f);
   }
+  assert(len == len);
 
   /* Close ROM file */
   fclose(f);
