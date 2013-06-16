@@ -191,6 +191,7 @@
 
 #include <stdbool.h>
 #include "shared.h"
+#include "ssp16.h"
 
 
 static ssp1601_t *ssp = NULL;
@@ -232,13 +233,6 @@ u16 GET_PC() { return (PC - (u16 *)svp->iram_rom); }
 u32 GET_PPC_OFFS() { return ((u32)PC - (u32)svp->iram_rom - 2); }
 void SET_PC(u16 d) { PC = (u16 *)svp->iram_rom + d; }
 
-#define REG_READ(r) (((r) <= 4) ? ssp->gr[r].byte.h : read_handlers[r]())
-#define REG_WRITE(r,d) { \
-  int r1 = r; \
-  if (r1 >= 4) write_handlers[r1](d); \
-  else if (r1 > 0) ssp->gr[r1].byte.h = d; \
-}
-
 /* flags */
 int SSP_FLAG_L() { return (1<<0xc); }
 int SSP_FLAG_Z() { return (1<<0xd); }
@@ -262,13 +256,14 @@ void UPD_LZVN() {
 
 /* standard cond processing. */
 /* again, only Z and N is checked, as SVP doesn't seem to use any other conds. */
-#define COND_CHECK() \
-  switch (op&0xf0) { \
-    case 0x00: cond = 1; break; /* always true */ \
-    case 0x50: cond = !((rST ^ (op<<5)) & SSP_FLAG_Z()); break; /* Z matches f(?) bit */ \
-    case 0x70: cond = !((rST ^ (op<<7)) & SSP_FLAG_N()); break; /* N matches f(?) bit */ \
-    default: break;  \
+void COND_CHECK(u32 op, int cond) {
+  switch (op & 0xf0) {
+    case 0x00: cond = 1; break; /* always true */
+    case 0x50: cond = !((rST ^ (op<<5)) & SSP_FLAG_Z()); break; /* Z matches f(?) bit */
+    case 0x70: cond = !((rST ^ (op<<7)) & SSP_FLAG_N()); break; /* N matches f(?) bit */
+    default: break;
   }
+}
 
 /* ops with accumulator. */
 /* how is low word really affected by these? */
@@ -450,12 +445,11 @@ static int get_inc(int mode)
   return inc;
 }
 
-#define overwite_write(dst, d) \
-{ \
-  if (d & 0xf000) { dst &= ~0xf000; dst |= d & 0xf000; } \
-  if (d & 0x0f00) { dst &= ~0x0f00; dst |= d & 0x0f00; } \
-  if (d & 0x00f0) { dst &= ~0x00f0; dst |= d & 0x00f0; } \
-  if (d & 0x000f) { dst &= ~0x000f; dst |= d & 0x000f; } \
+void overwite_write(u16 dst, u32 d) {
+  if (d & 0xf000) { dst &= ~0xf000; dst |= d & 0xf000; }
+  if (d & 0x0f00) { dst &= ~0x0f00; dst |= d & 0x0f00; }
+  if (d & 0x00f0) { dst &= ~0x00f0; dst |= d & 0x00f0; }
+  if (d & 0x000f) { dst &= ~0x000f; dst |= d & 0x000f; }
 }
 
 static u32 pm_io(int reg, int write, u32 d)
@@ -1163,7 +1157,7 @@ void ssp1601_run(int cycles)
       /* call cond, addr */
       case 0x24: {
         int cond = 0;
-        COND_CHECK();
+        COND_CHECK(op, cond);
         if (cond) { int new_PC = *PC++; write_STACK(GET_PC()); write_PC(new_PC); }
         else PC++;
         break;
@@ -1175,7 +1169,7 @@ void ssp1601_run(int cycles)
       /* bra cond, addr */
       case 0x26: {
         int cond = 0;
-        COND_CHECK();
+        COND_CHECK(op, cond);
         if (cond) { int new_PC = *PC++; write_PC(new_PC); }
         else PC++;
         break;
@@ -1184,7 +1178,7 @@ void ssp1601_run(int cycles)
       /* mod cond, op */
       case 0x48: {
         int cond = 0;
-        COND_CHECK();
+        COND_CHECK(op, cond);
         if (cond) {
           switch (op & 7) {
             case 2: rA32 = (s32)rA32 >> 1; break; /* shr (arithmetic) */
@@ -1342,5 +1336,16 @@ void ssp1601_run(int cycles)
   if (ssp->gr[SSP_GR0].v != 0xffff0000)
     elprintf(EL_ANOMALY|EL_SVP, "ssp FIXME: REG 0 corruption! %08x", ssp->gr[SSP_GR0].v);
 #endif
+}
+
+
+u32 REG_READ(u32 r) {
+    return (((r) <= 4) ? ssp->gr[r].byte.h : read_handlers[r]());
+}
+
+void REG_WRITE(u32 r, u32 d) {
+  int r1 = r;
+  if (r1 >= 4) write_handlers[r1](d);
+  else if (r1 > 0) ssp->gr[r1].byte.h = d;
 }
 

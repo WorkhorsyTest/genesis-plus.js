@@ -20,6 +20,9 @@
 #define elprintf(w,f,...) error("%d(%d): " f "\n",frame_count,v_counter,##__VA_ARGS__);
 #endif
 
+u32 REG_READ(u32 r);
+void REG_WRITE(u32 r, u32 d);
+
 /* register names */
 enum {
   SSP_GR0, SSP_X,     SSP_Y,   SSP_A,
