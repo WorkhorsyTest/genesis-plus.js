@@ -63,423 +63,6 @@ extern sms_ntsc_t *sms_ntsc;
 #define LUT_SIZE    (0x10000)
 
 
-#ifdef ALIGN_LONG
-#undef READ_LONG
-#undef WRITE_LONG
-
-u32 READ_LONG(void *address)
-{
-  if ((u32)address & 3)
-  {
-#ifdef LSB_FIRST  /* little endian version */
-    return ( *((u8 *)address) +
-        (*((u8 *)address+1) << 8)  +
-        (*((u8 *)address+2) << 16) +
-        (*((u8 *)address+3) << 24) );
-#else       /* big endian version */
-    return ( *((u8 *)address+3) +
-        (*((u8 *)address+2) << 8)  +
-        (*((u8 *)address+1) << 16) +
-        (*((u8 *)address)   << 24) );
-#endif  /* LSB_FIRST */
-  }
-  else return *(u32 *)address;
-}
-
-void WRITE_LONG(void *address, u32 data)
-{
-  if ((u32)address & 3)
-  {
-#ifdef LSB_FIRST
-      *((u8 *)address) =  data;
-      *((u8 *)address+1) = (data >> 8);
-      *((u8 *)address+2) = (data >> 16);
-      *((u8 *)address+3) = (data >> 24);
-#else
-      *((u8 *)address+3) =  data;
-      *((u8 *)address+2) = (data >> 8);
-      *((u8 *)address+1) = (data >> 16);
-      *((u8 *)address)   = (data >> 24);
-#endif /* LSB_FIRST */
-    return;
-  }
-  else *(u32 *)address = data;
-}
-
-#endif  /* ALIGN_LONG */
-
-
-/* Draw 2-cell column (8-pixels high) */
-/*
-   Pattern cache base address: VHN NNNNNNNN NNYYYxxx
-   with :
-      x = Pattern Pixel (0-7)
-      Y = Pattern Row (0-7)
-      N = Pattern Number (0-2047) from pattern attribute
-      H = Horizontal Flip bit from pattern attribute
-      V = Vertical Flip bit from pattern attribute
-*/
-#define GET_LSB_TILE(ATTR, LINE) \
-  atex = atex_table[(ATTR >> 13) & 7]; \
-  src = (u32 *)&bg_pattern_cache[(ATTR & 0x00001FFF) << 6 | (LINE)];
-#define GET_MSB_TILE(ATTR, LINE) \
-  atex = atex_table[(ATTR >> 29) & 7]; \
-  src = (u32 *)&bg_pattern_cache[(ATTR & 0x1FFF0000) >> 10 | (LINE)];
-
-/* Draw 2-cell column (16 pixels high) */
-/*
-   Pattern cache base address: VHN NNNNNNNN NYYYYxxx
-   with :
-      x = Pattern Pixel (0-7)
-      Y = Pattern Row (0-15)
-      N = Pattern Number (0-1023)
-      H = Horizontal Flip bit
-      V = Vertical Flip bit
-*/
-#define GET_LSB_TILE_IM2(ATTR, LINE) \
-  atex = atex_table[(ATTR >> 13) & 7]; \
-  src = (u32 *)&bg_pattern_cache[((ATTR & 0x000003FF) << 7 | (ATTR & 0x00001800) << 6 | (LINE)) ^ ((ATTR & 0x00001000) >> 6)];
-#define GET_MSB_TILE_IM2(ATTR, LINE) \
-  atex = atex_table[(ATTR >> 29) & 7]; \
-  src = (u32 *)&bg_pattern_cache[((ATTR & 0x03FF0000) >> 9 | (ATTR & 0x18000000) >> 10 | (LINE)) ^ ((ATTR & 0x10000000) >> 22)];
-
-/*   
-   One column = 2 tiles
-   Two pattern attributes are written in VRAM as two consecutives 16-bit words:
-
-   P = priority bit
-   C = color palette (2 bits)
-   V = Vertical Flip bit
-   H = Horizontal Flip bit
-   N = Pattern Number (11 bits)
-
-   (MSB) PCCVHNNN NNNNNNNN (LSB) (MSB) PCCVHNNN NNNNNNNN (LSB)
-              PATTERN1                      PATTERN2
-
-   Both pattern attributes are read from VRAM as one 32-bit word:
-
-   LIT_ENDIAN: (MSB) PCCVHNNN NNNNNNNN PCCVHNNN NNNNNNNN (LSB)
-                          PATTERN2          PATTERN1
-
-   BIG_ENDIAN: (MSB) PCCVHNNN NNNNNNNN PCCVHNNN NNNNNNNN (LSB)
-                          PATTERN1          PATTERN2
-
-
-   In line buffers, one pixel = one byte: (msb) 0Pppcccc (lsb)
-   with:
-      P = priority bit  (from pattern attribute)
-      p = color palette (from pattern attribute)
-      c = color data (from pattern cache)
-
-   One pattern = 8 pixels = 8 bytes = two 32-bit writes per pattern
-*/
-
-#ifdef ALIGN_LONG
-#ifdef LSB_FIRST
-#define DRAW_COLUMN(ATTR, LINE) \
-  GET_LSB_TILE(ATTR, LINE) \
-  WRITE_LONG(dst, src[0] | atex); \
-  dst++; \
-  WRITE_LONG(dst, src[1] | atex); \
-  dst++; \
-  GET_MSB_TILE(ATTR, LINE) \
-  WRITE_LONG(dst, src[0] | atex); \
-  dst++; \
-  WRITE_LONG(dst, src[1] | atex); \
-  dst++;
-#define DRAW_COLUMN_IM2(ATTR, LINE) \
-  GET_LSB_TILE_IM2(ATTR, LINE) \
-  WRITE_LONG(dst, src[0] | atex); \
-  dst++; \
-  WRITE_LONG(dst, src[1] | atex); \
-  dst++; \
-  GET_MSB_TILE_IM2(ATTR, LINE) \
-  WRITE_LONG(dst, src[0] | atex); \
-  dst++; \
-  WRITE_LONG(dst, src[1] | atex); \
-  dst++;
-#else
-#define DRAW_COLUMN(ATTR, LINE) \
-  GET_MSB_TILE(ATTR, LINE) \
-  WRITE_LONG(dst, src[0] | atex); \
-  dst++; \
-  WRITE_LONG(dst, src[1] | atex); \
-  dst++; \
-  GET_LSB_TILE(ATTR, LINE) \
-  WRITE_LONG(dst, src[0] | atex); \
-  dst++; \
-  WRITE_LONG(dst, src[1] | atex); \
-  dst++;
-#define DRAW_COLUMN_IM2(ATTR, LINE) \
-  GET_MSB_TILE_IM2(ATTR, LINE) \
-  WRITE_LONG(dst, src[0] | atex); \
-  dst++; \
-  WRITE_LONG(dst, src[1] | atex); \
-  dst++; \
-  GET_LSB_TILE_IM2(ATTR, LINE) \
-  WRITE_LONG(dst, src[0] | atex); \
-  dst++; \
-  WRITE_LONG(dst, src[1] | atex); \
-  dst++;
-#endif
-#else /* NOT ALIGNED */
-#ifdef LSB_FIRST
-#define DRAW_COLUMN(ATTR, LINE) \
-  GET_LSB_TILE(ATTR, LINE) \
-  *dst++ = (src[0] | atex); \
-  *dst++ = (src[1] | atex); \
-  GET_MSB_TILE(ATTR, LINE) \
-  *dst++ = (src[0] | atex); \
-  *dst++ = (src[1] | atex);
-#define DRAW_COLUMN_IM2(ATTR, LINE) \
-  GET_LSB_TILE_IM2(ATTR, LINE) \
-  *dst++ = (src[0] | atex); \
-  *dst++ = (src[1] | atex); \
-  GET_MSB_TILE_IM2(ATTR, LINE) \
-  *dst++ = (src[0] | atex); \
-  *dst++ = (src[1] | atex);
-#else
-#define DRAW_COLUMN(ATTR, LINE) \
-  GET_MSB_TILE(ATTR, LINE) \
-  *dst++ = (src[0] | atex); \
-  *dst++ = (src[1] | atex); \
-  GET_LSB_TILE(ATTR, LINE) \
-  *dst++ = (src[0] | atex); \
-  *dst++ = (src[1] | atex);
-#define DRAW_COLUMN_IM2(ATTR, LINE) \
-  GET_MSB_TILE_IM2(ATTR, LINE) \
-  *dst++ = (src[0] | atex); \
-  *dst++ = (src[1] | atex); \
-  GET_LSB_TILE_IM2(ATTR, LINE) \
-  *dst++ = (src[0] | atex); \
-  *dst++ = (src[1] | atex);
-#endif
-#endif /* ALIGN_LONG */
-
-#ifdef ALT_RENDERER
-/* Draw background tiles directly using priority look-up table */
-/* SRC_A = layer A rendered pixel line (4 bytes = 4 pixels at once) */
-/* SRC_B = layer B cached pixel line (4 bytes = 4 pixels at once) */
-/* Note: cache address is always aligned so no need to use READ_LONG macro */
-/* This might be faster or slower than original method, depending on  */
-/* architecture (x86, PowerPC), cache size, memory access speed, etc...  */
-
-#ifdef LSB_FIRST 
-#define DRAW_BG_TILE(SRC_A, SRC_B) \
-  *lb++ = table[((SRC_B << 8) & 0xff00) | (SRC_A & 0xff)]; \
-  *lb++ = table[(SRC_B & 0xff00) | ((SRC_A >> 8) & 0xff)]; \
-  *lb++ = table[((SRC_B >> 8) & 0xff00) | ((SRC_A >> 16) & 0xff)]; \
-  *lb++ = table[((SRC_B >> 16) & 0xff00) | ((SRC_A >> 24) & 0xff)];
-#else
-#define DRAW_BG_TILE(SRC_A, SRC_B) \
-  *lb++ = table[((SRC_B >> 16) & 0xff00) | ((SRC_A >> 24) & 0xff)]; \
-  *lb++ = table[((SRC_B >> 8) & 0xff00) | ((SRC_A >> 16) & 0xff)]; \
-  *lb++ = table[(SRC_B & 0xff00) | ((SRC_A >> 8) & 0xff)]; \
-  *lb++ = table[((SRC_B << 8) & 0xff00) | (SRC_A & 0xff)];
-#endif
-
-#ifdef ALIGN_LONG
-#ifdef LSB_FIRST 
-#define DRAW_BG_COLUMN(ATTR, LINE, SRC_A, SRC_B) \
-  GET_LSB_TILE(ATTR, LINE) \
-  SRC_A = READ_LONG((u32 *)lb); \
-  SRC_B = (src[0] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  SRC_A = READ_LONG((u32 *)lb); \
-  SRC_B = (src[1] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  GET_MSB_TILE(ATTR, LINE) \
-  SRC_A = READ_LONG((u32 *)lb); \
-  SRC_B = (src[0] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  SRC_A = READ_LONG((u32 *)lb); \
-  SRC_B = (src[1] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B)
-#define DRAW_BG_COLUMN_IM2(ATTR, LINE, SRC_A, SRC_B) \
-  GET_LSB_TILE_IM2(ATTR, LINE) \
-  SRC_A = READ_LONG((u32 *)lb); \
-  SRC_B = (src[0] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  SRC_A = READ_LONG((u32 *)lb); \
-  SRC_B = (src[1] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  GET_MSB_TILE_IM2(ATTR, LINE) \
-  SRC_A = READ_LONG((u32 *)lb); \
-  SRC_B = (src[0] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  SRC_A = READ_LONG((u32 *)lb); \
-  SRC_B = (src[1] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B)
-#else
-#define DRAW_BG_COLUMN(ATTR, LINE, SRC_A, SRC_B) \
-  GET_MSB_TILE(ATTR, LINE) \
-  SRC_A = READ_LONG((u32 *)lb); \
-  SRC_B = (src[0] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  SRC_A = READ_LONG((u32 *)lb); \
-  SRC_B = (src[1] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  GET_LSB_TILE(ATTR, LINE) \
-  SRC_A = READ_LONG((u32 *)lb); \
-  SRC_B = (src[0] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  SRC_A = READ_LONG((u32 *)lb); \
-  SRC_B = (src[1] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) 
-#define DRAW_BG_COLUMN_IM2(ATTR, LINE, SRC_A, SRC_B) \
-  GET_MSB_TILE_IM2(ATTR, LINE) \
-  SRC_A = READ_LONG((u32 *)lb); \
-  SRC_B = (src[0] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  SRC_A = READ_LONG((u32 *)lb); \
-  SRC_B = (src[1] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  GET_LSB_TILE_IM2(ATTR, LINE) \
-  SRC_A = READ_LONG((u32 *)lb); \
-  SRC_B = (src[0] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  SRC_A = READ_LONG((u32 *)lb); \
-  SRC_B = (src[1] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B)
-#endif
-#else /* NOT ALIGNED */
-#ifdef LSB_FIRST 
-#define DRAW_BG_COLUMN(ATTR, LINE, SRC_A, SRC_B) \
-  GET_LSB_TILE(ATTR, LINE) \
-  SRC_A = *(u32 *)(lb); \
-  SRC_B = (src[0] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  SRC_A = *(u32 *)(lb); \
-  SRC_B = (src[1] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  GET_MSB_TILE(ATTR, LINE) \
-  SRC_A = *(u32 *)(lb); \
-  SRC_B = (src[0] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  SRC_A = *(u32 *)(lb); \
-  SRC_B = (src[1] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B)
-#define DRAW_BG_COLUMN_IM2(ATTR, LINE, SRC_A, SRC_B) \
-  GET_LSB_TILE_IM2(ATTR, LINE) \
-  SRC_A = *(u32 *)(lb); \
-  SRC_B = (src[0] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  SRC_A = *(u32 *)(lb); \
-  SRC_B = (src[1] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  GET_MSB_TILE_IM2(ATTR, LINE) \
-  SRC_A = *(u32 *)(lb); \
-  SRC_B = (src[0] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  SRC_A = *(u32 *)(lb); \
-  SRC_B = (src[1] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B)
-#else
-#define DRAW_BG_COLUMN(ATTR, LINE, SRC_A, SRC_B) \
-  GET_MSB_TILE(ATTR, LINE) \
-  SRC_A = *(u32 *)(lb); \
-  SRC_B = (src[0] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  SRC_A = *(u32 *)(lb); \
-  SRC_B = (src[1] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  GET_LSB_TILE(ATTR, LINE) \
-  SRC_A = *(u32 *)(lb); \
-  SRC_B = (src[0] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  SRC_A = *(u32 *)(lb); \
-  SRC_B = (src[1] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B)
-#define DRAW_BG_COLUMN_IM2(ATTR, LINE, SRC_A, SRC_B) \
-  GET_MSB_TILE_IM2(ATTR, LINE) \
-  SRC_A = *(u32 *)(lb); \
-  SRC_B = (src[0] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  SRC_A = *(u32 *)(lb); \
-  SRC_B = (src[1] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  GET_LSB_TILE_IM2(ATTR, LINE) \
-  SRC_A = *(u32 *)(lb); \
-  SRC_B = (src[0] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B) \
-  SRC_A = *(u32 *)(lb); \
-  SRC_B = (src[1] | atex); \
-  DRAW_BG_TILE(SRC_A, SRC_B)
-#endif
-#endif /* ALIGN_LONG */
-#endif /* ALT_RENDERER */
-
-#define DRAW_SPRITE_TILE(WIDTH,ATTR,TABLE)  \
-  for (i=0;i<WIDTH;i++) \
-  { \
-    temp = *src++; \
-    if (temp & 0x0f) \
-    { \
-      temp |= (lb[i] << 8); \
-      lb[i] = TABLE[temp | ATTR]; \
-      status |= ((temp & 0x8000) >> 10); \
-    } \
-  }
-
-#define DRAW_SPRITE_TILE_ACCURATE(WIDTH,ATTR,TABLE)  \
-  for (i=0;i<WIDTH;i++) \
-  { \
-    temp = *src++; \
-    if (temp & 0x0f) \
-    { \
-      temp |= (lb[i] << 8); \
-      lb[i] = TABLE[temp | ATTR]; \
-      if ((temp & 0x8000) && !(status & 0x20)) \
-      { \
-        spr_col = (v_counter << 8) | ((xpos + i + 13) >> 1); \
-        status |= 0x20; \
-      } \
-    } \
-  }
-
-#define DRAW_SPRITE_TILE_ACCURATE_2X(WIDTH,ATTR,TABLE)  \
-  for (i=0;i<WIDTH;i+=2) \
-  { \
-    temp = *src++; \
-    if (temp & 0x0f) \
-    { \
-      temp |= (lb[i] << 8); \
-      lb[i] = TABLE[temp | ATTR]; \
-      if ((temp & 0x8000) && !(status & 0x20)) \
-      { \
-        spr_col = (v_counter << 8) | ((xpos + i + 13) >> 1); \
-        status |= 0x20; \
-      } \
-      temp &= 0x00FF; \
-      temp |= (lb[i+1] << 8); \
-      lb[i+1] = TABLE[temp | ATTR]; \
-      if ((temp & 0x8000) && !(status & 0x20)) \
-      { \
-        spr_col = (v_counter << 8) | ((xpos + i + 1 + 13) >> 1); \
-        status |= 0x20; \
-      } \
-    } \
-  }
-
-
-/* Pixels conversion macro */
-/* 4-bit color channels are either compressed to 2/3-bit or dithered to 5/6/8-bit equivalents */
-/* 3:3:2 RGB */
-#if defined(USE_8BPP_RENDERING)
-#define MAKE_PIXEL(r,g,b)  (((r) >> 1) << 5 | ((g) >> 1) << 2 | (b) >> 2)
-
-/* 5:5:5 RGB */
-#elif defined(USE_15BPP_RENDERING)
-#define MAKE_PIXEL(r,g,b) ((r) << 11 | ((r) >> 3) << 10 | (g) << 6 | ((g) >> 3) << 5 | (b) << 1 | (b) >> 3)
-
-/* 5:6:5 RGB */
-#elif defined(USE_16BPP_RENDERING)
-#define MAKE_PIXEL(r,g,b) ((r) << 12 | ((r) >> 3) << 11 | (g) << 7 | ((g) >> 2) << 5 | (b) << 1 | (b) >> 3)
-
-/* 8:8:8 RGB */
-#elif defined(USE_32BPP_RENDERING)
-#define MAKE_PIXEL(r,g,b) ((r) << 20 | (r) << 16 | (g) << 12 | (g)  << 8 | (b) << 4 | (b))
-#endif
 
 /* Window & Plane A clipping */
 static struct clip_t
@@ -592,6 +175,428 @@ void (*render_bg)(int line, int width);
 void (*render_obj)(int max_width);
 void (*parse_satb)(int line);
 void (*update_bg_pattern_cache)(int index);
+
+
+#ifdef ALIGN_LONG
+#undef READ_LONG
+#undef WRITE_LONG
+
+u32 READ_LONG(void *address)
+{
+  if ((u32)address & 3)
+  {
+#ifdef LSB_FIRST  /* little endian version */
+    return ( *((u8 *)address) +
+        (*((u8 *)address+1) << 8)  +
+        (*((u8 *)address+2) << 16) +
+        (*((u8 *)address+3) << 24) );
+#else       /* big endian version */
+    return ( *((u8 *)address+3) +
+        (*((u8 *)address+2) << 8)  +
+        (*((u8 *)address+1) << 16) +
+        (*((u8 *)address)   << 24) );
+#endif  /* LSB_FIRST */
+  }
+  else return *(u32 *)address;
+}
+
+void WRITE_LONG(void *address, u32 data)
+{
+  if ((u32)address & 3)
+  {
+#ifdef LSB_FIRST
+      *((u8 *)address) =  data;
+      *((u8 *)address+1) = (data >> 8);
+      *((u8 *)address+2) = (data >> 16);
+      *((u8 *)address+3) = (data >> 24);
+#else
+      *((u8 *)address+3) =  data;
+      *((u8 *)address+2) = (data >> 8);
+      *((u8 *)address+1) = (data >> 16);
+      *((u8 *)address)   = (data >> 24);
+#endif /* LSB_FIRST */
+    return;
+  }
+  else *(u32 *)address = data;
+}
+
+#endif  /* ALIGN_LONG */
+
+
+/* Draw 2-cell column (8-pixels high) */
+/*
+   Pattern cache base address: VHN NNNNNNNN NNYYYxxx
+   with :
+      x = Pattern Pixel (0-7)
+      Y = Pattern Row (0-7)
+      N = Pattern Number (0-2047) from pattern attribute
+      H = Horizontal Flip bit from pattern attribute
+      V = Vertical Flip bit from pattern attribute
+*/
+void GET_LSB_TILE(u32 ATTR, u32 LINE, u32* atex, u32* src) {
+  *atex = atex_table[(ATTR >> 13) & 7];
+  *src = (u32 *)&bg_pattern_cache[(ATTR & 0x00001FFF) << 6 | (LINE)];
+}
+void GET_MSB_TILE(u32 ATTR, u32 LINE, u32* atex, u32* src) {
+  *atex = atex_table[(ATTR >> 29) & 7];
+  *src = (u32 *)&bg_pattern_cache[(ATTR & 0x1FFF0000) >> 10 | (LINE)];
+}
+/* Draw 2-cell column (16 pixels high) */
+/*
+   Pattern cache base address: VHN NNNNNNNN NYYYYxxx
+   with :
+      x = Pattern Pixel (0-7)
+      Y = Pattern Row (0-15)
+      N = Pattern Number (0-1023)
+      H = Horizontal Flip bit
+      V = Vertical Flip bit
+*/
+void GET_LSB_TILE_IM2(u32 ATTR, u32 LINE, u32* atex, u32* src) {
+  *atex = atex_table[(ATTR >> 13) & 7];
+  *src = (u32 *)&bg_pattern_cache[((ATTR & 0x000003FF) << 7 | (ATTR & 0x00001800) << 6 | (LINE)) ^ ((ATTR & 0x00001000) >> 6)];
+}
+void GET_MSB_TILE_IM2(u32 ATTR, u32 LINE, u32* atex, u32* src) {
+  *atex = atex_table[(ATTR >> 29) & 7];
+  *src = (u32 *)&bg_pattern_cache[((ATTR & 0x03FF0000) >> 9 | (ATTR & 0x18000000) >> 10 | (LINE)) ^ ((ATTR & 0x10000000) >> 22)];
+}
+
+/*   
+   One column = 2 tiles
+   Two pattern attributes are written in VRAM as two consecutives 16-bit words:
+
+   P = priority bit
+   C = color palette (2 bits)
+   V = Vertical Flip bit
+   H = Horizontal Flip bit
+   N = Pattern Number (11 bits)
+
+   (MSB) PCCVHNNN NNNNNNNN (LSB) (MSB) PCCVHNNN NNNNNNNN (LSB)
+              PATTERN1                      PATTERN2
+
+   Both pattern attributes are read from VRAM as one 32-bit word:
+
+   LIT_ENDIAN: (MSB) PCCVHNNN NNNNNNNN PCCVHNNN NNNNNNNN (LSB)
+                          PATTERN2          PATTERN1
+
+   BIG_ENDIAN: (MSB) PCCVHNNN NNNNNNNN PCCVHNNN NNNNNNNN (LSB)
+                          PATTERN1          PATTERN2
+
+
+   In line buffers, one pixel = one byte: (msb) 0Pppcccc (lsb)
+   with:
+      P = priority bit  (from pattern attribute)
+      p = color palette (from pattern attribute)
+      c = color data (from pattern cache)
+
+   One pattern = 8 pixels = 8 bytes = two 32-bit writes per pattern
+*/
+
+#ifdef ALIGN_LONG
+#ifdef LSB_FIRST
+#define XXXDRAW_COLUMN(ATTR, LINE) \
+  GET_LSB_TILE(ATTR, LINE, &atex, &src); \
+  WRITE_LONG(dst, src[0] | atex); \
+  dst++; \
+  WRITE_LONG(dst, src[1] | atex); \
+  dst++; \
+  GET_MSB_TILE(ATTR, LINE, &atex, &src); \
+  WRITE_LONG(dst, src[0] | atex); \
+  dst++; \
+  WRITE_LONG(dst, src[1] | atex); \
+  dst++;
+#define DRAW_COLUMN_IM2(ATTR, LINE) \
+  GET_LSB_TILE_IM2(ATTR, LINE, &atex, &src); \
+  WRITE_LONG(dst, src[0] | atex); \
+  dst++; \
+  WRITE_LONG(dst, src[1] | atex); \
+  dst++; \
+  GET_MSB_TILE_IM2(ATTR, LINE, &atex, &src); \
+  WRITE_LONG(dst, src[0] | atex); \
+  dst++; \
+  WRITE_LONG(dst, src[1] | atex); \
+  dst++;
+#else
+#define XXXDRAW_COLUMN(ATTR, LINE) \
+  GET_MSB_TILE(ATTR, LINE, &atex, &src); \
+  WRITE_LONG(dst, src[0] | atex); \
+  dst++; \
+  WRITE_LONG(dst, src[1] | atex); \
+  dst++; \
+  GET_LSB_TILE(ATTR, LINE, &atex, &src); \
+  WRITE_LONG(dst, src[0] | atex); \
+  dst++; \
+  WRITE_LONG(dst, src[1] | atex); \
+  dst++;
+#define DRAW_COLUMN_IM2(ATTR, LINE) \
+  GET_MSB_TILE_IM2(ATTR, LINE, &atex, &src); \
+  WRITE_LONG(dst, src[0] | atex); \
+  dst++; \
+  WRITE_LONG(dst, src[1] | atex); \
+  dst++; \
+  GET_LSB_TILE_IM2(ATTR, LINE, &atex, &src); \
+  WRITE_LONG(dst, src[0] | atex); \
+  dst++; \
+  WRITE_LONG(dst, src[1] | atex); \
+  dst++;
+#endif
+#else /* NOT ALIGNED */
+#ifdef LSB_FIRST
+#define DRAW_COLUMN(ATTR, LINE) \
+  GET_LSB_TILE(ATTR, LINE, &atex, &src); \
+  *dst++ = (src[0] | atex); \
+  *dst++ = (src[1] | atex); \
+  GET_MSB_TILE(ATTR, LINE, &atex, &src); \
+  *dst++ = (src[0] | atex); \
+  *dst++ = (src[1] | atex);
+#define DRAW_COLUMN_IM2(ATTR, LINE) \
+  GET_LSB_TILE_IM2(ATTR, LINE, &atex, &src); \
+  *dst++ = (src[0] | atex); \
+  *dst++ = (src[1] | atex); \
+  GET_MSB_TILE_IM2(ATTR, LINE, &atex, &src); \
+  *dst++ = (src[0] | atex); \
+  *dst++ = (src[1] | atex);
+#else
+#define XXXDRAW_COLUMN(ATTR, LINE) \
+  GET_MSB_TILE(ATTR, LINE, &atex, &src); \
+  *dst++ = (src[0] | atex); \
+  *dst++ = (src[1] | atex); \
+  GET_LSB_TILE(ATTR, LINE, &atex, &src); \
+  *dst++ = (src[0] | atex); \
+  *dst++ = (src[1] | atex);
+#define DRAW_COLUMN_IM2(ATTR, LINE) \
+  GET_MSB_TILE_IM2(ATTR, LINE, &atex, &src); \
+  *dst++ = (src[0] | atex); \
+  *dst++ = (src[1] | atex); \
+  GET_LSB_TILE_IM2(ATTR, LINE, &atex, &src); \
+  *dst++ = (src[0] | atex); \
+  *dst++ = (src[1] | atex);
+#endif
+#endif /* ALIGN_LONG */
+
+#ifdef ALT_RENDERER
+/* Draw background tiles directly using priority look-up table */
+/* SRC_A = layer A rendered pixel line (4 bytes = 4 pixels at once) */
+/* SRC_B = layer B cached pixel line (4 bytes = 4 pixels at once) */
+/* Note: cache address is always aligned so no need to use READ_LONG macro */
+/* This might be faster or slower than original method, depending on  */
+/* architecture (x86, PowerPC), cache size, memory access speed, etc...  */
+
+#ifdef LSB_FIRST 
+#define DRAW_BG_TILE(SRC_A, SRC_B) \
+  *lb++ = table[((SRC_B << 8) & 0xff00) | (SRC_A & 0xff)]; \
+  *lb++ = table[(SRC_B & 0xff00) | ((SRC_A >> 8) & 0xff)]; \
+  *lb++ = table[((SRC_B >> 8) & 0xff00) | ((SRC_A >> 16) & 0xff)]; \
+  *lb++ = table[((SRC_B >> 16) & 0xff00) | ((SRC_A >> 24) & 0xff)];
+#else
+#define DRAW_BG_TILE(SRC_A, SRC_B) \
+  *lb++ = table[((SRC_B >> 16) & 0xff00) | ((SRC_A >> 24) & 0xff)]; \
+  *lb++ = table[((SRC_B >> 8) & 0xff00) | ((SRC_A >> 16) & 0xff)]; \
+  *lb++ = table[(SRC_B & 0xff00) | ((SRC_A >> 8) & 0xff)]; \
+  *lb++ = table[((SRC_B << 8) & 0xff00) | (SRC_A & 0xff)];
+#endif
+
+#ifdef ALIGN_LONG
+#ifdef LSB_FIRST 
+#define DRAW_BG_COLUMN(ATTR, LINE, SRC_A, SRC_B) \
+  GET_LSB_TILE(ATTR, LINE, &atex, &src); \
+  SRC_A = READ_LONG((u32 *)lb); \
+  SRC_B = (src[0] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  SRC_A = READ_LONG((u32 *)lb); \
+  SRC_B = (src[1] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  GET_MSB_TILE(ATTR, LINE, &atex, &src); \
+  SRC_A = READ_LONG((u32 *)lb); \
+  SRC_B = (src[0] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  SRC_A = READ_LONG((u32 *)lb); \
+  SRC_B = (src[1] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B)
+#define DRAW_BG_COLUMN_IM2(ATTR, LINE, SRC_A, SRC_B) \
+  GET_LSB_TILE_IM2(ATTR, LINE, &atex, &src); \
+  SRC_A = READ_LONG((u32 *)lb); \
+  SRC_B = (src[0] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  SRC_A = READ_LONG((u32 *)lb); \
+  SRC_B = (src[1] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  GET_MSB_TILE_IM2(ATTR, LINE, &atex, &src); \
+  SRC_A = READ_LONG((u32 *)lb); \
+  SRC_B = (src[0] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  SRC_A = READ_LONG((u32 *)lb); \
+  SRC_B = (src[1] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B)
+#else
+#define DRAW_BG_COLUMN(ATTR, LINE, SRC_A, SRC_B) \
+  GET_MSB_TILE(ATTR, LINE, &atex, &src); \
+  SRC_A = READ_LONG((u32 *)lb); \
+  SRC_B = (src[0] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  SRC_A = READ_LONG((u32 *)lb); \
+  SRC_B = (src[1] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  GET_LSB_TILE(ATTR, LINE, &atex, &src); \
+  SRC_A = READ_LONG((u32 *)lb); \
+  SRC_B = (src[0] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  SRC_A = READ_LONG((u32 *)lb); \
+  SRC_B = (src[1] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) 
+#define DRAW_BG_COLUMN_IM2(ATTR, LINE, SRC_A, SRC_B) \
+  GET_MSB_TILE_IM2(ATTR, LINE, &atex, &src); \
+  SRC_A = READ_LONG((u32 *)lb); \
+  SRC_B = (src[0] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  SRC_A = READ_LONG((u32 *)lb); \
+  SRC_B = (src[1] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  GET_LSB_TILE_IM2(ATTR, LINE, &atex, &src); \
+  SRC_A = READ_LONG((u32 *)lb); \
+  SRC_B = (src[0] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  SRC_A = READ_LONG((u32 *)lb); \
+  SRC_B = (src[1] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B)
+#endif
+#else /* NOT ALIGNED */
+#ifdef LSB_FIRST 
+#define DRAW_BG_COLUMN(ATTR, LINE, SRC_A, SRC_B) \
+  GET_LSB_TILE(ATTR, LINE, &atex, &src); \
+  SRC_A = *(u32 *)(lb); \
+  SRC_B = (src[0] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  SRC_A = *(u32 *)(lb); \
+  SRC_B = (src[1] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  GET_MSB_TILE(ATTR, LINE, &atex, &src); \
+  SRC_A = *(u32 *)(lb); \
+  SRC_B = (src[0] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  SRC_A = *(u32 *)(lb); \
+  SRC_B = (src[1] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B)
+#define DRAW_BG_COLUMN_IM2(ATTR, LINE, SRC_A, SRC_B) \
+  GET_LSB_TILE_IM2(ATTR, LINE, &atex, &src); \
+  SRC_A = *(u32 *)(lb); \
+  SRC_B = (src[0] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  SRC_A = *(u32 *)(lb); \
+  SRC_B = (src[1] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  GET_MSB_TILE_IM2(ATTR, LINE, &atex, &src); \
+  SRC_A = *(u32 *)(lb); \
+  SRC_B = (src[0] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  SRC_A = *(u32 *)(lb); \
+  SRC_B = (src[1] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B)
+#else
+#define DRAW_BG_COLUMN(ATTR, LINE, SRC_A, SRC_B) \
+  GET_MSB_TILE(ATTR, LINE, &atex, &src); \
+  SRC_A = *(u32 *)(lb); \
+  SRC_B = (src[0] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  SRC_A = *(u32 *)(lb); \
+  SRC_B = (src[1] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  GET_LSB_TILE(ATTR, LINE, &atex, &src); \
+  SRC_A = *(u32 *)(lb); \
+  SRC_B = (src[0] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  SRC_A = *(u32 *)(lb); \
+  SRC_B = (src[1] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B)
+#define DRAW_BG_COLUMN_IM2(ATTR, LINE, SRC_A, SRC_B) \
+  GET_MSB_TILE_IM2(ATTR, LINE, &atex, &src); \
+  SRC_A = *(u32 *)(lb); \
+  SRC_B = (src[0] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  SRC_A = *(u32 *)(lb); \
+  SRC_B = (src[1] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  GET_LSB_TILE_IM2(ATTR, LINE, &atex, &src); \
+  SRC_A = *(u32 *)(lb); \
+  SRC_B = (src[0] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B) \
+  SRC_A = *(u32 *)(lb); \
+  SRC_B = (src[1] | atex); \
+  DRAW_BG_TILE(SRC_A, SRC_B)
+#endif
+#endif /* ALIGN_LONG */
+#endif /* ALT_RENDERER */
+
+#define DRAW_SPRITE_TILE(WIDTH,ATTR,TABLE)  \
+  for (i=0;i<WIDTH;i++) \
+  { \
+    temp = *src++; \
+    if (temp & 0x0f) \
+    { \
+      temp |= (lb[i] << 8); \
+      lb[i] = TABLE[temp | ATTR]; \
+      status |= ((temp & 0x8000) >> 10); \
+    } \
+  }
+
+#define DRAW_SPRITE_TILE_ACCURATE(WIDTH,ATTR,TABLE)  \
+  for (i=0;i<WIDTH;i++) \
+  { \
+    temp = *src++; \
+    if (temp & 0x0f) \
+    { \
+      temp |= (lb[i] << 8); \
+      lb[i] = TABLE[temp | ATTR]; \
+      if ((temp & 0x8000) && !(status & 0x20)) \
+      { \
+        spr_col = (v_counter << 8) | ((xpos + i + 13) >> 1); \
+        status |= 0x20; \
+      } \
+    } \
+  }
+
+#define DRAW_SPRITE_TILE_ACCURATE_2X(WIDTH,ATTR,TABLE)  \
+  for (i=0;i<WIDTH;i+=2) \
+  { \
+    temp = *src++; \
+    if (temp & 0x0f) \
+    { \
+      temp |= (lb[i] << 8); \
+      lb[i] = TABLE[temp | ATTR]; \
+      if ((temp & 0x8000) && !(status & 0x20)) \
+      { \
+        spr_col = (v_counter << 8) | ((xpos + i + 13) >> 1); \
+        status |= 0x20; \
+      } \
+      temp &= 0x00FF; \
+      temp |= (lb[i+1] << 8); \
+      lb[i+1] = TABLE[temp | ATTR]; \
+      if ((temp & 0x8000) && !(status & 0x20)) \
+      { \
+        spr_col = (v_counter << 8) | ((xpos + i + 1 + 13) >> 1); \
+        status |= 0x20; \
+      } \
+    } \
+  }
+
+
+/* Pixels conversion macro */
+/* 4-bit color channels are either compressed to 2/3-bit or dithered to 5/6/8-bit equivalents */
+/* 3:3:2 RGB */
+#if defined(USE_8BPP_RENDERING)
+#define MAKE_PIXEL(r,g,b)  (((r) >> 1) << 5 | ((g) >> 1) << 2 | (b) >> 2)
+
+/* 5:5:5 RGB */
+#elif defined(USE_15BPP_RENDERING)
+#define MAKE_PIXEL(r,g,b) ((r) << 11 | ((r) >> 3) << 10 | (g) << 6 | ((g) >> 3) << 5 | (b) << 1 | (b) >> 3)
+
+/* 5:6:5 RGB */
+#elif defined(USE_16BPP_RENDERING)
+#define MAKE_PIXEL(r,g,b) ((r) << 12 | ((r) >> 3) << 11 | (g) << 7 | ((g) >> 2) << 5 | (b) << 1 | (b) >> 3)
+
+/* 8:8:8 RGB */
+#elif defined(USE_32BPP_RENDERING)
+#define MAKE_PIXEL(r,g,b) ((r) << 20 | (r) << 16 | (g) << 12 | (g)  << 8 | (b) << 4 | (b))
+#endif
 
 
 /*--------------------------------------------------------------------------*/
