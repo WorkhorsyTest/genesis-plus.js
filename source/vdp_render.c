@@ -262,10 +262,18 @@ void GET_MSB_TILE(Mode5Data* mode_data) {
       H = Horizontal Flip bit
       V = Vertical Flip bit
 */
-#define GET_LSB_TILE_IM2(ATTR, LINE) \
+void GET_LSB_TILE_IM2(Mode5Data* mode_data) {
+  mode_data->atex = atex_table[(mode_data->atbuf >> 13) & 7];
+  mode_data->src = (u32 *)&bg_pattern_cache[((mode_data->atbuf & 0x000003FF) << 7 | (mode_data->atbuf & 0x00001800) << 6 | (mode_data->v_line)) ^ ((mode_data->atbuf & 0x00001000) >> 6)];
+}
+void GET_MSB_TILE_IM2(Mode5Data* mode_data) {
+  mode_data->atex = atex_table[(mode_data->atbuf >> 29) & 7];
+  mode_data->src = (u32 *)&bg_pattern_cache[((mode_data->atbuf & 0x03FF0000) >> 9 | (mode_data->atbuf & 0x18000000) >> 10 | (mode_data->v_line)) ^ ((mode_data->atbuf & 0x10000000) >> 22)];
+}
+#define XXXGET_LSB_TILE_IM2(ATTR, LINE) \
   atex = atex_table[(ATTR >> 13) & 7]; \
   src = (u32 *)&bg_pattern_cache[((ATTR & 0x000003FF) << 7 | (ATTR & 0x00001800) << 6 | (LINE)) ^ ((ATTR & 0x00001000) >> 6)];
-#define GET_MSB_TILE_IM2(ATTR, LINE) \
+#define XXXGET_MSB_TILE_IM2(ATTR, LINE) \
   atex = atex_table[(ATTR >> 29) & 7]; \
   src = (u32 *)&bg_pattern_cache[((ATTR & 0x03FF0000) >> 9 | (ATTR & 0x18000000) >> 10 | (LINE)) ^ ((ATTR & 0x10000000) >> 22)];
 
@@ -314,13 +322,25 @@ void DRAW_COLUMN(Mode5Data* mode_data) {
   WRITE_LONG(mode_data->dst, mode_data->src[1] | mode_data->atex);
   mode_data->dst++;
 }
-#define DRAW_COLUMN_IM2(ATTR, LINE) \
-  GET_LSB_TILE_IM2(ATTR, LINE) \
+void DRAW_COLUMN_IM2(Mode5Data* mode_data) {
+  GET_LSB_TILE_IM2(mode_data);
+  WRITE_LONG(mode_data->dst, mode_data->src[0] | mode_data->atex);
+  mode_data->dst++;
+  WRITE_LONG(mode_data->dst, mode_data->src[1] | mode_data->atex);
+  mode_data->dst++;
+  GET_MSB_TILE_IM2(mode_data);
+  WRITE_LONG(mode_data->dst, mode_data->src[0] | mode_data->atex);
+  mode_data->dst++;
+  WRITE_LONG(mode_data->dst, mode_data->src[1] | mode_data->atex);
+  mode_data->dst++;
+}
+#define XXXDRAW_COLUMN_IM2(ATTR, LINE) \
+  XXXGET_LSB_TILE_IM2(ATTR, LINE) \
   WRITE_LONG(dst, src[0] | atex); \
   dst++; \
   WRITE_LONG(dst, src[1] | atex); \
   dst++; \
-  GET_MSB_TILE_IM2(ATTR, LINE) \
+  XXXGET_MSB_TILE_IM2(ATTR, LINE) \
   WRITE_LONG(dst, src[0] | atex); \
   dst++; \
   WRITE_LONG(dst, src[1] | atex); \
@@ -338,13 +358,25 @@ void DRAW_COLUMN(Mode5Data* mode_data) {
   WRITE_LONG(mode_data->dst, mode_data->src[1] | mode_data->atex);
   mode_data->dst++;
 }
-#define DRAW_COLUMN_IM2(ATTR, LINE) \
-  GET_MSB_TILE_IM2(ATTR, LINE) \
+void DRAW_COLUMN_IM2(Mode5Data* mode_data) {
+  GET_MSB_TILE_IM2(mode_data);
+  WRITE_LONG(mode_data->dst, mode_data->src[0] | mode_data->atex);
+  mode_data->dst++;
+  WRITE_LONG(mode_data->dst, mode_data->src[1] | mode_data->atex);
+  mode_data->dst++;
+  GET_LSB_TILE_IM2(mode_data);
+  WRITE_LONG(mode_data->dst, mode_data->src[0] | mode_data->atex);
+  mode_data->dst++;
+  WRITE_LONG(mode_data->dst, mode_data->src[1] | mode_data->atex);
+  mode_data->dst++;
+}
+#define XXXDRAW_COLUMN_IM2(ATTR, LINE) \
+  XXXGET_MSB_TILE_IM2(ATTR, LINE) \
   WRITE_LONG(dst, src[0] | atex); \
   dst++; \
   WRITE_LONG(dst, src[1] | atex); \
   dst++; \
-  GET_LSB_TILE_IM2(ATTR, LINE) \
+  XXXGET_LSB_TILE_IM2(ATTR, LINE) \
   WRITE_LONG(dst, src[0] | atex); \
   dst++; \
   WRITE_LONG(dst, src[1] | atex); \
@@ -360,11 +392,19 @@ void DRAW_COLUMN(Mode5Data* mode_data) {
   *mode_data->dst++ = (mode_data->src[0] | mode_data->atex);
   *mode_data->dst++ = (mode_data->src[1] | mode_data->atex);
 }
-#define DRAW_COLUMN_IM2(ATTR, LINE) \
-  GET_LSB_TILE_IM2(ATTR, LINE) \
+void DRAW_COLUMN_IM2(Mode5Data* mode_data) {
+  GET_LSB_TILE_IM2(mode_data);
+  *mode_data->dst++ = (mode_data->src[0] | mode_data->atex);
+  *mode_data->dst++ = (mode_data->src[1] | mode_data->atex);
+  GET_MSB_TILE_IM2(mode_data);
+  *mode_data->dst++ = (mode_data->src[0] | mode_data->atex);
+  *mode_data->dst++ = (mode_data->src[1] | mode_data->atex);
+}
+#define XXXDRAW_COLUMN_IM2(ATTR, LINE) \
+  XXXGET_LSB_TILE_IM2(ATTR, LINE) \
   *dst++ = (src[0] | atex); \
   *dst++ = (src[1] | atex); \
-  GET_MSB_TILE_IM2(ATTR, LINE) \
+  XXXGET_MSB_TILE_IM2(ATTR, LINE) \
   *dst++ = (src[0] | atex); \
   *dst++ = (src[1] | atex);
 #else
@@ -376,11 +416,19 @@ void DRAW_COLUMN(Mode5Data* mode_data) {
   *mode_data->dst++ = (mode_data->src[0] | mode_data->atex);
   *mode_data->dst++ = (mode_data->src[1] | mode_data->atex);
 }
-#define DRAW_COLUMN_IM2(ATTR, LINE) \
-  GET_MSB_TILE_IM2(ATTR, LINE) \
+void DRAW_COLUMN_IM2(Mode5Data* mode_data) {
+  GET_MSB_TILE_IM2(mode_data);
+  *mode_data->dst++ = (mode_data->src[0] | mode_data->atex);
+  *mode_data->dst++ = (mode_data->src[1] | mode_data->atex);
+  GET_LSB_TILE_IM2(mode_data);
+  *mode_data->dst++ = (mode_data->src[0] | mode_data->atex);
+  *mode_data->dst++ = (mode_data->src[1] | mode_data->atex);
+}
+#define XXXDRAW_COLUMN_IM2(ATTR, LINE) \
+  XXXGET_MSB_TILE_IM2(ATTR, LINE) \
   *dst++ = (src[0] | atex); \
   *dst++ = (src[1] | atex); \
-  GET_LSB_TILE_IM2(ATTR, LINE) \
+  XXXGET_LSB_TILE_IM2(ATTR, LINE) \
   *dst++ = (src[0] | atex); \
   *dst++ = (src[1] | atex);
 #endif
@@ -426,14 +474,14 @@ void DRAW_COLUMN(Mode5Data* mode_data) {
   SRC_B = (src[1] | atex); \
   DRAW_BG_TILE(SRC_A, SRC_B)
 #define DRAW_BG_COLUMN_IM2(ATTR, LINE, SRC_A, SRC_B) \
-  GET_LSB_TILE_IM2(ATTR, LINE) \
+  XXXGET_LSB_TILE_IM2(ATTR, LINE) \
   SRC_A = READ_LONG((u32 *)lb); \
   SRC_B = (src[0] | atex); \
   DRAW_BG_TILE(SRC_A, SRC_B) \
   SRC_A = READ_LONG((u32 *)lb); \
   SRC_B = (src[1] | atex); \
   DRAW_BG_TILE(SRC_A, SRC_B) \
-  GET_MSB_TILE_IM2(ATTR, LINE) \
+  XXXGET_MSB_TILE_IM2(ATTR, LINE) \
   SRC_A = READ_LONG((u32 *)lb); \
   SRC_B = (src[0] | atex); \
   DRAW_BG_TILE(SRC_A, SRC_B) \
@@ -457,14 +505,14 @@ void DRAW_COLUMN(Mode5Data* mode_data) {
   SRC_B = (src[1] | atex); \
   DRAW_BG_TILE(SRC_A, SRC_B) 
 #define DRAW_BG_COLUMN_IM2(ATTR, LINE, SRC_A, SRC_B) \
-  GET_MSB_TILE_IM2(ATTR, LINE) \
+  XXXGET_MSB_TILE_IM2(ATTR, LINE) \
   SRC_A = READ_LONG((u32 *)lb); \
   SRC_B = (src[0] | atex); \
   DRAW_BG_TILE(SRC_A, SRC_B) \
   SRC_A = READ_LONG((u32 *)lb); \
   SRC_B = (src[1] | atex); \
   DRAW_BG_TILE(SRC_A, SRC_B) \
-  GET_LSB_TILE_IM2(ATTR, LINE) \
+  XXXGET_LSB_TILE_IM2(ATTR, LINE) \
   SRC_A = READ_LONG((u32 *)lb); \
   SRC_B = (src[0] | atex); \
   DRAW_BG_TILE(SRC_A, SRC_B) \
@@ -490,14 +538,14 @@ void DRAW_COLUMN(Mode5Data* mode_data) {
   SRC_B = (src[1] | atex); \
   DRAW_BG_TILE(SRC_A, SRC_B)
 #define DRAW_BG_COLUMN_IM2(ATTR, LINE, SRC_A, SRC_B) \
-  GET_LSB_TILE_IM2(ATTR, LINE) \
+  XXXGET_LSB_TILE_IM2(ATTR, LINE) \
   SRC_A = *(u32 *)(lb); \
   SRC_B = (src[0] | atex); \
   DRAW_BG_TILE(SRC_A, SRC_B) \
   SRC_A = *(u32 *)(lb); \
   SRC_B = (src[1] | atex); \
   DRAW_BG_TILE(SRC_A, SRC_B) \
-  GET_MSB_TILE_IM2(ATTR, LINE) \
+  XXXGET_MSB_TILE_IM2(ATTR, LINE) \
   SRC_A = *(u32 *)(lb); \
   SRC_B = (src[0] | atex); \
   DRAW_BG_TILE(SRC_A, SRC_B) \
@@ -521,14 +569,14 @@ void DRAW_COLUMN(Mode5Data* mode_data) {
   SRC_B = (src[1] | atex); \
   DRAW_BG_TILE(SRC_A, SRC_B)
 #define DRAW_BG_COLUMN_IM2(ATTR, LINE, SRC_A, SRC_B) \
-  GET_MSB_TILE_IM2(ATTR, LINE) \
+  XXXGET_MSB_TILE_IM2(ATTR, LINE) \
   SRC_A = *(u32 *)(lb); \
   SRC_B = (src[0] | atex); \
   DRAW_BG_TILE(SRC_A, SRC_B) \
   SRC_A = *(u32 *)(lb); \
   SRC_B = (src[1] | atex); \
   DRAW_BG_TILE(SRC_A, SRC_B) \
-  GET_LSB_TILE_IM2(ATTR, LINE) \
+  XXXGET_LSB_TILE_IM2(ATTR, LINE) \
   SRC_A = *(u32 *)(lb); \
   SRC_B = (src[0] | atex); \
   DRAW_BG_TILE(SRC_A, SRC_B) \
@@ -1855,7 +1903,7 @@ void render_bg_m5_vs(int line, int width)
 void render_bg_m5_im2(int line, int width)
 {
   int column;
-  u32 atex, atbuf, *src, *dst;
+  Mode5Data mode_data;
 
   /* Common data */
   int odd = odd_frame;
@@ -1876,39 +1924,39 @@ void render_bg_m5_im2(int line, int width)
 
   /* Plane B scroll */
 #ifdef LSB_FIRST
-  u32 shift  = (xscroll >> 16) & 0x0F;
-  u32 index  = pf_col_mask + 1 - ((xscroll >> 20) & pf_col_mask);
-  u32 v_line = (line + (yscroll >> 17)) & pf_row_mask;
+  mode_data.shift  = (xscroll >> 16) & 0x0F;
+  mode_data.index  = pf_col_mask + 1 - ((xscroll >> 20) & pf_col_mask);
+  mode_data.v_line = (line + (yscroll >> 17)) & pf_row_mask;
 #else
-  u32 shift  = (xscroll & 0x0F);
-  u32 index  = pf_col_mask + 1 - ((xscroll >> 4) & pf_col_mask);
-  u32 v_line = (line + (yscroll >> 1)) & pf_row_mask;
+  mode_data.shift  = (xscroll & 0x0F);
+  mode_data.index  = pf_col_mask + 1 - ((xscroll >> 4) & pf_col_mask);
+  mode_data.v_line = (line + (yscroll >> 1)) & pf_row_mask;
 #endif
 
   /* Plane B name table */
-  u32 *nt = (u32 *)&vram[ntbb + (((v_line >> 3) << pf_shift) & 0x1FC0)];
+  u32 *nt = (u32 *)&vram[ntbb + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
 
   /* Pattern row index */
-  v_line = (((v_line & 7) << 1) | odd) << 3;
+  mode_data.v_line = (((mode_data.v_line & 7) << 1) | odd) << 3;
 
-  if(shift)
+  if(mode_data.shift)
   {
     /* Plane B line buffer */
-    dst = (u32 *)&linebuf[0][0x10 + shift];
+    mode_data.dst = (u32 *)&linebuf[0][0x10 + mode_data.shift];
 
-    atbuf = nt[(index - 1) & pf_col_mask];
-    DRAW_COLUMN_IM2(atbuf, v_line)
+    mode_data.atbuf = nt[(mode_data.index - 1) & pf_col_mask];
+    DRAW_COLUMN_IM2(&mode_data);
   }
   else
   {
     /* Plane B line buffer */
-    dst = (u32 *)&linebuf[0][0x20];
+    mode_data.dst = (u32 *)&linebuf[0][0x20];
   }
 
-  for(column = 0; column < end; column++, index++)
+  for(column = 0; column < end; column++, mode_data.index++)
   {
-    atbuf = nt[index & pf_col_mask];
-    DRAW_COLUMN_IM2(atbuf, v_line)
+    mode_data.atbuf = nt[mode_data.index & pf_col_mask];
+    DRAW_COLUMN_IM2(&mode_data);
   }
 
   if (w == (line >= a))
@@ -1933,48 +1981,48 @@ void render_bg_m5_im2(int line, int width)
 
     /* Plane A scroll */
 #ifdef LSB_FIRST
-    shift   = (xscroll & 0x0F);
-    index   = pf_col_mask + start + 1 - ((xscroll >> 4) & pf_col_mask);
-    v_line  = (line + (yscroll >> 1)) & pf_row_mask;
+    mode_data.shift   = (xscroll & 0x0F);
+    mode_data.index   = pf_col_mask + start + 1 - ((xscroll >> 4) & pf_col_mask);
+    mode_data.v_line  = (line + (yscroll >> 1)) & pf_row_mask;
 #else
-    shift   = (xscroll >> 16) & 0x0F;
-    index   = pf_col_mask + start + 1 - ((xscroll >> 20) & pf_col_mask);
-    v_line  = (line + (yscroll >> 17)) & pf_row_mask;
+    mode_data.shift   = (xscroll >> 16) & 0x0F;
+    mode_data.index   = pf_col_mask + start + 1 - ((xscroll >> 20) & pf_col_mask);
+    mode_data.v_line  = (line + (yscroll >> 17)) & pf_row_mask;
 #endif
 
     /* Plane A name table */
-    nt = (u32 *)&vram[ntab + (((v_line >> 3) << pf_shift) & 0x1FC0)];
+    nt = (u32 *)&vram[ntab + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
 
     /* Pattern row index */
-    v_line = (((v_line & 7) << 1) | odd) << 3;
+    mode_data.v_line = (((mode_data.v_line & 7) << 1) | odd) << 3;
 
-    if(shift)
+    if(mode_data.shift)
     {
       /* Plane A line buffer */
-      dst = (u32 *)&linebuf[1][0x10 + shift + (start << 4)];
+      mode_data.dst = (u32 *)&linebuf[1][0x10 + mode_data.shift + (start << 4)];
 
       /* Window bug */
       if (start)
       {
-        atbuf = nt[index & pf_col_mask];
+        mode_data.atbuf = nt[mode_data.index & pf_col_mask];
       }
       else
       {
-        atbuf = nt[(index - 1) & pf_col_mask];
+        mode_data.atbuf = nt[(mode_data.index - 1) & pf_col_mask];
       }
 
-      DRAW_COLUMN_IM2(atbuf, v_line)
+      DRAW_COLUMN_IM2(&mode_data);
     }
     else
     {
       /* Plane A line buffer */
-      dst = (u32 *)&linebuf[1][0x20 + (start << 4)];
+      mode_data.dst = (u32 *)&linebuf[1][0x20 + (start << 4)];
     }
 
-    for(column = start; column < end; column++, index++)
+    for(column = start; column < end; column++, mode_data.index++)
     {
-      atbuf = nt[index & pf_col_mask];
-      DRAW_COLUMN_IM2(atbuf, v_line)
+      mode_data.atbuf = nt[mode_data.index & pf_col_mask];
+      DRAW_COLUMN_IM2(&mode_data);
     }
 
     /* Window width */
@@ -1989,15 +2037,15 @@ void render_bg_m5_im2(int line, int width)
     nt = (u32 *)&vram[ntwb | ((line >> 3) << (6 + (reg[12] & 1)))];
 
     /* Pattern row index */
-    v_line = ((line & 7) << 1 | odd) << 3;
+    mode_data.v_line = ((line & 7) << 1 | odd) << 3;
 
     /* Plane A line buffer */
-    dst = (u32 *)&linebuf[1][0x20 + (start << 4)];
+    mode_data.dst = (u32 *)&linebuf[1][0x20 + (start << 4)];
 
     for(column = start; column < end; column++)
     {
-      atbuf = nt[column];
-      DRAW_COLUMN_IM2(atbuf, v_line)
+      mode_data.atbuf = nt[column];
+      DRAW_COLUMN_IM2(&mode_data);
     }
   }
 }
@@ -2058,7 +2106,7 @@ void render_bg_m5_im2_vs(int line, int width)
     dst = (u32 *)&linebuf[0][0x10 + shift];
 
     atbuf = nt[(index - 1) & pf_col_mask];
-    DRAW_COLUMN_IM2(atbuf, v_line)
+    XXXDRAW_COLUMN_IM2(atbuf, v_line)
   }
   else
   {
@@ -2082,7 +2130,7 @@ void render_bg_m5_im2_vs(int line, int width)
     v_line = (((v_line & 7) << 1) | odd) << 3;
 
     atbuf = nt[index & pf_col_mask];
-    DRAW_COLUMN_IM2(atbuf, v_line)
+    XXXDRAW_COLUMN_IM2(atbuf, v_line)
   }
 
   if (w == (line >= a))
@@ -2138,7 +2186,7 @@ void render_bg_m5_im2_vs(int line, int width)
         atbuf = nt[(index - 1) & pf_col_mask];
       }
 
-      DRAW_COLUMN_IM2(atbuf, v_line)
+      XXXDRAW_COLUMN_IM2(atbuf, v_line)
     }
     else
     {
@@ -2162,7 +2210,7 @@ void render_bg_m5_im2_vs(int line, int width)
       v_line = (((v_line & 7) << 1) | odd) << 3;
 
       atbuf = nt[index & pf_col_mask];
-      DRAW_COLUMN_IM2(atbuf, v_line)
+      XXXDRAW_COLUMN_IM2(atbuf, v_line)
     }
 
     /* Window width */
@@ -2185,7 +2233,7 @@ void render_bg_m5_im2_vs(int line, int width)
     for(column = start; column < end; column++)
     {
       atbuf = nt[column];
-      DRAW_COLUMN_IM2(atbuf, v_line)
+      XXXDRAW_COLUMN_IM2(atbuf, v_line)
     }
   }
 }
@@ -2626,13 +2674,13 @@ void render_bg_m5_im2(int line, int width)
         atbuf = nt[(index-1) & pf_col_mask];
       }
 
-      DRAW_COLUMN_IM2(atbuf, v_line)
+      XXXDRAW_COLUMN_IM2(atbuf, v_line)
     }
 
     for(column = start; column < end; column++, index++)
     {
       atbuf = nt[index & pf_col_mask];
-      DRAW_COLUMN_IM2(atbuf, v_line)
+      XXXDRAW_COLUMN_IM2(atbuf, v_line)
     }
 
     /* Window width */
@@ -2661,7 +2709,7 @@ void render_bg_m5_im2(int line, int width)
     for(column = start; column < end; column++)
     {
       atbuf = nt[column];
-      DRAW_COLUMN_IM2(atbuf, v_line)
+      XXXDRAW_COLUMN_IM2(atbuf, v_line)
     }
   }
 
@@ -2795,7 +2843,7 @@ void render_bg_m5_im2_vs(int line, int width)
         atbuf = nt[(index-1) & pf_col_mask];
       }
 
-      DRAW_COLUMN_IM2(atbuf, v_line)
+      XXXDRAW_COLUMN_IM2(atbuf, v_line)
     }
 
     for(column = start; column < end; column++, index++)
@@ -2814,7 +2862,7 @@ void render_bg_m5_im2_vs(int line, int width)
       v_line = (((v_line & 7) << 1) | odd) << 3;
 
       atbuf = nt[index & pf_col_mask];
-      DRAW_COLUMN_IM2(atbuf, v_line)
+      XXXDRAW_COLUMN_IM2(atbuf, v_line)
     }
 
     /* Window width */
@@ -2843,7 +2891,7 @@ void render_bg_m5_im2_vs(int line, int width)
     for(column = start; column < end; column++)
     {
       atbuf = nt[column];
-      DRAW_COLUMN_IM2(atbuf, v_line)
+      XXXDRAW_COLUMN_IM2(atbuf, v_line)
     }
   }
 
