@@ -272,13 +272,6 @@ void GET_MSB_TILE_IM2(Mode5Data* mode_data) {
   mode_data->atex = atex_table[(mode_data->atbuf >> 29) & 7];
   mode_data->src = (u32 *)&bg_pattern_cache[((mode_data->atbuf & 0x03FF0000) >> 9 | (mode_data->atbuf & 0x18000000) >> 10 | (mode_data->v_line)) ^ ((mode_data->atbuf & 0x10000000) >> 22)];
 }
-#define XXXGET_LSB_TILE_IM2(ATTR, LINE) \
-  atex = atex_table[(ATTR >> 13) & 7]; \
-  src = (u32 *)&bg_pattern_cache[((ATTR & 0x000003FF) << 7 | (ATTR & 0x00001800) << 6 | (LINE)) ^ ((ATTR & 0x00001000) >> 6)];
-#define XXXGET_MSB_TILE_IM2(ATTR, LINE) \
-  atex = atex_table[(ATTR >> 29) & 7]; \
-  src = (u32 *)&bg_pattern_cache[((ATTR & 0x03FF0000) >> 9 | (ATTR & 0x18000000) >> 10 | (LINE)) ^ ((ATTR & 0x10000000) >> 22)];
-
 /*   
    One column = 2 tiles
    Two pattern attributes are written in VRAM as two consecutives 16-bit words:
@@ -336,17 +329,6 @@ void DRAW_COLUMN_IM2(Mode5Data* mode_data) {
   WRITE_LONG(mode_data->dst, mode_data->src[1] | mode_data->atex);
   mode_data->dst++;
 }
-#define XXXDRAW_COLUMN_IM2(ATTR, LINE) \
-  XXXGET_LSB_TILE_IM2(ATTR, LINE) \
-  WRITE_LONG(dst, src[0] | atex); \
-  dst++; \
-  WRITE_LONG(dst, src[1] | atex); \
-  dst++; \
-  XXXGET_MSB_TILE_IM2(ATTR, LINE) \
-  WRITE_LONG(dst, src[0] | atex); \
-  dst++; \
-  WRITE_LONG(dst, src[1] | atex); \
-  dst++;
 #else
 void DRAW_COLUMN(Mode5Data* mode_data) {
   GET_MSB_TILE(mode_data);
@@ -372,17 +354,6 @@ void DRAW_COLUMN_IM2(Mode5Data* mode_data) {
   WRITE_LONG(mode_data->dst, mode_data->src[1] | mode_data->atex);
   mode_data->dst++;
 }
-#define XXXDRAW_COLUMN_IM2(ATTR, LINE) \
-  XXXGET_MSB_TILE_IM2(ATTR, LINE) \
-  WRITE_LONG(dst, src[0] | atex); \
-  dst++; \
-  WRITE_LONG(dst, src[1] | atex); \
-  dst++; \
-  XXXGET_LSB_TILE_IM2(ATTR, LINE) \
-  WRITE_LONG(dst, src[0] | atex); \
-  dst++; \
-  WRITE_LONG(dst, src[1] | atex); \
-  dst++;
 #endif
 #else /* NOT ALIGNED */
 #ifdef LSB_FIRST
@@ -402,13 +373,6 @@ void DRAW_COLUMN_IM2(Mode5Data* mode_data) {
   *mode_data->dst++ = (mode_data->src[0] | mode_data->atex);
   *mode_data->dst++ = (mode_data->src[1] | mode_data->atex);
 }
-#define XXXDRAW_COLUMN_IM2(ATTR, LINE) \
-  XXXGET_LSB_TILE_IM2(ATTR, LINE) \
-  *dst++ = (src[0] | atex); \
-  *dst++ = (src[1] | atex); \
-  XXXGET_MSB_TILE_IM2(ATTR, LINE) \
-  *dst++ = (src[0] | atex); \
-  *dst++ = (src[1] | atex);
 #else
 void DRAW_COLUMN(Mode5Data* mode_data) {
   GET_MSB_TILE(mode_data);
@@ -426,13 +390,6 @@ void DRAW_COLUMN_IM2(Mode5Data* mode_data) {
   *mode_data->dst++ = (mode_data->src[0] | mode_data->atex);
   *mode_data->dst++ = (mode_data->src[1] | mode_data->atex);
 }
-#define XXXDRAW_COLUMN_IM2(ATTR, LINE) \
-  XXXGET_MSB_TILE_IM2(ATTR, LINE) \
-  *dst++ = (src[0] | atex); \
-  *dst++ = (src[1] | atex); \
-  XXXGET_LSB_TILE_IM2(ATTR, LINE) \
-  *dst++ = (src[0] | atex); \
-  *dst++ = (src[1] | atex);
 #endif
 #endif /* ALIGN_LONG */
 
@@ -451,11 +408,6 @@ void DRAW_BG_TILE(u32 SRC_A, u32 SRC_B) {
   *lb++ = table[((SRC_B >> 8) & 0xff00) | ((SRC_A >> 16) & 0xff)];
   *lb++ = table[((SRC_B >> 16) & 0xff00) | ((SRC_A >> 24) & 0xff)];
 }
-#define XXXDRAW_BG_TILE(SRC_A, SRC_B) \
-  *lb++ = table[((SRC_B << 8) & 0xff00) | (SRC_A & 0xff)]; \
-  *lb++ = table[(SRC_B & 0xff00) | ((SRC_A >> 8) & 0xff)]; \
-  *lb++ = table[((SRC_B >> 8) & 0xff00) | ((SRC_A >> 16) & 0xff)]; \
-  *lb++ = table[((SRC_B >> 16) & 0xff00) | ((SRC_A >> 24) & 0xff)];
 #else
 void DRAW_BG_TILE(u32 SRC_A, u32 SRC_B) {
   *lb++ = table[((SRC_B >> 16) & 0xff00) | ((SRC_A >> 24) & 0xff)];
@@ -463,11 +415,6 @@ void DRAW_BG_TILE(u32 SRC_A, u32 SRC_B) {
   *lb++ = table[(SRC_B & 0xff00) | ((SRC_A >> 8) & 0xff)];
   *lb++ = table[((SRC_B << 8) & 0xff00) | (SRC_A & 0xff)];
 }
-#define XXXDRAW_BG_TILE(SRC_A, SRC_B) \
-  *lb++ = table[((SRC_B >> 16) & 0xff00) | ((SRC_A >> 24) & 0xff)]; \
-  *lb++ = table[((SRC_B >> 8) & 0xff00) | ((SRC_A >> 16) & 0xff)]; \
-  *lb++ = table[(SRC_B & 0xff00) | ((SRC_A >> 8) & 0xff)]; \
-  *lb++ = table[((SRC_B << 8) & 0xff00) | (SRC_A & 0xff)];
 #endif
 
 #ifdef ALIGN_LONG
