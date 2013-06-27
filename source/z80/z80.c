@@ -128,7 +128,7 @@
 #include "z80.h"
 
 
-bool VERBOSE = FALSE;
+bool VERBOSE = false;
 
 #if VERBOSE
 #define LOG(x)  logerror x
@@ -1986,7 +1986,7 @@ void OTDR() {
  ***************************************************************/
 void EI() {
   IFF1 = IFF2 = 1;
-  Z80.after_ei = TRUE;
+  Z80.after_ei = true;
 }
 
 /**********************************************************
@@ -3928,7 +3928,7 @@ void z80_reset()
   IFF1 = IFF2 = 0;
   HALT = 0;
 
-  Z80.after_ei = FALSE;
+  Z80.after_ei = false;
 
   WZ=PCD;
 }
@@ -3947,7 +3947,7 @@ void z80_run(u32 cycles)
       if (Z80.cycles >= cycles) return;
     }
 
-    Z80.after_ei = FALSE;
+    Z80.after_ei = false;
     R++;
     EXEC_op(ROP());
   }

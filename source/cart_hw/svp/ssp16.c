@@ -344,14 +344,14 @@ bool OP_CHECK32(int op, void (*OP)(u32 x)) {
   if ((op & 0x0f) == SSP_P) { /* A <- P */
     read_P(); /* update P */
     OP(rP.v);
-    return TRUE;
+    return true;
   }
   if ((op & 0x0f) == SSP_A) { /* A <- A */
     OP(rA32);
-    return TRUE;
+    return true;
   }
 
-  return FALSE;
+  return false;
 }
 
 
