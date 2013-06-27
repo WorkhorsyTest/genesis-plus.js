@@ -609,19 +609,27 @@ void DRAW_SPRITE_TILE_ACCURATE_2X(int WIDTH, u32 ATTR, u8* TABLE, int xpos, u8* 
 /* 4-bit color channels are either compressed to 2/3-bit or dithered to 5/6/8-bit equivalents */
 /* 3:3:2 RGB */
 #if defined(USE_8BPP_RENDERING)
-#define MAKE_PIXEL(r,g,b)  (((r) >> 1) << 5 | ((g) >> 1) << 2 | (b) >> 2)
+int MAKE_PIXEL(int r, int g, int b) {
+ return (((r) >> 1) << 5 | ((g) >> 1) << 2 | (b) >> 2);
+}
 
 /* 5:5:5 RGB */
 #elif defined(USE_15BPP_RENDERING)
-#define MAKE_PIXEL(r,g,b) ((r) << 11 | ((r) >> 3) << 10 | (g) << 6 | ((g) >> 3) << 5 | (b) << 1 | (b) >> 3)
+int MAKE_PIXEL(int r, int g, int b) {
+  return ((r) << 11 | ((r) >> 3) << 10 | (g) << 6 | ((g) >> 3) << 5 | (b) << 1 | (b) >> 3);
+}
 
 /* 5:6:5 RGB */
 #elif defined(USE_16BPP_RENDERING)
-#define MAKE_PIXEL(r,g,b) ((r) << 12 | ((r) >> 3) << 11 | (g) << 7 | ((g) >> 2) << 5 | (b) << 1 | (b) >> 3)
+int MAKE_PIXEL(int r, int g, int b) {
+  return ((r) << 12 | ((r) >> 3) << 11 | (g) << 7 | ((g) >> 2) << 5 | (b) << 1 | (b) >> 3);
+}
 
 /* 8:8:8 RGB */
 #elif defined(USE_32BPP_RENDERING)
-#define MAKE_PIXEL(r,g,b) ((r) << 20 | (r) << 16 | (g) << 12 | (g)  << 8 | (b) << 4 | (b))
+int MAKE_PIXEL(int r, int g, int b) {
+  return ((r) << 20 | (r) << 16 | (g) << 12 | (g)  << 8 | (b) << 4 | (b));
+}
 #endif
 
 
