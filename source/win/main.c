@@ -1,6 +1,5 @@
 
 #include "SDL.h"
-
 #include "shared.h"
 #include "sms_ntsc.h"
 #include "md_ntsc.h"
@@ -67,7 +66,7 @@ static int sdl_sound_init()
   int n;
   SDL_AudioSpec as_desired, as_obtained;
   
-  if(SDL_Init(SDL_INIT_AUDIO) > 0) {
+  if(SDL_Init(SDL_INIT_AUDIO) != 0) {
     fatal("SDL Audio initialization failed", __FILE__, __LINE__);
   }
 
@@ -77,7 +76,7 @@ static int sdl_sound_init()
   as_desired.samples  = SOUND_SAMPLES_SIZE;
   as_desired.callback = sdl_sound_callback;
 
-  if(SDL_OpenAudio(&as_desired, &as_obtained) == -1) {
+  if(SDL_OpenAudio(&as_desired, &as_obtained) != 0) {
     fatal("SDL Audio open failed", __FILE__, __LINE__);
   }
 
@@ -139,7 +138,7 @@ struct {
 
 static int sdl_video_init()
 {
-  if(SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
+  if(SDL_InitSubSystem(SDL_INIT_VIDEO) != 0) {
     fatal("SDL Video initialization failed", __FILE__, __LINE__);
   }
   sdl_video.surf_screen  = SDL_SetVideoMode(VIDEO_WIDTH, VIDEO_HEIGHT, 16, SDL_SWSURFACE | fullscreen);
@@ -672,7 +671,7 @@ int main (int argc, char **argv)
   }
 
   /* initialize SDL */
-  if(SDL_Init(0) < 0)
+  if(SDL_Init(0) != 0)
   {
     fatal("SDL initialization failed", __FILE__, __LINE__);
   }
