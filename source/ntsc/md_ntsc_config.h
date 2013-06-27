@@ -3,14 +3,9 @@
 #ifndef MD_NTSC_CONFIG_H
 #define MD_NTSC_CONFIG_H
 
-/* Format of source & output pixels (RGB555 or RGB565 only)*/
-#ifdef USE_15BPP_RENDERING
-#define MD_NTSC_IN_FORMAT MD_NTSC_RGB15
-#define MD_NTSC_OUT_DEPTH 15
-#else
+/* Format of source & output pixels (RGB565 only)*/
 #define MD_NTSC_IN_FORMAT MD_NTSC_RGB16
 #define MD_NTSC_OUT_DEPTH 16
-#endif
 
 /* Original CRAM format (not used) */
 /* #define MD_NTSC_IN_FORMAT MD_NTSC_BGR9 */

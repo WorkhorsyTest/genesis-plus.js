@@ -3,14 +3,9 @@
 #ifndef SMS_NTSC_CONFIG_H
 #define SMS_NTSC_CONFIG_H
 
-/* Format of source & output pixels (RGB555 or RGB565 only) */
-#ifdef USE_15BPP_RENDERING
-#define SMS_NTSC_IN_FORMAT SMS_NTSC_RGB15
-#define SMS_NTSC_OUT_DEPTH 15
-#else
+/* Format of source & output pixels (RGB565 only) */
 #define SMS_NTSC_IN_FORMAT SMS_NTSC_RGB16
 #define SMS_NTSC_OUT_DEPTH 16
-#endif
 
 /* Original CRAM format (not used) */
 /* #define SMS_NTSC_IN_FORMAT SMS_NTSC_BGR12 */

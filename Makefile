@@ -14,10 +14,6 @@
 # -DLOG_CDC   : enable CDC debug messages
 # -DLOG_PCM   : enable PCM debug messages
 # -DLOGSOUND  : enable AUDIO debug messages
-# -D8BPP_RENDERING  - configure for 8-bit pixels (RGB332)
-# -D15BPP_RENDERING - configure for 15-bit pixels (RGB555)
-# -D16BPP_RENDERING - configure for 16-bit pixels (RGB565)
-# -D32BPP_RENDERING - configure for 32-bit pixels (RGB888)
 
 NAME	  = gen_sdl.exe
 
@@ -27,7 +23,7 @@ CFLAGS    = `sdl-config --cflags` -g -O2 -std=c99 -Wall -Wextra -Wunused # -Werr
 #-g -ggdb -pg
 #-fomit-frame-pointer
 #LDFLAGS   = -pg
-DEFINES   = -DLSB_FIRST -DUSE_16BPP_RENDERING
+DEFINES   = -DLSB_FIRST
 
 INCLUDES  = -Isource -Isource/z80 -Isource/m68k -Isource/sound -Isource/input_hw -Isource/cart_hw -Isource/cd_hw -Isource/cart_hw/svp -Isource/ntsc -Isource/win
 LIBS	  = `sdl-config --libs` -lz -lm

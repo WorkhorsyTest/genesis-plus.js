@@ -683,15 +683,7 @@ int main (int argc, char **argv)
   memset(&bitmap, 0, sizeof(t_bitmap));
   bitmap.width        = 720;
   bitmap.height       = 576;
-#if defined(USE_8BPP_RENDERING)
-  bitmap.pitch        = (bitmap.width * 1);
-#elif defined(USE_15BPP_RENDERING)
   bitmap.pitch        = (bitmap.width * 2);
-#elif defined(USE_16BPP_RENDERING)
-  bitmap.pitch        = (bitmap.width * 2);
-#elif defined(USE_32BPP_RENDERING)
-  bitmap.pitch        = (bitmap.width * 4);
-#endif
   bitmap.data         = sdl_video.surf_bitmap->pixels;
   SDL_UnlockSurface(sdl_video.surf_bitmap);
   bitmap.viewport.changed = 3;

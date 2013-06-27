@@ -49,13 +49,7 @@ extern sms_ntsc_t *sms_ntsc;
 
 
 /* Output pixels type*/
-#if defined(USE_8BPP_RENDERING)
-#define PIXEL_OUT_T u8
-#elif defined(USE_32BPP_RENDERING)
-#define PIXEL_OUT_T u32
-#else
 #define PIXEL_OUT_T u16
-#endif
 
 
 /* Pixel priority look-up tables information */
@@ -95,25 +89,6 @@ static const u8 tms_crom[16] =
 };
 
 /* original SG-1000 palette */
-#if defined(USE_8BPP_RENDERING)
-static const u8 tms_palette[16] =
-{
-  0x00, 0x00, 0x39, 0x79,
-  0x4B, 0x6F, 0xC9, 0x5B,
-  0xE9, 0xED, 0xD5, 0xD9,
-  0x35, 0xCE, 0xDA, 0xFF
-};
-
-#elif defined(USE_15BPP_RENDERING)
-static const u16 tms_palette[16] =
-{
-  0x0000, 0x0000, 0x1308, 0x2F6F,
-  0x295D, 0x3DDF, 0x6949, 0x23BE,
-  0x7D4A, 0x7DEF, 0x6B0A, 0x7330,
-  0x12A7, 0x6177, 0x6739, 0x7FFF
-};
-
-#elif defined(USE_16BPP_RENDERING)
 static const u16 tms_palette[16] =
 {
   0x0000, 0x0000, 0x2648, 0x5ECF,
@@ -121,16 +96,6 @@ static const u16 tms_palette[16] =
   0xF2AA, 0xFBCF, 0xD60A, 0xE670,
   0x2567, 0xC2F7, 0xCE59, 0xFFFF
 };
-
-#elif defined(USE_32BPP_RENDERING)
-static const u32 tms_palette[16] =
-{
-  0x000000, 0x000000, 0x21C842, 0x5EDC78,
-  0x5455ED, 0x7D76FC, 0xD4524D, 0x42EBF5,
-  0xFC5554, 0xFF7978, 0xD4C154, 0xE6CE80,
-  0x21B03B, 0xC95BB4, 0xCCCCCC, 0xFFFFFF
-};
-#endif
 
 /* Cached and flipped patterns */
 static u8 bg_pattern_cache[0x80000];
@@ -608,29 +573,9 @@ void DRAW_SPRITE_TILE_ACCURATE_2X(int WIDTH, u32 ATTR, u8* TABLE, int xpos, u8* 
 /* Pixels conversion macro */
 /* 4-bit color channels are either compressed to 2/3-bit or dithered to 5/6/8-bit equivalents */
 /* 3:3:2 RGB */
-#if defined(USE_8BPP_RENDERING)
-int MAKE_PIXEL(int r, int g, int b) {
- return (((r) >> 1) << 5 | ((g) >> 1) << 2 | (b) >> 2);
-}
-
-/* 5:5:5 RGB */
-#elif defined(USE_15BPP_RENDERING)
-int MAKE_PIXEL(int r, int g, int b) {
-  return ((r) << 11 | ((r) >> 3) << 10 | (g) << 6 | ((g) >> 3) << 5 | (b) << 1 | (b) >> 3);
-}
-
-/* 5:6:5 RGB */
-#elif defined(USE_16BPP_RENDERING)
 int MAKE_PIXEL(int r, int g, int b) {
   return ((r) << 12 | ((r) >> 3) << 11 | (g) << 7 | ((g) >> 2) << 5 | (b) << 1 | (b) >> 3);
 }
-
-/* 8:8:8 RGB */
-#elif defined(USE_32BPP_RENDERING)
-int MAKE_PIXEL(int r, int g, int b) {
-  return ((r) << 20 | (r) << 16 | (g) << 12 | (g)  << 8 | (b) << 4 | (b));
-}
-#endif
 
 
 /*--------------------------------------------------------------------------*/
@@ -3459,7 +3404,6 @@ void remap_line(int line)
   }
 
   /* NTSC Filter (only supported for 15 or 16-bit pixels rendering) */
-#if defined(USE_15BPP_RENDERING) || defined(USE_16BPP_RENDERING)
   if (config.ntsc)
   {
     if (reg[12] & 0x01)
@@ -3472,7 +3416,6 @@ void remap_line(int line)
     }
   }
   else
-#endif
   {
     /* Convert VDP pixel data to output pixel format */
 #ifdef CUSTOM_BLITTER
