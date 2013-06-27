@@ -1,8 +1,3 @@
-#ifdef __WIN32__
-#include <windows.h>
-#else
-#define MessageBox(owner, text, caption, type) printf("%s: %s\n", caption, text)
-#endif
 
 #include "SDL.h"
 
@@ -15,6 +10,11 @@
 
 #define VIDEO_WIDTH  320 
 #define VIDEO_HEIGHT 240
+
+static void fatal(char* message, char* file, size_t line) {
+    fprintf(stderr, "Fatal error from '%s'(%d): %s. Exiting ...\n", file, line, message);
+    exit(1);
+}
 
 int joynum = 0;
 
@@ -67,9 +67,8 @@ static int sdl_sound_init()
   int n;
   SDL_AudioSpec as_desired, as_obtained;
   
-  if(SDL_Init(SDL_INIT_AUDIO) < 0) {
-    MessageBox(NULL, "SDL Audio initialization failed", "Error", 0);
-    return 0;
+  if(SDL_Init(SDL_INIT_AUDIO) > 0) {
+    fatal("SDL Audio initialization failed", __FILE__, __LINE__);
   }
 
   as_desired.freq     = SOUND_FREQUENCY;
@@ -79,21 +78,18 @@ static int sdl_sound_init()
   as_desired.callback = sdl_sound_callback;
 
   if(SDL_OpenAudio(&as_desired, &as_obtained) == -1) {
-    MessageBox(NULL, "SDL Audio open failed", "Error", 0);
-    return 0;
+    fatal("SDL Audio open failed", __FILE__, __LINE__);
   }
 
   if(as_desired.samples != as_obtained.samples) {
-    MessageBox(NULL, "SDL Audio wrong setup", "Error", 0);
-    return 0;
+    fatal("SDL Audio wrong setup", __FILE__, __LINE__);
   }
 
   sdl_sound.current_emulated_samples = 0;
   n = SOUND_SAMPLES_SIZE * 2 * sizeof(s16) * 20;
   sdl_sound.buffer = (char*)malloc(n);
   if(!sdl_sound.buffer) {
-    MessageBox(NULL, "Can't allocate audio buffer", "Error", 0);
-    return 0;
+    fatal("Can't allocate audio buffer", __FILE__, __LINE__);
   }
   memset(sdl_sound.buffer, 0, n);
   sdl_sound.current_pos = sdl_sound.buffer;
@@ -144,8 +140,7 @@ struct {
 static int sdl_video_init()
 {
   if(SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
-    MessageBox(NULL, "SDL Video initialization failed", "Error", 0);
-    return 0;
+    fatal("SDL Video initialization failed", __FILE__, __LINE__);
   }
   sdl_video.surf_screen  = SDL_SetVideoMode(VIDEO_WIDTH, VIDEO_HEIGHT, 16, SDL_SWSURFACE | fullscreen);
   sdl_video.surf_bitmap = SDL_CreateRGBSurface(SDL_SWSURFACE, 720, 576, 16, 0, 0, 0, 0);
@@ -638,9 +633,7 @@ int main (int argc, char **argv)
   /* Print help if no game specified */
   if(argc < 2)
   {
-    char caption[256];
-    sprintf(caption, "Genesis Plus GX\\SDL\nusage: %s gamename\n", argv[0]);
-    MessageBox(NULL, caption, "Information", 0);
+    fprintf(stdout, "Information: Genesis Plus GX\\SDL\nusage: %s gamename\n", argv[0]);
     exit(1);
   }
 
@@ -681,10 +674,7 @@ int main (int argc, char **argv)
   /* initialize SDL */
   if(SDL_Init(0) < 0)
   {
-    char caption[256];
-    sprintf(caption, "SDL initialization failed");
-    MessageBox(NULL, caption, "Error", 0);
-    exit(1);
+    fatal("SDL initialization failed", __FILE__, __LINE__);
   }
   sdl_video_init();
   if (use_sound) sdl_sound_init();
@@ -712,8 +702,7 @@ int main (int argc, char **argv)
   {
     char caption[256];
     sprintf(caption, "Error loading file `%s'.", argv[1]);
-    MessageBox(NULL, caption, "Error", 0);
-    exit(1);
+    fatal(caption, __FILE__, __LINE__);
   }
 
   /* initialize system hardware */
