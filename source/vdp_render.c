@@ -556,58 +556,54 @@ void DRAW_BG_COLUMN_IM2(Mode5Data* mode_data) {
 #endif
 #endif /* ALIGN_LONG */
 
-#define DRAW_SPRITE_TILE(WIDTH,ATTR,TABLE)  \
-  for (i=0;i<WIDTH;i++) \
-  { \
-    temp = *src++; \
-    if (temp & 0x0f) \
-    { \
-      temp |= (lb[i] << 8); \
-      lb[i] = TABLE[temp | ATTR]; \
-      status |= ((temp & 0x8000) >> 10); \
-    } \
+void DRAW_SPRITE_TILE(size_t WIDTH, u32 ATTR, u8* TABLE, u8* lb, u8* src) {
+  u32 temp;
+  for (size_t i=0; i<WIDTH; ++i) {
+    temp = *src++;
+    if (temp & 0x0f) {
+      temp |= (lb[i] << 8);
+      lb[i] = TABLE[temp | ATTR];
+      status |= ((temp & 0x8000) >> 10);
+    }
   }
+}
 
-#define DRAW_SPRITE_TILE_ACCURATE(WIDTH,ATTR,TABLE)  \
-  for (i=0;i<WIDTH;i++) \
-  { \
-    temp = *src++; \
-    if (temp & 0x0f) \
-    { \
-      temp |= (lb[i] << 8); \
-      lb[i] = TABLE[temp | ATTR]; \
-      if ((temp & 0x8000) && !(status & 0x20)) \
-      { \
-        spr_col = (v_counter << 8) | ((xpos + i + 13) >> 1); \
-        status |= 0x20; \
-      } \
-    } \
+void DRAW_SPRITE_TILE_ACCURATE(int WIDTH, u32 ATTR, u8* TABLE, int xpos, u8* lb, u8* src) {
+  u32 temp;
+  for (int i=0; i<WIDTH; ++i) {
+    temp = *src++;
+    if (temp & 0x0f) {
+      temp |= (lb[i] << 8);
+      lb[i] = TABLE[temp | ATTR];
+      if ((temp & 0x8000) && !(status & 0x20)) {
+        spr_col = (v_counter << 8) | ((xpos + i + 13) >> 1);
+        status |= 0x20;
+      }
+    }
   }
+}
 
-#define DRAW_SPRITE_TILE_ACCURATE_2X(WIDTH,ATTR,TABLE)  \
-  for (i=0;i<WIDTH;i+=2) \
-  { \
-    temp = *src++; \
-    if (temp & 0x0f) \
-    { \
-      temp |= (lb[i] << 8); \
-      lb[i] = TABLE[temp | ATTR]; \
-      if ((temp & 0x8000) && !(status & 0x20)) \
-      { \
-        spr_col = (v_counter << 8) | ((xpos + i + 13) >> 1); \
-        status |= 0x20; \
-      } \
-      temp &= 0x00FF; \
-      temp |= (lb[i+1] << 8); \
-      lb[i+1] = TABLE[temp | ATTR]; \
-      if ((temp & 0x8000) && !(status & 0x20)) \
-      { \
-        spr_col = (v_counter << 8) | ((xpos + i + 1 + 13) >> 1); \
-        status |= 0x20; \
-      } \
-    } \
+void DRAW_SPRITE_TILE_ACCURATE_2X(int WIDTH, u32 ATTR, u8* TABLE, int xpos, u8* lb, u8* src) {
+  u32 temp;
+  for (int i=0; i<WIDTH; i+=2) {
+    temp = *src++;
+    if (temp & 0x0f) {
+      temp |= (lb[i] << 8);
+      lb[i] = TABLE[temp | ATTR];
+      if ((temp & 0x8000) && !(status & 0x20)) {
+        spr_col = (v_counter << 8) | ((xpos + i + 13) >> 1);
+        status |= 0x20;
+      }
+      temp &= 0x00FF;
+      temp |= (lb[i+1] << 8);
+      lb[i+1] = TABLE[temp | ATTR];
+      if ((temp & 0x8000) && !(status & 0x20)) {
+        spr_col = (v_counter << 8) | ((xpos + i + 1 + 13) >> 1);
+        status |= 0x20;
+      }
+    }
   }
-
+}
 
 /* Pixels conversion macro */
 /* 4-bit color channels are either compressed to 2/3-bit or dithered to 5/6/8-bit equivalents */
@@ -2440,12 +2436,12 @@ void render_obj_m4(int max_width)
     if (width > 8)
     {
       /* Draw sprite pattern (zoomed sprites are rendered at half speed) */
-      DRAW_SPRITE_TILE_ACCURATE_2X(end,0,lut[5])
+      DRAW_SPRITE_TILE_ACCURATE_2X(end, 0, lut[5], xpos, lb, src);
     }
     else
     {
       /* Draw sprite pattern */
-      DRAW_SPRITE_TILE_ACCURATE(end,0,lut[5])
+      DRAW_SPRITE_TILE_ACCURATE(end, 0, lut[5], xpos, lb, src);
     }
   }
 
@@ -2470,7 +2466,7 @@ void render_obj_m4(int max_width)
 
 void render_obj_m5(int max_width)
 {
-  int i, count, column;
+  int count, column;
   int xpos, width;
   int pixelcount = 0;
   int masked = 0;
@@ -2550,7 +2546,7 @@ void render_obj_m5(int max_width)
       {
         temp = attr | ((name + s[column]) & 0x07FF);
         src = &bg_pattern_cache[(temp << 6) | (v_line)];
-        DRAW_SPRITE_TILE(8,atex,lut[1])
+        DRAW_SPRITE_TILE(8, atex, lut[1], lb, src);
       }
     }
 
@@ -2571,7 +2567,7 @@ void render_obj_m5(int max_width)
 
 void render_obj_m5_ste(int max_width)
 {
-  int i, count, column;
+  int count, column;
   int xpos, width;
   int pixelcount = 0;
   int masked = 0;
@@ -2654,7 +2650,7 @@ void render_obj_m5_ste(int max_width)
       {
         temp = attr | ((name + s[column]) & 0x07FF);
         src = &bg_pattern_cache[(temp << 6) | (v_line)];
-        DRAW_SPRITE_TILE(8,atex,lut[3])
+        DRAW_SPRITE_TILE(8, atex, lut[3], lb, src);
       }
     }
 
@@ -2681,7 +2677,7 @@ void render_obj_m5_ste(int max_width)
 
 void render_obj_m5_im2(int max_width)
 {
-  int i, count, column;
+  int count, column;
   int xpos, width;
   int pixelcount = 0;
   int masked = 0;
@@ -2762,7 +2758,7 @@ void render_obj_m5_im2(int max_width)
       {
         temp = attr | (((name + s[column]) & 0x3ff) << 1);
         src = &bg_pattern_cache[((temp << 6) | (v_line)) ^ ((attr & 0x1000) >> 6)];
-        DRAW_SPRITE_TILE(8,atex,lut[1])
+        DRAW_SPRITE_TILE(8, atex, lut[1], lb, src);
       }
     }
 
@@ -2783,7 +2779,7 @@ void render_obj_m5_im2(int max_width)
 
 void render_obj_m5_im2_ste(int max_width)
 {
-  int i, count, column;
+  int count, column;
   int xpos, width;
   int pixelcount = 0;
   int masked = 0;
@@ -2867,7 +2863,7 @@ void render_obj_m5_im2_ste(int max_width)
       {
         temp = attr | (((name + s[column]) & 0x3ff) << 1);
         src = &bg_pattern_cache[((temp << 6) | (v_line)) ^ ((attr & 0x1000) >> 6)];
-        DRAW_SPRITE_TILE(8,atex,lut[3])
+        DRAW_SPRITE_TILE(8, atex, lut[3], lb, src);
       }
     }
 
