@@ -78,20 +78,27 @@ struct blip_t
 typedef int buf_t;
 
 /* probably not totally portable */
-#define SAMPLES( buf ) ((buf_t*) ((buf) + 1))
+buf_t* SAMPLES(blip_t* buf) {
+    return (buf_t*) (buf + 1);
+}
 
 /* Arithmetic (sign-preserving) right shift */
-#define ARITH_SHIFT( n, shift ) \
-	((n) >> (shift))
+int ARITH_SHIFT(int n, int shift) {
+	return n >> shift;
+}
 
 enum { max_sample = +32767 };
 enum { min_sample = -32768 };
 
-#define CLAMP( n ) \
-	{\
-		if ( n > max_sample ) n = max_sample;\
-    else if ( n < min_sample) n = min_sample;\
+int CLAMP(int n) {
+	if (n > max_sample ) {
+		return max_sample;
+	} else if (n < min_sample) {
+		return min_sample;
+	} else {
+		return n;
 	}
+}
 
 #ifdef BLIP_ASSERT
 static void check_assumptions( void )
@@ -105,11 +112,11 @@ static void check_assumptions( void )
 	assert( (-3 >> 1) == -2 ); /* right shift must preserve sign */
 	
 	n = max_sample * 2;
-	CLAMP( n );
+	n = CLAMP( n );
 	assert( n == max_sample );
 	
 	n = min_sample * 2;
-	CLAMP( n );
+	n = CLAMP( n );
 	assert( n == min_sample );
 	
 	assert( blip_max_ratio <= time_unit );
@@ -241,7 +248,7 @@ int blip_read_samples( blip_t* m, s16 out [], int count)
 			
 			sum += *in++;
 			
-			CLAMP( s );
+			s = CLAMP( s );
 			
 			*out = s;
 			out += 2;
@@ -285,7 +292,7 @@ int blip_mix_samples( blip_t* m, s16 out [], int count)
             /* Add current buffer value */
             s += *out;
 			
-			CLAMP( s );
+			s = CLAMP( s );
 			
 			*out = s;
 			out += 2;
