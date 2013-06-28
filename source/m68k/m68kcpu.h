@@ -16,6 +16,14 @@
 #include "m68k.h"
 
 
+// Prototypes of mass destruction
+u32 m68ki_read_8_fc(u32 address);
+u32 m68ki_read_16_fc(u32 address, u32 fc);
+u32 m68ki_read_32_fc(u32 address, u32 fc);
+void m68ki_write_8_fc(u32 address, u32 value);
+void m68ki_write_16_fc(u32 address, u32 fc, u32 value);
+void m68ki_write_32_fc(u32 address, u32 fc, u32 value);
+
 /* ======================================================================== */
 /* ============================ GENERAL DEFINES =========================== */
 /* ======================================================================== */
@@ -333,33 +341,33 @@ u32 ROR_33(u32 A, u32 C);
 /* --------------------------- Status Register ---------------------------- */
 
 /* Flag Calculation Macros */
-#define CFLAG_8(A) (A)
-#define CFLAG_16(A) ((A)>>8)
+static u32 CFLAG_8(u32 A) { return A; }
+static u32 CFLAG_16(u32 A) { return A >> 8; }
 
 #if M68K_INT_GT_32_BIT
-  #define CFLAG_ADD_32(S, D, R) ((R)>>24)
-  #define CFLAG_SUB_32(S, D, R) ((R)>>24)
+  static u32 CFLAG_ADD_32(u32 S, u32 D, u32 R) { return R >> 24; }
+  static u32 CFLAG_SUB_32(u32 S, u32 D, u32 R) { return R >> 24; }
 #else
-  #define CFLAG_ADD_32(S, D, R) (((S & D) | (~R & (S | D)))>>23)
-  #define CFLAG_SUB_32(S, D, R) (((S & R) | (~D & (S | R)))>>23)
+  static u32 CFLAG_ADD_32(u32 S, u32 D, u32 R) { return (((S & D) | (~R & (S | D))) >> 23); }
+  static u32 CFLAG_SUB_32(u32 S, u32 D, u32 R) { return (((S & R) | (~D & (S | R)))>>23); }
 #endif /* M68K_INT_GT_32_BIT */
 
-#define VFLAG_ADD_8(S, D, R) ((S^R) & (D^R))
-#define VFLAG_ADD_16(S, D, R) (((S^R) & (D^R))>>8)
-#define VFLAG_ADD_32(S, D, R) (((S^R) & (D^R))>>24)
+static u32 VFLAG_ADD_8(u32 S, u32 D, u32 R) { return (S^R) & (D^R); }
+static u32 VFLAG_ADD_16(u32 S, u32 D, u32 R) { return ((S^R) & (D^R)) >> 8; }
+static u32 VFLAG_ADD_32(u32 S, u32 D, u32 R) { return ((S^R) & (D^R)) >> 24; }
 
-#define VFLAG_SUB_8(S, D, R) ((S^D) & (R^D))
-#define VFLAG_SUB_16(S, D, R) (((S^D) & (R^D))>>8)
-#define VFLAG_SUB_32(S, D, R) (((S^D) & (R^D))>>24)
+static u32 VFLAG_SUB_8(u32 S, u32 D, u32 R) { return (S^D) & (R^D); }
+static u32 VFLAG_SUB_16(u32 S, u32 D, u32 R) { return ((S^D) & (R^D)) >> 8; }
+static u32 VFLAG_SUB_32(u32 S, u32 D, u32 R) { return ((S^D) & (R^D)) >> 24; }
 
-#define NFLAG_8(A) (A)
-#define NFLAG_16(A) ((A)>>8)
-#define NFLAG_32(A) ((A)>>24)
-#define NFLAG_64(A) ((A)>>56)
+static u32 NFLAG_8(u32 A) { return A; }
+static u32 NFLAG_16(u32 A) { return A >> 8; }
+static u32 NFLAG_32(u32 A) { return A >> 24; }
+static u64 NFLAG_64(u64 A) { return A >> 56; }
 
-#define ZFLAG_8(A) MASK_OUT_ABOVE_8(A)
-#define ZFLAG_16(A) MASK_OUT_ABOVE_16(A)
-#define ZFLAG_32(A) MASK_OUT_ABOVE_32(A)
+static u32 ZFLAG_8(s32 A) { return MASK_OUT_ABOVE_8(A); }
+static u32 ZFLAG_16(s32 A) { return MASK_OUT_ABOVE_16(A); }
+static u32 ZFLAG_32(s32 A) { return MASK_OUT_ABOVE_32(A); }
 
 
 /* Flag values */
@@ -438,15 +446,19 @@ u32 ROR_33(u32 A, u32 C);
 
 /* ---------------------------- Cycle Counting ---------------------------- */
 
-#define USE_CYCLES(A) m68ki_cpu.cycles += (A)
-#define SET_CYCLES(A) m68ki_cpu.cycles  = (A)
+static void USE_CYCLES(u32 A) { m68ki_cpu.cycles += A; }
+static void SET_CYCLES(u32 A) { m68ki_cpu.cycles = A; }
 
 
 /* ----------------------------- Read / Write ----------------------------- */
 
 /* Read data immediately following the PC */
-#define m68k_read_immediate_16(address) *(u16 *)(m68ki_cpu.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff))
-#define m68k_read_immediate_32(address) (m68k_read_immediate_16(address) << 16) | (m68k_read_immediate_16(address+2))
+static u32 m68k_read_immediate_16(u32 address) {
+	return *(u16 *)(m68ki_cpu.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff));
+}
+static u32 m68k_read_immediate_32(u32 address) {
+	return (m68k_read_immediate_16(address) << 16) | (m68k_read_immediate_16(address+2));
+}
 
 /* Read data relative to the PC */
 #define m68k_read_pcrelative_8(address)  READ_BYTE(m68ki_cpu.memory_map[((address)>>16)&0xff].base, (address) & 0xffff)
@@ -454,9 +466,9 @@ u32 ROR_33(u32 A, u32 C);
 #define m68k_read_pcrelative_32(address) m68k_read_immediate_32(address)
 
 /* Read from the current address space */
-#define m68ki_read_8(A)  m68ki_read_8_fc (A)
-#define m68ki_read_16(A) m68ki_read_16_fc(A, FLAG_S | m68ki_get_address_space())
-#define m68ki_read_32(A) m68ki_read_32_fc(A, FLAG_S | m68ki_get_address_space())
+static u32 m68ki_read_8(u32 A) { return m68ki_read_8_fc(A); }
+static u32 m68ki_read_16(u32 A) { return m68ki_read_16_fc(A, FLAG_S | m68ki_get_address_space()); }
+static u32 m68ki_read_32(u32 A) { return m68ki_read_32_fc(A, FLAG_S | m68ki_get_address_space()); }
 
 /* Write to the current data space */
 #define m68ki_write_8(A, V)  m68ki_write_8_fc (A, V)
