@@ -20,7 +20,7 @@
  * If off, all interrupts will be autovectored and all interrupt requests will
  * auto-clear when the interrupt is serviced.
  */
-#define M68K_INT_ACK_CALLBACK(A)    vdp_68k_irq_ack(A)
+static s32 M68K_INT_ACK_CALLBACK(s32 A) { return vdp_68k_irq_ack(A); }
 
 /* If ON, CPU will call the callback when it encounters a tas
  * instruction.

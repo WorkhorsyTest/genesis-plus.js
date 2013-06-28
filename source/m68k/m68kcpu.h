@@ -322,7 +322,7 @@ static u32 m68ki_read_imm_8();
 /* These defines are dependant on the configuration defines in m68kconf.h */
 
 /* Enable or disable callback functions */
-#define m68ki_int_ack(A) M68K_INT_ACK_CALLBACK(A);
+static void m68ki_int_ack(u32 A) { M68K_INT_ACK_CALLBACK(A); }
 
 #define m68ki_output_reset()
 
