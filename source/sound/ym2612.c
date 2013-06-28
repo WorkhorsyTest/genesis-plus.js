@@ -466,8 +466,8 @@ static const u8 lfo_pm_output[7*8][8]={
 static s32 lfo_pm_table[128*8*32]; /* 128 combinations of 7 bits meaningful (of F-NUMBER), 8 LFO depths, 32 LFO output levels per one depth */
 
 /* register number to channel number , slot offset */
-#define OPN_CHAN(N) (N&3)
-#define OPN_SLOT(N) ((N>>2)&3)
+s32 OPN_CHAN(s32 N) { return N & 3; }
+s32 OPN_SLOT(s32 N) { return (N >> 2) & 3; }
 
 /* slot number */
 #define SLOT1 0
@@ -1398,7 +1398,9 @@ void refresh_fc_eg_chan(FM_CH *CH )
   }
 }
 
-#define volume_calc(OP) ((OP)->vol_out + (AM & (OP)->AMmask))
+u32 volume_calc_2612(u32 AM, FM_SLOT* OP) {
+    return OP->vol_out + (AM & OP->AMmask);
+}
 
 s32 op_calc(u32 phase, u32 env, u32 pm)
 {
@@ -1423,7 +1425,7 @@ void chan_calc(FM_CH *CH, s32 num)
   do
   {
     u32 AM = ym2612.OPN.LFO_AM >> CH->ams;
-    u32 eg_out = volume_calc(&CH->SLOT[SLOT1]);
+    u32 eg_out = volume_calc_2612(AM, &CH->SLOT[SLOT1]);
 
     m2 = c1 = c2 = mem = 0;
 
@@ -1450,15 +1452,15 @@ void chan_calc(FM_CH *CH, s32 num)
       }
     }
 
-    eg_out = volume_calc(&CH->SLOT[SLOT3]);
+    eg_out = volume_calc_2612(AM, &CH->SLOT[SLOT3]);
     if( eg_out < ENV_QUIET )    /* SLOT 3 */
       *CH->connect3 += op_calc(CH->SLOT[SLOT3].phase, eg_out, m2);
 
-    eg_out = volume_calc(&CH->SLOT[SLOT2]);
+    eg_out = volume_calc_2612(AM, &CH->SLOT[SLOT2]);
     if( eg_out < ENV_QUIET )    /* SLOT 2 */
     *CH->connect2 += op_calc(CH->SLOT[SLOT2].phase, eg_out, c1);
 
-    eg_out = volume_calc(&CH->SLOT[SLOT4]);
+    eg_out = volume_calc_2612(AM, &CH->SLOT[SLOT4]);
     if( eg_out < ENV_QUIET )    /* SLOT 4 */
       *CH->connect4 += op_calc(CH->SLOT[SLOT4].phase, eg_out, c2);
 

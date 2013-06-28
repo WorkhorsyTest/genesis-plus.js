@@ -766,7 +766,9 @@ static s32 op_calc1(u32 phase, u32 env, s32 pm, u32 wave_tab)
   return tl_tab[p];
 }
 
-#define volume_calc(OP) ((OP)->TLL + ((u32)(OP)->volume) + (LFO_AM & (OP)->AMmask))
+u32 volume_calc_2413(YM2413_OPLL_SLOT* OP) {
+    return OP->TLL + ((u32)OP->volume) + (LFO_AM & OP->AMmask);
+}
 
 /* calculate output */
 static void chan_calc( YM2413_OPLL_CH *CH )
@@ -778,7 +780,7 @@ static void chan_calc( YM2413_OPLL_CH *CH )
 
   /* SLOT 1 */
   SLOT = &CH->SLOT[SLOT1];
-  env  = volume_calc(SLOT);
+  env  = volume_calc_2413(SLOT);
   out  = SLOT->op1_out[0] + SLOT->op1_out[1];
 
   SLOT->op1_out[0] = SLOT->op1_out[1];
@@ -796,7 +798,7 @@ static void chan_calc( YM2413_OPLL_CH *CH )
   /* SLOT 2 */
 
   SLOT++;
-  env = volume_calc(SLOT);
+  env = volume_calc_2413(SLOT);
   if( env < ENV_QUIET )
   {
     output[0] += op_calc(SLOT->phase, env, phase_modulation, SLOT->wavetable);
@@ -858,7 +860,7 @@ void rhythm_calc( YM2413_OPLL_CH *CH, u32 noise )
 
   /* SLOT 1 */
   SLOT = &CH[6].SLOT[SLOT1];
-  env = volume_calc(SLOT);
+  env = volume_calc_2413(SLOT);
 
   out = SLOT->op1_out[0] + SLOT->op1_out[1];
   SLOT->op1_out[0] = SLOT->op1_out[1];
@@ -875,7 +877,7 @@ void rhythm_calc( YM2413_OPLL_CH *CH, u32 noise )
 
   /* SLOT 2 */
   SLOT++;
-  env = volume_calc(SLOT);
+  env = volume_calc_2413(SLOT);
   if( env < ENV_QUIET )
     output[1] += op_calc(SLOT->phase, env, phase_modulation, SLOT->wavetable);
 
@@ -898,7 +900,7 @@ void rhythm_calc( YM2413_OPLL_CH *CH, u32 noise )
   */
 
   /* High Hat (verified on real YM3812) */
-  env = volume_calc(&CH[7].SLOT[SLOT1]);
+  env = volume_calc_2413(&CH[7].SLOT[SLOT1]);
   if( env < ENV_QUIET )
   {
 
@@ -949,7 +951,7 @@ void rhythm_calc( YM2413_OPLL_CH *CH, u32 noise )
   }
 
   /* Snare Drum (verified on real YM3812) */
-  env = volume_calc(&CH[7].SLOT[SLOT2]);
+  env = volume_calc_2413(&CH[7].SLOT[SLOT2]);
   if( env < ENV_QUIET )
   {
     /* base frequency derived from operator 1 in channel 7 */
@@ -970,12 +972,12 @@ void rhythm_calc( YM2413_OPLL_CH *CH, u32 noise )
   }
 
   /* Tom Tom (verified on real YM3812) */
-  env = volume_calc(&CH[8].SLOT[SLOT1]);
+  env = volume_calc_2413(&CH[8].SLOT[SLOT1]);
   if( env < ENV_QUIET )
     output[1] += op_calc(CH[8].SLOT[SLOT1].phase, env, 0, CH[8].SLOT[SLOT1].wavetable);
 
   /* Top Cymbal (verified on real YM2413) */
-  env = volume_calc(&CH[8].SLOT[SLOT2]);
+  env = volume_calc_2413(&CH[8].SLOT[SLOT2]);
   if( env < ENV_QUIET )
   {
     /* base frequency derived from operator 1 in channel 7 */
