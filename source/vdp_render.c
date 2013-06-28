@@ -2314,7 +2314,7 @@ void render_obj_tms(int max_width)
 
 void render_obj_m4(int max_width)
 {
-  int i, count, xpos, end;
+  int count, xpos, end;
   u8 *src, *lb;
   u16 temp;
 
