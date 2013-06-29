@@ -126,43 +126,43 @@ void m68ki_check_interrupts();            /* ASG: check for interrupts */
 /* ======================================================================== */
 
 /* Exception Vectors handled by emulation */
-#define EXCEPTION_RESET                    0
-#define EXCEPTION_BUS_ERROR                2 /* This one is not emulated! */
-#define EXCEPTION_ADDRESS_ERROR            3 /* This one is partially emulated (doesn't stack a proper frame yet) */
-#define EXCEPTION_ILLEGAL_INSTRUCTION      4
-#define EXCEPTION_ZERO_DIVIDE              5
-#define EXCEPTION_CHK                      6
-#define EXCEPTION_TRAPV                    7
-#define EXCEPTION_PRIVILEGE_VIOLATION      8
-#define EXCEPTION_TRACE                    9
-#define EXCEPTION_1010                    10
-#define EXCEPTION_1111                    11
-#define EXCEPTION_FORMAT_ERROR            14
-#define EXCEPTION_UNINITIALIZED_INTERRUPT 15
-#define EXCEPTION_SPURIOUS_INTERRUPT      24
-#define EXCEPTION_INTERRUPT_AUTOVECTOR    24
-#define EXCEPTION_TRAP_BASE               32
+static const s32 EXCEPTION_RESET                    = 0;
+static const s32 EXCEPTION_BUS_ERROR                = 2; /* This one is not emulated! */
+static const s32 EXCEPTION_ADDRESS_ERROR            = 3; /* This one is partially emulated (doesn't stack a proper frame yet) */
+static const s32 EXCEPTION_ILLEGAL_INSTRUCTION      = 4;
+static const s32 EXCEPTION_ZERO_DIVIDE              = 5;
+static const s32 EXCEPTION_CHK                      = 6;
+static const s32 EXCEPTION_TRAPV                    = 7;
+static const s32 EXCEPTION_PRIVILEGE_VIOLATION      = 8;
+static const s32 EXCEPTION_TRACE                    = 9;
+static const s32 EXCEPTION_1010                    = 10;
+static const s32 EXCEPTION_1111                    = 11;
+static const s32 EXCEPTION_FORMAT_ERROR            = 14;
+static const s32 EXCEPTION_UNINITIALIZED_INTERRUPT = 15;
+static const s32 EXCEPTION_SPURIOUS_INTERRUPT      = 24;
+static const s32 EXCEPTION_INTERRUPT_AUTOVECTOR    = 24;
+static const s32 EXCEPTION_TRAP_BASE               = 32;
 
 /* Function codes set by CPU during data/address bus activity */
-#define FUNCTION_CODE_USER_DATA          1
-#define FUNCTION_CODE_USER_PROGRAM       2
-#define FUNCTION_CODE_SUPERVISOR_DATA    5
-#define FUNCTION_CODE_SUPERVISOR_PROGRAM 6
-#define FUNCTION_CODE_CPU_SPACE          7
+static const s32 FUNCTION_CODE_USER_DATA          = 1;
+static const s32 FUNCTION_CODE_USER_PROGRAM       = 2;
+static const s32 FUNCTION_CODE_SUPERVISOR_DATA    = 5;
+static const s32 FUNCTION_CODE_SUPERVISOR_PROGRAM = 6;
+static const s32 FUNCTION_CODE_CPU_SPACE          = 7;
 
 /* Different ways to stop the CPU */
-#define STOP_LEVEL_STOP 1
-#define STOP_LEVEL_HALT 2
+static const s32 STOP_LEVEL_STOP = 1;
+static const s32 STOP_LEVEL_HALT = 2;
 
 /* Used for 68000 address error processing */
 #if M68K_EMULATE_ADDRESS_ERROR
-#define INSTRUCTION_YES 0
-#define INSTRUCTION_NO  0x08
-#define MODE_READ       0x10
-#define MODE_WRITE      0
+static const s32 INSTRUCTION_YES = 0;
+static const s32 INSTRUCTION_NO  = 0x08;
+static const s32 MODE_READ       = 0x10;
+static const s32 MODE_WRITE      = 0;
 
-#define RUN_MODE_NORMAL          0
-#define RUN_MODE_BERR_AERR_RESET 1
+static const s32 RUN_MODE_NORMAL          = 0;
+static const s32 RUN_MODE_BERR_AERR_RESET = 1;
 #endif
 
 
@@ -469,18 +469,18 @@ static u32 ZFLAG_32(s32 A) { return MASK_OUT_ABOVE_32(A); }
 
 
 /* Flag values */
-#define NFLAG_SET   0x80
-#define NFLAG_CLEAR 0
-#define CFLAG_SET   0x100
-#define CFLAG_CLEAR 0
-#define XFLAG_SET   0x100
-#define XFLAG_CLEAR 0
-#define VFLAG_SET   0x80
-#define VFLAG_CLEAR 0
-#define ZFLAG_SET   0
-#define ZFLAG_CLEAR 0xffffffff
-#define SFLAG_SET   4
-#define SFLAG_CLEAR 0
+static const s32 NFLAG_SET   = 0x80;
+static const s32 NFLAG_CLEAR = 0;
+static const s32 CFLAG_SET   = 0x100;
+static const s32 CFLAG_CLEAR = 0;
+static const s32 XFLAG_SET   = 0x100;
+static const s32 XFLAG_CLEAR = 0;
+static const s32 VFLAG_SET   = 0x80;
+static const s32 VFLAG_CLEAR = 0;
+static const s32 ZFLAG_SET   = 0;
+static const s32 ZFLAG_CLEAR = 0xffffffff;
+static const s32 SFLAG_SET   = 4;
+static const s32 SFLAG_CLEAR = 0;
 
 /* Turn flag values into 1 or 0 */
 static u32 XFLAG_AS_1() { return (FLAG_X>>8)&1; }
