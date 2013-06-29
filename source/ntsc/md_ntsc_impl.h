@@ -59,11 +59,11 @@ typedef struct init_t
   float kernel [rescale_out * kernel_size * 2];
 } init_t;
 
-#define ROTATE_IQ( i, q, sin_b, cos_b ) {\
-  float t;\
-  t = i * cos_b - q * sin_b;\
-  q = i * sin_b + q * cos_b;\
-  i = t;\
+static void ROTATE_IQ(float* i, float* q, float sin_b, float cos_b) {
+  float t;
+  t = (*i) * cos_b - (*q) * sin_b;
+  (*q) = (*i) * sin_b + (*q) * cos_b;
+  (*i) = t;
 }
 
 static void init_filters( init_t* impl, md_ntsc_setup_t const* setup )
@@ -261,7 +261,7 @@ static void init( init_t* impl, md_ntsc_setup_t const* setup )
         while ( --n );
         if ( burst_count <= 1 )
           break;
-        ROTATE_IQ( s, c, 0.866025f, -0.5f ); /* +120 degrees */
+        ROTATE_IQ( &s, &c, 0.866025f, -0.5f ); /* +120 degrees */
       }
       while ( --n );
     }
@@ -270,19 +270,21 @@ static void init( init_t* impl, md_ntsc_setup_t const* setup )
 
 /* kernel generation */
 
-#define RGB_TO_YIQ( r, g, b, y, i ) (\
-  (y = (r) * 0.299f + (g) * 0.587f + (b) * 0.114f),\
-  (i = (r) * 0.596f - (g) * 0.275f - (b) * 0.321f),\
-  ((r) * 0.212f - (g) * 0.523f + (b) * 0.311f)\
-)
+static float RGB_TO_YIQ(float r, float g, float b, float* y, float* i) {
+  (*y) = r * 0.299f + g * 0.587f + b * 0.114f;
+  (*i) = r * 0.596f - g * 0.275f - b * 0.321f;
+  return r * 0.212f - g * 0.523f + b * 0.311f;
+}
 
-#define YIQ_TO_RGB( y, i, q, to_rgb, type, r, g ) (\
-  r = (type) (y + to_rgb [0] * i + to_rgb [1] * q),\
-  g = (type) (y + to_rgb [2] * i + to_rgb [3] * q),\
-  (type) (y + to_rgb [4] * i + to_rgb [5] * q)\
-)
+static void YIQ_TO_RGB(float y, float i, float q, float* to_rgb, int* r, int* g, int* b) {
+  (*r) = (int) (y + to_rgb[0] * i + to_rgb[1] * q);
+  (*g) = (int) (y + to_rgb[2] * i + to_rgb[3] * q);
+  (*b) = (int) (y + to_rgb[4] * i + to_rgb[5] * q);
+}
 
-#define PACK_RGB( r, g, b ) ((r) << 21 | (g) << 11 | (b) << 1)
+static md_ntsc_rgb_t PACK_RGB(int r, int g, int b) {
+    return r << 21 | g << 11 | b << 1;
+}
 
 enum { rgb_kernel_size = burst_size / alignment_count };
 enum { rgb_bias = rgb_unit * 2 * md_ntsc_rgb_builder };
@@ -360,7 +362,8 @@ static void gen_kernel( init_t* impl, float y, float i, float q, md_ntsc_rgb_t* 
         else
           k -= kernel_size * 2 * (rescale_out - 1) + 2;
         {
-          int r, g, b = YIQ_TO_RGB( y, i, q, to_rgb, int, r, g );
+          int r, g, b;
+          YIQ_TO_RGB(y, i, q, to_rgb, &r, &g, &b);
           *out++ = PACK_RGB( r, g, b ) - rgb_bias;
         }
       }
@@ -372,7 +375,7 @@ static void gen_kernel( init_t* impl, float y, float i, float q, md_ntsc_rgb_t* 
 
     to_rgb += 6;
 
-    ROTATE_IQ( i, q, -0.866025f, -0.5f ); /* -120 degrees */
+    ROTATE_IQ( &i, &q, -0.866025f, -0.5f ); /* -120 degrees */
   }
   while ( --burst_remain );
 }
@@ -380,10 +383,10 @@ static void gen_kernel( init_t* impl, float y, float i, float q, md_ntsc_rgb_t* 
 static void correct_errors( md_ntsc_rgb_t color, md_ntsc_rgb_t* out );
 
 #if DISABLE_CORRECTION
-  #define CORRECT_ERROR( a ) { out [i] += rgb_bias; }
+  static void CORRECT_ERROR(md_ntsc_rgb_t* out, u32 i, u32 a) { out[i] += rgb_bias; }
   #define DISTRIBUTE_ERROR( a, b, c ) { out [i] += rgb_bias; }
 #else
-  #define CORRECT_ERROR( a ) { out [a] += error; }
+  static void CORRECT_ERROR(md_ntsc_rgb_t* out, u32 i, u32 a) { out[a] += error; }
   #define DISTRIBUTE_ERROR( a, b, c ) {\
     md_ntsc_rgb_t fourth = (error + 2 * md_ntsc_rgb_builder) >> 2;\
     fourth &= (rgb_bias >> 1) - md_ntsc_rgb_builder;\

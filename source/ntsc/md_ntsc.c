@@ -50,7 +50,7 @@ static void correct_errors( md_ntsc_rgb_t color, md_ntsc_rgb_t* out )
     md_ntsc_rgb_t error = color -
         out [i    ] - out [i + 2    +16] - out [i + 4    ] - out [i + 6    +16] -
         out [i + 8] - out [(i+10)%16+16] - out [(i+12)%16] - out [(i+14)%16+16];
-    CORRECT_ERROR( i + 6 + 16 );
+    CORRECT_ERROR(out, i, i + 6 + 16 );
     /*DISTRIBUTE_ERROR( 2+16, 4, 6+16 );*/
   }
 }
@@ -69,9 +69,10 @@ void md_ntsc_init( md_ntsc_t* ntsc, md_ntsc_setup_t const* setup )
     float gg = impl.to_float [entry >> 3 & 7];
     float rr = impl.to_float [entry      & 7];
 
-    float y, i, q = RGB_TO_YIQ( rr, gg, bb, y, i );
+    float y, i, q = RGB_TO_YIQ(rr, gg, bb, &y, &i);
 
-    int r, g, b = YIQ_TO_RGB( y, i, q, impl.to_rgb, int, r, g );
+    int r, g, b;
+    YIQ_TO_RGB(y, i, q, impl.to_rgb, &r, &g, &b);
     md_ntsc_rgb_t rgb = PACK_RGB( r, g, b );
 
     if ( setup->palette_out )

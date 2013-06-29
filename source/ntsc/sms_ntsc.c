@@ -50,7 +50,7 @@ static void correct_errors( sms_ntsc_rgb_t color, sms_ntsc_rgb_t* out )
     sms_ntsc_rgb_t error = color -
         out [i    ] - out [(i+12)%14+14] - out [(i+10)%14+28] -
         out [i + 7] - out [i + 5    +14] - out [i + 3    +28];
-    CORRECT_ERROR( i + 3 + 28 );
+    CORRECT_ERROR(out, i, i + 3 + 28 );
   }
 }
 
@@ -68,9 +68,10 @@ void sms_ntsc_init( sms_ntsc_t* ntsc, sms_ntsc_setup_t const* setup )
     float gg = impl.to_float [entry >> 4 & 0x0F];
     float rr = impl.to_float [entry      & 0x0F];
     
-    float y, i, q = RGB_TO_YIQ( rr, gg, bb, y, i );
+    float y, i, q = RGB_TO_YIQ(rr, gg, bb, &y, &i);
     
-    int r, g, b = YIQ_TO_RGB( y, i, q, impl.to_rgb, int, r, g );
+    int r, g, b;
+    YIQ_TO_RGB(y, i, q, impl.to_rgb, &r, &g, &b);
     sms_ntsc_rgb_t rgb = PACK_RGB( r, g, b );
     
     if ( setup->palette_out )
