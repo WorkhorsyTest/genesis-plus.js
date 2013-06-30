@@ -317,7 +317,7 @@ extern pixel_info_t const md_ntsc_pixels [alignment_count];
 static void gen_kernel( init_t* impl, float y, float i, float q, md_ntsc_rgb_t* out )
 {
   /* generate for each scanline burst phase */
-  float const* to_rgb = impl->to_rgb;
+  float* to_rgb = impl->to_rgb;
   int burst_remain = burst_count;
   y -= rgb_offset;
   do
@@ -384,28 +384,17 @@ static void correct_errors( md_ntsc_rgb_t color, md_ntsc_rgb_t* out );
 
 #if DISABLE_CORRECTION
   static void CORRECT_ERROR(md_ntsc_rgb_t* out, u32 i, u32 a) { out[i] += rgb_bias; }
-  #define DISTRIBUTE_ERROR( a, b, c ) { out [i] += rgb_bias; }
 #else
   static void CORRECT_ERROR(md_ntsc_rgb_t* out, u32 i, u32 a) { out[a] += error; }
-  #define DISTRIBUTE_ERROR( a, b, c ) {\
-    md_ntsc_rgb_t fourth = (error + 2 * md_ntsc_rgb_builder) >> 2;\
-    fourth &= (rgb_bias >> 1) - md_ntsc_rgb_builder;\
-    fourth -= rgb_bias >> 2;\
-    out [a] += fourth;\
-    out [b] += fourth;\
-    out [c] += fourth;\
-    out [i] += error - (fourth * 3);\
-  }
 #endif
 
-#define RGB_PALETTE_OUT( rgb, out_ )\
-{\
-  u8* out = (out_);\
-  md_ntsc_rgb_t clamped = (rgb);\
-  MD_NTSC_CLAMP_( clamped, (8 - rgb_bits) );\
-  out [0] = (u8) (clamped >> 21);\
-  out [1] = (u8) (clamped >> 11);\
-  out [2] = (u8) (clamped >>  1);\
+static void RGB_PALETTE_OUT(md_ntsc_rgb_t* rgb, u8* out_ ) {
+  u8* out = out_;
+  md_ntsc_rgb_t clamped = rgb;
+  MD_NTSC_CLAMP_( clamped, (8 - rgb_bits) );
+  out[0] = (u8) (clamped >> 21);
+  out[1] = (u8) (clamped >> 11);
+  out[2] = (u8) (clamped >>  1);
 }
 
 /* blitter related */
