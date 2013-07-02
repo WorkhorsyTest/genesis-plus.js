@@ -10,6 +10,8 @@
   extern "C" {
 #endif
 
+typedef u32 md_ntsc_rgb_t;
+
 /* Image parameters, ranging from -1.0 to 1.0. Actual internal values shown
 in parenthesis and should remain fairly stable in future versions. */
 typedef struct md_ntsc_setup_t
@@ -51,16 +53,8 @@ In_row_width is the number of pixels to get to the next input row. */
 void md_ntsc_blit( md_ntsc_t const* ntsc, MD_NTSC_IN_T const* table, u8* input,
     int in_width, int vline);
 
-/* Number of output pixels written by blitter for given input width. */
-#define MD_NTSC_OUT_WIDTH( in_width ) \
-  (((in_width) - 3) / md_ntsc_in_chunk * md_ntsc_out_chunk + md_ntsc_out_chunk)
-
-/* Number of input pixels that will fit within given output width. Might be
-rounded down slightly; use MD_NTSC_OUT_WIDTH() on result to find rounded
-value. */
-#define MD_NTSC_IN_WIDTH( out_width ) \
-  ((out_width) / md_ntsc_out_chunk * md_ntsc_in_chunk - md_ntsc_in_chunk + 3)
-
+static md_ntsc_rgb_t* MD_NTSC_RGB16(md_ntsc_t const* ntsc, MD_NTSC_IN_T n);
+static void MD_NTSC_CLAMP_(md_ntsc_rgb_t io, s32 shift);
 
 /* Interface for user-defined custom blitters */
 
@@ -68,84 +62,99 @@ enum { md_ntsc_in_chunk  = 4 }; /* number of input pixels read per chunk */
 enum { md_ntsc_out_chunk = 8 }; /* number of output pixels generated per chunk */
 enum { md_ntsc_black     = 0 }; /* palette index for black */
 
-/* Begin outputting row and start three pixels. First pixel will be cut off a bit.
-Declares variables, so must be before first statement in a block (unless you're using C++). */
-#define MD_NTSC_BEGIN_ROW( ntsc, pixel0, pixel1, pixel2, pixel3 ) \
-  md_ntsc_rgb_t raw_;\
-  u32 const md_pixel0_ = (pixel0);\
-  md_ntsc_rgb_t const* kernel0  = MD_NTSC_IN_FORMAT( ntsc, md_pixel0_ );\
-  u32 const md_pixel1_ = (pixel1);\
-  md_ntsc_rgb_t const* kernel1  = MD_NTSC_IN_FORMAT( ntsc, md_pixel1_ );\
-  u32 const md_pixel2_ = (pixel2);\
-  md_ntsc_rgb_t const* kernel2  = MD_NTSC_IN_FORMAT( ntsc, md_pixel2_ );\
-  u32 const md_pixel3_ = (pixel3);\
-  md_ntsc_rgb_t const* kernel3  = MD_NTSC_IN_FORMAT( ntsc, md_pixel3_ );\
-  md_ntsc_rgb_t const* kernelx0;\
-  md_ntsc_rgb_t const* kernelx1 = kernel0;\
-  md_ntsc_rgb_t const* kernelx2 = kernel0;\
-  md_ntsc_rgb_t const* kernelx3 = kernel0
+typedef struct {
+  md_ntsc_rgb_t raw_;
+  u32 md_pixel0_;
+  u32 md_pixel1_;
+  u32 md_pixel2_;
+  u32 md_pixel3_;
+  md_ntsc_rgb_t* kernel0;
+  md_ntsc_rgb_t* kernel1;
+  md_ntsc_rgb_t* kernel2;
+  md_ntsc_rgb_t* kernel3;
+  md_ntsc_rgb_t* kernelx0;
+  md_ntsc_rgb_t* kernelx1;
+  md_ntsc_rgb_t* kernelx2;
+  md_ntsc_rgb_t* kernelx3;
+  md_ntsc_out_t* line_out;
+} BlitData;
 
 /* Begin input pixel */
-#define MD_NTSC_COLOR_IN( index, ntsc, color ) \
-  MD_NTSC_COLOR_IN_( index, color, MD_NTSC_IN_FORMAT, ntsc )
+static void MD_NTSC_COLOR_IN_(BlitData* data, s32 index, MD_NTSC_IN_T color, md_ntsc_t const* table) {
+  u32 color_;
+  switch(index) {
+    case 0:
+      data->kernelx0 = data->kernel0;
+      data->kernel0 = (color_ = color, MD_NTSC_IN_FORMAT( table, color_ ));
+      break;
+    case 1:
+      data->kernelx1 = data->kernel1;
+      data->kernel1 = (color_ = color, MD_NTSC_IN_FORMAT( table, color_ ));
+      break;
+    case 2:
+      data->kernelx2 = data->kernel2;
+      data->kernel2 = (color_ = color, MD_NTSC_IN_FORMAT( table, color_ ));
+      break;
+    case 3:
+      data->kernelx3 = data->kernel3;
+      data->kernel3 = (color_ = color, MD_NTSC_IN_FORMAT( table, color_ ));
+      break;
+  }
+}
+
+static void MD_NTSC_COLOR_IN(BlitData* data, s32 index, md_ntsc_t const* ntsc, MD_NTSC_IN_T color) {
+  MD_NTSC_COLOR_IN_(data, index, color, ntsc);
+}
+
+/* x is always zero except in snes_ntsc library */
+static md_ntsc_out_t MD_NTSC_RGB_OUT_(BlitData* data, s32 x) {
+    return (data->raw_>>(13-x)& 0xF800)|(data->raw_>>(8-x)&0x07E0)|(data->raw_>>(4-x)&0x001F);
+}
 
 /* Generate output pixel */
-#define MD_NTSC_RGB_OUT( x, rgb_out ) {\
-  raw_ =\
-    kernel0  [x+ 0] + kernel1  [(x+6)%8+16] + kernel2  [(x+4)%8  ] + kernel3  [(x+2)%8+16] +\
-    kernelx0 [x+ 8] + kernelx1 [(x+6)%8+24] + kernelx2 [(x+4)%8+8] + kernelx3 [(x+2)%8+24];\
-  MD_NTSC_CLAMP_( raw_, 0 );\
-  MD_NTSC_RGB_OUT_( rgb_out, 0 );\
+static void MD_NTSC_RGB_OUT(BlitData* data, s32 x) {
+  data->raw_ =
+    data->kernel0  [x+ 0] + data->kernel1  [(x+6)%8+16] + data->kernel2  [(x+4)%8  ] + data->kernel3  [(x+2)%8+16] +
+    data->kernelx0 [x+ 8] + data->kernelx1 [(x+6)%8+24] + data->kernelx2 [(x+4)%8+8] + data->kernelx3 [(x+2)%8+24];
+  MD_NTSC_CLAMP_(data->raw_, 0);
+  *data->line_out = MD_NTSC_RGB_OUT_(data, 0);
+  data->line_out++;
 }
 
 
 /* private */
 enum { md_ntsc_entry_size = 2 * 16 };
-typedef u32 md_ntsc_rgb_t;
 struct md_ntsc_t {
   md_ntsc_rgb_t table [md_ntsc_palette_size] [md_ntsc_entry_size];
 };
 
-#define MD_NTSC_BGR9( ntsc, n ) (ntsc)->table [n & 0x1FF]
+static md_ntsc_rgb_t* MD_NTSC_BGR9(md_ntsc_t const* ntsc, MD_NTSC_IN_T n) {
+  return ntsc->table [n & 0x1FF];
+}
 
-#define MD_NTSC_RGB16( ntsc, n ) \
-  (md_ntsc_rgb_t*) ((char*) (ntsc)->table +\
-  ((n << 9 & 0x3800) | (n & 0x0700) | (n >> 8 & 0x00E0)) *\
-  (md_ntsc_entry_size * sizeof (md_ntsc_rgb_t) / 32))
+static md_ntsc_rgb_t* MD_NTSC_RGB16(md_ntsc_t const* ntsc, MD_NTSC_IN_T n) {
+  return (md_ntsc_rgb_t*) ((char*) (ntsc)->table +
+  ((n << 9 & 0x3800) | (n & 0x0700) | (n >> 8 & 0x00E0)) *
+  (md_ntsc_entry_size * sizeof (md_ntsc_rgb_t) / 32));
+}
 
-#define MD_NTSC_RGB15( ntsc, n ) \
-  (md_ntsc_rgb_t*) ((char*) (ntsc)->table +\
-  ((n << 8 & 0x1C00) | (n & 0x0380) | (n >> 8 & 0x0070)) *\
-  (md_ntsc_entry_size * sizeof (md_ntsc_rgb_t) / 16))
+static md_ntsc_rgb_t* MD_NTSC_RGB15(md_ntsc_t const* ntsc, MD_NTSC_IN_T n) {
+  return (md_ntsc_rgb_t*) ((char*) (ntsc)->table +
+  ((n << 8 & 0x1C00) | (n & 0x0380) | (n >> 8 & 0x0070)) *
+  (md_ntsc_entry_size * sizeof (md_ntsc_rgb_t) / 16));
+}
 
 /* common ntsc macros */
 #define md_ntsc_rgb_builder    ((1L << 21) | (1 << 11) | (1 << 1))
 #define md_ntsc_clamp_mask     (md_ntsc_rgb_builder * 3 / 2)
 #define md_ntsc_clamp_add      (md_ntsc_rgb_builder * 0x101)
-#define MD_NTSC_CLAMP_( io, shift ) {\
-  md_ntsc_rgb_t sub = (io) >> (9-(shift)) & md_ntsc_clamp_mask;\
-  md_ntsc_rgb_t clamp = md_ntsc_clamp_add - sub;\
-  io |= clamp;\
-  clamp -= sub;\
-  io &= clamp;\
+static void MD_NTSC_CLAMP_(md_ntsc_rgb_t io, s32 shift) {
+  md_ntsc_rgb_t sub = (io) >> (9-(shift)) & md_ntsc_clamp_mask;
+  md_ntsc_rgb_t clamp = md_ntsc_clamp_add - sub;
+  io |= clamp;
+  clamp -= sub;
+  io &= clamp;
 }
-
-#define MD_NTSC_COLOR_IN_( index, color, ENTRY, table ) {\
-  u32 color_;\
-  kernelx##index = kernel##index;\
-  kernel##index = (color_ = (color), ENTRY( table, color_ ));\
-}
-
-/* x is always zero except in snes_ntsc library */
-#if MD_NTSC_OUT_DEPTH == 15
-#define MD_NTSC_RGB_OUT_( rgb_out, x ) {\
-    rgb_out = (raw_>>(14-x)& 0x7C00)|(raw_>>(9-x)&0x03E0)|(raw_>>(4-x)&0x001F);\
-   }
-#elif MD_NTSC_OUT_DEPTH == 16
-#define MD_NTSC_RGB_OUT_( rgb_out, x ) {\
-    rgb_out = (raw_>>(13-x)& 0xF800)|(raw_>>(8-x)&0x07E0)|(raw_>>(4-x)&0x001F);\
-   }
-#endif
 
 #ifdef __cplusplus
 }

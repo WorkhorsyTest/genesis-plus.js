@@ -388,7 +388,7 @@ static void correct_errors( md_ntsc_rgb_t color, md_ntsc_rgb_t* out );
   static void CORRECT_ERROR(md_ntsc_rgb_t* out, u32 i, u32 a) { out[a] += error; }
 #endif
 
-static void RGB_PALETTE_OUT(md_ntsc_rgb_t* rgb, u8* out_ ) {
+static void RGB_PALETTE_OUT(md_ntsc_rgb_t rgb, u8* out_ ) {
   u8* out = out_;
   md_ntsc_rgb_t clamped = rgb;
   MD_NTSC_CLAMP_( clamped, (8 - rgb_bits) );
@@ -410,22 +410,5 @@ static void RGB_PALETTE_OUT(md_ntsc_rgb_t* rgb, u8* out_ ) {
   #endif
 #endif
 
-#include <limits.h>
 
-#if MD_NTSC_OUT_DEPTH <= 16
-  #if USHRT_MAX == 0xFFFF
-    typedef u16 md_ntsc_out_t;
-  #else
-    #error "Need 16-bit int type"
-  #endif
 
-#else
-  #if UINT_MAX == 0xFFFFFFFF
-    typedef u32  md_ntsc_out_t;
-  #elif ULONG_MAX == 0xFFFFFFFF
-    typedef unsigned long md_ntsc_out_t;
-  #else
-    #error "Need 32-bit int type"
-  #endif
-
-#endif
