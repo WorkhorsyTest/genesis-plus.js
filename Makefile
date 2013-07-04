@@ -17,12 +17,8 @@
 
 NAME	  = gen_sdl.exe
 
-CC        = gcc
-CFLAGS    = `sdl-config --cflags` -g -O2 -std=c99 -Wall -Wextra -Wunused # -Werror
-#CFLAGS    = `sdl-config --cflags` -march=i686 -O6 -fomit-frame-pointer -Wall -Wno-strict-aliasing -ansi -std=c89 -pedantic-errors
-#-g -ggdb -pg
-#-fomit-frame-pointer
-#LDFLAGS   = -pg
+CC        = dmd
+CFLAGS    = `sdl-config --cflags` -g -O2
 DEFINES   = -DLSB_FIRST
 
 INCLUDES  = -Isource -Isource/z80 -Isource/m68k -Isource/sound -Isource/input_hw -Isource/cart_hw -Isource/cd_hw -Isource/cart_hw/svp -Isource/ntsc -Isource/win
@@ -103,37 +99,37 @@ $(NAME): $(OBJDIR) $(OBJECTS)
 $(OBJDIR) :
 		@[ -d $@ ] || mkdir -p $@
 		
-$(OBJDIR)/%.o : 	source/%.c source/%.h
+$(OBJDIR)/%.o : 	source/%.d
 		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
 	        	        
-$(OBJDIR)/%.o :	source/sound/%.c source/sound/%.h	        
+$(OBJDIR)/%.o :	source/sound/%.d
 		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
 
-$(OBJDIR)/%.o :	source/input_hw/%.c source/input_hw/%.h	        
+$(OBJDIR)/%.o :	source/input_hw/%.d
 		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
 
-$(OBJDIR)/%.o :	source/cart_hw/%.c source/cart_hw/%.h	        
+$(OBJDIR)/%.o :	source/cart_hw/%.d
 		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
 
-$(OBJDIR)/%.o :	source/cart_hw/svp/%.c      
+$(OBJDIR)/%.o :	source/cart_hw/svp/%.d
 		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
 
-$(OBJDIR)/%.o :	source/cart_hw/svp/%.c source/cart_hw/svp/%.h	        
+$(OBJDIR)/%.o :	source/cart_hw/svp/%.d
 		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
 
-$(OBJDIR)/%.o :	source/cd_hw/%.c source/cd_hw/%.h	        
+$(OBJDIR)/%.o :	source/cd_hw/%.d
 		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
 
-$(OBJDIR)/%.o :	source/z80/%.c source/z80/%.h	        
+$(OBJDIR)/%.o :	source/z80/%.d
 		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
 
-$(OBJDIR)/%.o :	source/m68k/%.c       
+$(OBJDIR)/%.o :	source/m68k/%.d
 		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
 
-$(OBJDIR)/%.o :	source/ntsc/%.c source/ntsc/%.h	        
+$(OBJDIR)/%.o :	source/ntsc/%.d
 		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
 
-$(OBJDIR)/%.o :	source/win/%.c source/win/%.h	        
+$(OBJDIR)/%.o :	source/win/%.d
 		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
 
 #$(OBJDIR)/icon.o :	
