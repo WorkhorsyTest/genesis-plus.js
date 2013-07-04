@@ -388,7 +388,7 @@ static void correct_errors( sms_ntsc_rgb_t color, sms_ntsc_rgb_t* out );
   static void CORRECT_ERROR(sms_ntsc_rgb_t* out, u32 i, u32 a) { out[a] += error; }
 #endif
 
-static void RGB_PALETTE_OUT(sms_ntsc_rgb_t* rgb, u8* out_) {
+static void RGB_PALETTE_OUT(sms_ntsc_rgb_t rgb, u8* out_) {
   u8* out = out_;
   sms_ntsc_rgb_t clamped = rgb;
   SMS_NTSC_CLAMP_( clamped, (8 - rgb_bits) );
@@ -410,22 +410,3 @@ static void RGB_PALETTE_OUT(sms_ntsc_rgb_t* rgb, u8* out_) {
   #endif
 #endif
 
-#include <limits.h>
-
-#if SMS_NTSC_OUT_DEPTH <= 16
-  #if USHRT_MAX == 0xFFFF
-    typedef u16 sms_ntsc_out_t;
-  #else
-    #error "Need 16-bit int type"
-  #endif
-
-#else
-  #if UINT_MAX == 0xFFFFFFFF
-    typedef u32  sms_ntsc_out_t;
-  #elif ULONG_MAX == 0xFFFFFFFF
-    typedef u32 sms_ntsc_out_t;
-  #else
-    #error "Need 32-bit int type"
-  #endif
-
-#endif

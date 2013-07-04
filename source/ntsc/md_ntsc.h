@@ -77,10 +77,10 @@ typedef struct {
   md_ntsc_rgb_t* kernelx2;
   md_ntsc_rgb_t* kernelx3;
   md_ntsc_out_t* line_out;
-} BlitData;
+} MDBlitData;
 
 /* Begin input pixel */
-static void MD_NTSC_COLOR_IN_(BlitData* data, s32 index, MD_NTSC_IN_T color, md_ntsc_t const* table) {
+static void MD_NTSC_COLOR_IN_(MDBlitData* data, s32 index, MD_NTSC_IN_T color, md_ntsc_t const* table) {
   u32 color_;
   switch(index) {
     case 0:
@@ -102,17 +102,17 @@ static void MD_NTSC_COLOR_IN_(BlitData* data, s32 index, MD_NTSC_IN_T color, md_
   }
 }
 
-static void MD_NTSC_COLOR_IN(BlitData* data, s32 index, md_ntsc_t const* ntsc, MD_NTSC_IN_T color) {
+static void MD_NTSC_COLOR_IN(MDBlitData* data, s32 index, md_ntsc_t const* ntsc, MD_NTSC_IN_T color) {
   MD_NTSC_COLOR_IN_(data, index, color, ntsc);
 }
 
 /* x is always zero except in snes_ntsc library */
-static md_ntsc_out_t MD_NTSC_RGB_OUT_(BlitData* data, s32 x) {
+static md_ntsc_out_t MD_NTSC_RGB_OUT_(MDBlitData* data, s32 x) {
     return (data->raw_>>(13-x)& 0xF800)|(data->raw_>>(8-x)&0x07E0)|(data->raw_>>(4-x)&0x001F);
 }
 
 /* Generate output pixel */
-static void MD_NTSC_RGB_OUT(BlitData* data, s32 x) {
+static void MD_NTSC_RGB_OUT(MDBlitData* data, s32 x) {
   data->raw_ =
     data->kernel0  [x+ 0] + data->kernel1  [(x+6)%8+16] + data->kernel2  [(x+4)%8  ] + data->kernel3  [(x+2)%8+16] +
     data->kernelx0 [x+ 8] + data->kernelx1 [(x+6)%8+24] + data->kernelx2 [(x+4)%8+8] + data->kernelx3 [(x+2)%8+24];

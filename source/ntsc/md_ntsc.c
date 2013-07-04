@@ -95,7 +95,7 @@ void md_ntsc_blit( md_ntsc_t const* ntsc, MD_NTSC_IN_T const* table, u8* input,
   /* use palette entry 0 for unused pixels */
   MD_NTSC_IN_T border = table[0];
 
-  BlitData blit_data;
+  MDBlitData blit_data;
   blit_data.md_pixel0_ = border;
   blit_data.kernel0  = MD_NTSC_IN_FORMAT( ntsc, blit_data.md_pixel0_ );
   blit_data.md_pixel1_ = MD_NTSC_ADJ_IN( table[*input++] );

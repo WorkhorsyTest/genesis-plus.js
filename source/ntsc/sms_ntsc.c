@@ -99,11 +99,17 @@ void sms_ntsc_blit( sms_ntsc_t const* ntsc, SMS_NTSC_IN_T const* table, u8* inpu
   /* use palette entry 0 for unused pixels */
   SMS_NTSC_IN_T border = table[0];
 
-  SMS_NTSC_BEGIN_ROW( ntsc, border,
-      (SMS_NTSC_ADJ_IN( table[input[0]] )) & extra2,
-      (SMS_NTSC_ADJ_IN( table[input[extra2 & 1]] )) & extra1 );
+  SMSBlitData blit_data;
+  blit_data.sms_ntsc_pixel0_ = border;
+  blit_data.kernel0  = SMS_NTSC_IN_FORMAT( ntsc, blit_data.sms_ntsc_pixel0_ );
+  blit_data.sms_ntsc_pixel1_ = (SMS_NTSC_ADJ_IN( table[input[0]] )) & extra2;
+  blit_data.kernel1  = SMS_NTSC_IN_FORMAT( ntsc, blit_data.sms_ntsc_pixel1_ );
+  blit_data.sms_ntsc_pixel2_ = (SMS_NTSC_ADJ_IN( table[input[extra2 & 1]] )) & extra1;
+  blit_data.kernel2  = SMS_NTSC_IN_FORMAT( ntsc, blit_data.sms_ntsc_pixel2_ );
+  blit_data.kernelx1 = blit_data.kernel0;
+  blit_data.kernelx2 = blit_data.kernel0;
 
-  sms_ntsc_out_t* restrict line_out  = (sms_ntsc_out_t*)(&bitmap.data[(vline * bitmap.pitch)]);
+  blit_data.line_out  = (sms_ntsc_out_t*)(&bitmap.data[(vline * bitmap.pitch)]);
 
   int n;
   input += in_extra;
@@ -111,32 +117,32 @@ void sms_ntsc_blit( sms_ntsc_t const* ntsc, SMS_NTSC_IN_T const* table, u8* inpu
   for ( n = chunk_count; n; --n )
   {
     /* order of input and output pixels must not be altered */
-    SMS_NTSC_COLOR_IN( 0, ntsc, SMS_NTSC_ADJ_IN( table[*input++] ) );
-    SMS_NTSC_RGB_OUT( 0, *line_out++ );
-    SMS_NTSC_RGB_OUT( 1, *line_out++ );
+    SMS_NTSC_COLOR_IN(&blit_data, 0, ntsc, SMS_NTSC_ADJ_IN( table[*input++] ) );
+    SMS_NTSC_RGB_OUT(&blit_data, 0);
+    SMS_NTSC_RGB_OUT(&blit_data, 1);
     
-    SMS_NTSC_COLOR_IN( 1, ntsc, SMS_NTSC_ADJ_IN( table[*input++] ) );
-    SMS_NTSC_RGB_OUT( 2, *line_out++ );
-    SMS_NTSC_RGB_OUT( 3, *line_out++ );
+    SMS_NTSC_COLOR_IN(&blit_data, 1, ntsc, SMS_NTSC_ADJ_IN( table[*input++] ) );
+    SMS_NTSC_RGB_OUT(&blit_data, 2);
+    SMS_NTSC_RGB_OUT(&blit_data, 3);
       
-    SMS_NTSC_COLOR_IN( 2, ntsc, SMS_NTSC_ADJ_IN( table[*input++] ) );
-    SMS_NTSC_RGB_OUT( 4, *line_out++ );
-    SMS_NTSC_RGB_OUT( 5, *line_out++ );
-    SMS_NTSC_RGB_OUT( 6, *line_out++ );
+    SMS_NTSC_COLOR_IN(&blit_data, 2, ntsc, SMS_NTSC_ADJ_IN( table[*input++] ) );
+    SMS_NTSC_RGB_OUT(&blit_data, 4);
+    SMS_NTSC_RGB_OUT(&blit_data, 5);
+    SMS_NTSC_RGB_OUT(&blit_data, 6);
   }
 
   /* finish final pixels */
-  SMS_NTSC_COLOR_IN( 0, ntsc, border );
-  SMS_NTSC_RGB_OUT( 0, *line_out++ );
-  SMS_NTSC_RGB_OUT( 1, *line_out++ );
+  SMS_NTSC_COLOR_IN(&blit_data, 0, ntsc, border );
+  SMS_NTSC_RGB_OUT(&blit_data, 0);
+  SMS_NTSC_RGB_OUT(&blit_data, 1);
 
-  SMS_NTSC_COLOR_IN( 1, ntsc, border );
-  SMS_NTSC_RGB_OUT( 2, *line_out++ );
-  SMS_NTSC_RGB_OUT( 3, *line_out++ );
+  SMS_NTSC_COLOR_IN(&blit_data, 1, ntsc, border );
+  SMS_NTSC_RGB_OUT(&blit_data, 2);
+  SMS_NTSC_RGB_OUT(&blit_data, 3);
 
-  SMS_NTSC_COLOR_IN( 2, ntsc, border );
-  SMS_NTSC_RGB_OUT( 4, *line_out++ );
-  SMS_NTSC_RGB_OUT( 5, *line_out++ );
-  SMS_NTSC_RGB_OUT( 6, *line_out++ );
+  SMS_NTSC_COLOR_IN(&blit_data, 2, ntsc, border );
+  SMS_NTSC_RGB_OUT(&blit_data, 4);
+  SMS_NTSC_RGB_OUT(&blit_data, 5);
+  SMS_NTSC_RGB_OUT(&blit_data, 6);
 }
 #endif
