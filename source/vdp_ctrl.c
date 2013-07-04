@@ -42,17 +42,6 @@
 #include "shared.h"
 #include "hvc.h"
 
-/* Mark a pattern as modified */
-#define MARK_BG_DIRTY(addr)                         \
-{                                                   \
-  name = (addr >> 5) & 0x7FF;                       \
-  if(bg_name_dirty[name] == 0)                      \
-  {                                                 \
-    bg_name_list[bg_list_index++] = name;           \
-  }                                                 \
-  bg_name_dirty[name] |= (1 << ((addr >> 2) & 7));  \
-}
-
 /* VDP context */
 u8 sat[0x400];     /* Internal copy of sprite attribute table */
 u8 vram[0x10000];  /* Video RAM (64K x 8-bit) */
@@ -89,6 +78,17 @@ s32 fifo_write_cnt;             /* VDP writes fifo count */
 u32 fifo_lastwrite;            /* last VDP write cycle */
 u32 hvc_latch;                 /* latched HV counter */
 const u8 *hctab;               /* pointer to H Counter table */
+
+/* Mark a pattern as modified */
+void MARK_BG_DIRTY(int index, int* name)
+{
+  *name = (index >> 5) & 0x7FF;
+  if(bg_name_dirty[*name] == 0)
+  {
+    bg_name_list[bg_list_index++] = *name;
+  }
+  bg_name_dirty[*name] |= (1 << ((index >> 2) & 7));
+}
 
 /* Function pointers */
 void (*vdp_68k_data_w)(u32 data);
@@ -2126,7 +2126,7 @@ static void vdp_bus_w(u32 data)
         *p = data;
 
         /* Update pattern cache */
-        MARK_BG_DIRTY (index);
+        MARK_BG_DIRTY (index, &name);
       }
 
 #ifdef LOGVDP
@@ -2298,7 +2298,7 @@ static void vdp_68k_data_w_m4(u32 data)
       *p = data;
 
       /* Update the pattern cache */
-      MARK_BG_DIRTY (index);
+      MARK_BG_DIRTY (index, &name);
     }
   }
 
@@ -2498,7 +2498,7 @@ static void vdp_z80_data_w_m4(u32 data)
       vram[index] = data;
 
       /* Update pattern cache */
-      MARK_BG_DIRTY(index);
+      MARK_BG_DIRTY(index, &name);
     }
   }
 
@@ -2535,7 +2535,7 @@ static void vdp_z80_data_w_m5(u32 data)
         WRITE_BYTE(vram, index, data);
 
         /* Update pattern cache */
-        MARK_BG_DIRTY (index);
+        MARK_BG_DIRTY (index, &name);
       }
       break;
     }
@@ -2711,7 +2711,7 @@ static void vdp_z80_data_w_ms(u32 data)
     {
       int name;
       vram[index] = data;
-      MARK_BG_DIRTY(index);
+      MARK_BG_DIRTY(index, &name);
     }
 
 #ifdef LOGVDP
@@ -2778,7 +2778,7 @@ static void vdp_z80_data_w_gg(u32 data)
     {
       int name;
       vram[index] = data;
-      MARK_BG_DIRTY(index);
+      MARK_BG_DIRTY(index, &name);
     }
 #ifdef LOGVDP
     error("[%d(%d)][%d(%d)] VRAM 0x%x write -> 0x%x (%x)\n", v_counter, Z80.cycles/MCYCLES_PER_LINE-1, Z80.cycles, Z80.cycles%MCYCLES_PER_LINE, index, data, Z80.pc.w.l);
@@ -2998,7 +2998,7 @@ static void vdp_dma_copy(u32 length)
       WRITE_BYTE(vram, addr, data);
 
       /* Update pattern cache */
-      MARK_BG_DIRTY(addr);
+      MARK_BG_DIRTY(addr, &name);
 
       /* Increment source address */
       source++;
@@ -3035,7 +3035,7 @@ static void vdp_dma_fill(u32 length)
       WRITE_BYTE(vram, addr ^ 1, data);
 
       /* Update pattern cache */
-      MARK_BG_DIRTY (addr);
+      MARK_BG_DIRTY (addr, &name);
 
       /* Increment VRAM address */
       addr += reg[15];

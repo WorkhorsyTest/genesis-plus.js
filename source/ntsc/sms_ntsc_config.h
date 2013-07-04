@@ -17,7 +17,9 @@ handle things however it wants. */
 
 /* Each raw pixel input value is passed through this. You might want to mask
 the pixel index if you use the high bits as flags, etc. */
-#define SMS_NTSC_ADJ_IN( in ) in
+static u32 SMS_NTSC_ADJ_IN(u32 in) {
+  return in;
+}
 
 /* For each pixel, this is the basic operation:
 output_color = SMS_NTSC_ADJ_IN( SMS_NTSC_IN_T ) */

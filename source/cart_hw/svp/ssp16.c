@@ -836,9 +836,6 @@ static write_func_t write_handlers[16] =
 
 /* ----------------------------------------------------- */
 /* pointer register handlers */
-
-#define ptr1_read(op) ptr1_read_(op&3,(op>>6)&4,(op<<1)&0x18)
-
 static u32 ptr1_read_(int ri, int isj2, int modi3)
 {
   /* int t = (op&3) | ((op>>6)&4) | ((op<<1)&0x18); */
@@ -898,6 +895,10 @@ modulo:
   mask = (1 << (rST&7)) - 1;
   *rp = (*rp & ~mask) | ((*rp + add) & mask);
   return t;
+}
+
+static u32 ptr1_read(u32 op) {
+  return ptr1_read_(op&3, (op>>6)&4, (op<<1)&0x18);
 }
 
 static void ptr1_write(int op, u32 d)
