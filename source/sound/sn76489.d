@@ -40,50 +40,54 @@
     - Rewrote core with various optimizations
 */
 
-#include "shared.h"
+import shared.d;
+import blip_buf.d;
 
-#define PSG_MCYCLES_RATIO (16 * 15)
+const int SN_DISCRETE    = 0;
+const int SN_INTEGRATED  = 1;
+
+const int PSG_MCYCLES_RATIO = 16 * 15;
 
 /* Initial state of shift register */
-#define NoiseInitialState 0x8000
+const int NoiseInitialState = 0x8000;
 
 /* Value below which PSG does not output  */
 /*#define PSG_CUTOFF 0x6*/
-#define PSG_CUTOFF 0x1
+const int PSG_CUTOFF = 0x1;
 
 /* original Texas Instruments TMS SN76489AN (rev. A) used in SG-1000, SC-3000H & SF-7000 computers */
-#define FB_DISCRETE 0x0006
-#define SRW_DISCRETE  15
+const int FB_DISCRETE = 0x0006;
+const int SRW_DISCRETE  = 15;
 
 /* SN76489AN clone integrated in Sega's VDP chips (315-5124, 315-5246, 315-5313, Game Gear) */
-#define FB_SEGAVDP 0x0009
-#define SRW_SEGAVDP 16
+const int FB_SEGAVDP = 0x0009;
+const int SRW_SEGAVDP = 16;
 
-typedef struct
+struct SN76489_Context
 {
   /* Configuration */
-  int PreAmp[4][2];       /* stereo channels pre-amplification ratio (%) */
+  int[4][2] PreAmp;       /* stereo channels pre-amplification ratio (%) */
   int NoiseFeedback;
   int SRWidth;
 
   /* PSG registers: */
-  int Registers[8];       /* Tone, vol x4 */
+  int[8] Registers;       /* Tone, vol x4 */
   int LatchedRegister;
   int NoiseShiftRegister;
   int NoiseFreq;          /* Noise channel signal generator frequency */
 
   /* Output calculation variables */
-  int ToneFreqVals[4];    /* Frequency register values (counters) */
-  int ToneFreqPos[4];     /* Frequency channel flip-flops */
-  int Channel[4][2];      /* current amplitude of each (stereo) channel */
-  int ChanOut[4][2];      /* current output value of each (stereo) channel */
+  int[4] ToneFreqVals;    /* Frequency register values (counters) */
+  int[4] ToneFreqPos;     /* Frequency channel flip-flops */
+  int[4][2] Channel;      /* current amplitude of each (stereo) channel */
+  int[4][2] ChanOut;      /* current output value of each (stereo) channel */
 
   /* Internal M-clock counter */
-  unsigned long clocks;
+  u32 clocks;
 
-} SN76489_Context;
+}
 
-static const u16 PSGVolumeValues[16] =
+static const u16[16] PSGVolumeValues =
 {
   /* These values are taken from a real SMS2's output */
   /*{892,892,892,760,623,497,404,323,257,198,159,123,96,75,60,0}, */
@@ -94,7 +98,7 @@ static const u16 PSGVolumeValues[16] =
 
 static SN76489_Context SN76489;
 
-static blip_t* blip[2];
+static blip_t[2] blip;
 
 void SN76489_Init(blip_t* left, blip_t* right, int type)
 {

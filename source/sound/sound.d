@@ -37,13 +37,13 @@
  *
  ****************************************************************************************/
 
-#include "shared.h"
-#include "blip_buf.h"
+import shared.d;
+import blip_buf.d;
 
 /* FM output buffer (large enough to hold a whole frame at original chips rate) */
-static int fm_buffer[1080 * 2];
-static int fm_last[2];
-static int *fm_ptr;
+static int[1080 * 2] fm_buffer;
+static int[2] fm_last;
+static int* fm_ptr;
 
 /* Cycle-accurate FM samples */
 static u32 fm_cycles_ratio;
@@ -52,7 +52,7 @@ static u32 fm_cycles_count;
 
 /* YM chip function pointers */
 static void (*YM_Reset)();
-static void (*YM_Update)(int *buffer, int length);
+static void (*YM_Update)(int* buffer, int length);
 static void (*YM_Write)(u32 a, u32 v);
 
 /* Run FM chip until required M-cycles */
@@ -74,7 +74,7 @@ void fm_update(u32 cycles)
   }
 }
 
-void sound_init( void )
+void sound_init()
 {
   /* Initialize FM chip */
   if ((system_hw & SYSTEM_PBC) == SYSTEM_MD)

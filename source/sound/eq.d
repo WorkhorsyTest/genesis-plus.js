@@ -30,11 +30,44 @@
 /* ----------
 //| Includes |
 // ----------*/
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include "eq.h"
-#include "macros.h"
+import std.math;
+import macros.d;
+
+
+/* ------------
+//| Structures |
+// ------------*/
+
+struct EQSTATE {
+    /* Filter #1 (Low band) */
+
+    double lf;      /* Frequency */
+    double f1p0;      /* Poles ... */
+    double f1p1;
+    double f1p2;
+    double f1p3;
+
+    /* Filter #2 (High band) */
+
+    double hf;      /* Frequency */
+    double f2p0;      /* Poles ... */
+    double f2p1;
+    double f2p2;
+    double f2p3;
+
+    /* Sample history buffer */
+
+    double sdm1;      /* Sample data minus 1 */
+    double sdm2;      /*                   2 */
+    double sdm3;      /*                   3 */
+
+    /* Gain Controls */
+
+    double lg;      /* low  gain */
+    double mg;      /* mid  gain */
+    double hg;      /* high gain */
+
+}
 
 
 /* -----------
@@ -63,14 +96,14 @@ void init_3band_state(EQSTATE * es, int lowfreq, int highfreq, int mixfreq)
 
     /* Set Low/Mid/High gains to unity */
 
-    es->lg = 1.0;
-    es->mg = 1.0;
-    es->hg = 1.0;
+    es.lg = 1.0;
+    es.mg = 1.0;
+    es.hg = 1.0;
 
     /* Calculate filter cutoff frequencies */
 
-    es->lf = 2 * sin(M_PI * ((double) lowfreq / (double) mixfreq));
-    es->hf = 2 * sin(M_PI * ((double) highfreq / (double) mixfreq));
+    es.lf = 2 * sin(M_PI * ((double) lowfreq / (double) mixfreq));
+    es.hf = 2 * sin(M_PI * ((double) highfreq / (double) mixfreq));
 }
 
 
@@ -84,7 +117,7 @@ void init_3band_state(EQSTATE * es, int lowfreq, int highfreq, int mixfreq)
 // (especially the bass) so may require clipping before output, but you 
 // knew that anyway :)*/
 
-double do_3band(EQSTATE * es, int sample)
+double do_3band(EQSTATE* es, int sample)
 {
     /* Locals */
 
@@ -92,39 +125,39 @@ double do_3band(EQSTATE * es, int sample)
 
     /* Filter #1 (lowpass) */
 
-    es->f1p0 += (es->lf * ((double) sample - es->f1p0)) + vsa;
-    es->f1p1 += (es->lf * (es->f1p0 - es->f1p1));
-    es->f1p2 += (es->lf * (es->f1p1 - es->f1p2));
-    es->f1p3 += (es->lf * (es->f1p2 - es->f1p3));
+    es.f1p0 += (es.lf * ((double) sample - es.f1p0)) + vsa;
+    es.f1p1 += (es.lf * (es.f1p0 - es.f1p1));
+    es.f1p2 += (es.lf * (es.f1p1 - es.f1p2));
+    es.f1p3 += (es.lf * (es.f1p2 - es.f1p3));
 
-    l = es->f1p3;
+    l = es.f1p3;
 
     /* Filter #2 (highpass) */
 
-    es->f2p0 += (es->hf * ((double) sample - es->f2p0)) + vsa;
-    es->f2p1 += (es->hf * (es->f2p0 - es->f2p1));
-    es->f2p2 += (es->hf * (es->f2p1 - es->f2p2));
-    es->f2p3 += (es->hf * (es->f2p2 - es->f2p3));
+    es.f2p0 += (es.hf * ((double) sample - es.f2p0)) + vsa;
+    es.f2p1 += (es.hf * (es.f2p0 - es.f2p1));
+    es.f2p2 += (es.hf * (es.f2p1 - es.f2p2));
+    es.f2p3 += (es.hf * (es.f2p2 - es.f2p3));
 
-    h = es->sdm3 - es->f2p3;
+    h = es.sdm3 - es.f2p3;
 
     /* Calculate midrange (signal - (low + high)) */
 
-    /* m = es->sdm3 - (h + l); */
+    /* m = es.sdm3 - (h + l); */
     /* fix from http://www.musicdsp.org/showArchiveComment.php?ArchiveID=236 ? */
     m = sample - (h + l);
 
     /* Scale, Combine and store */
 
-    l *= es->lg;
-    m *= es->mg;
-    h *= es->hg;
+    l *= es.lg;
+    m *= es.mg;
+    h *= es.hg;
 
     /* Shuffle history buffer */
 
-    es->sdm3 = es->sdm2;
-    es->sdm2 = es->sdm1;
-    es->sdm1 = sample;
+    es.sdm3 = es.sdm2;
+    es.sdm2 = es.sdm1;
+    es.sdm1 = sample;
 
     /* Return result */
 

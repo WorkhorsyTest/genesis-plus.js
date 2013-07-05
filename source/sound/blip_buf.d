@@ -6,14 +6,9 @@
 /*    - modified blip_read_samples to always output to stereo streams */
 /*    - added blip_mix_samples function (see blip_buf.h)              */
 
-#include "blip_buf.h"
+import blip_buf.d;
+import types.d;
 
-#ifdef BLIP_ASSERT
-#include <assert.h>
-#endif
-#include <limits.h>
-#include <string.h>
-#include <stdlib.h>
 
 /* Library Copyright (C) 2003-2009 Shay Green. This library is free software;
 you can redistribute it and/or modify it under the terms of the GNU Lesser
@@ -27,55 +22,53 @@ License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 
-#if defined (BLARGG_TEST) && BLARGG_TEST
-	#include "blargg_test.h"
-#endif
+/** Maximum clock_rate/sample_rate ratio. For a given sample_rate,
+clock_rate must not be greater than sample_rate*blip_max_ratio. */
+const int blip_max_ratio = 1 << 20;
 
-/* Equivalent to ULONG_MAX >= 0xFFFFFFFF00000000.
-Avoids constants that don't fit in 32 bits. */
-#if ULONG_MAX/0xFFFFFFFF > 0xFFFFFFFF
-	typedef unsigned long fixed_t;
-	enum { pre_shift = 32 };
+/** Maximum number of samples that can be generated from one time frame. */
+const int blip_max_frame = 4000;
 
-#elif defined(ULLONG_MAX)
-	typedef unsigned long long fixed_t;
-	enum { pre_shift = 32 };
+version(BLARGG_TEST) && version(BLARGG_TEST) {
+	import blargg_test.d;
+}
 
-#else
-	typedef unsigned fixed_t;
-	enum { pre_shift = 0 };
+alias u64 fixed_t;
+const int pre_shift = 32;
+//alias u32 fixed_t;
+//const int pre_shift = 0;
 
-#endif
-
-enum { time_bits = pre_shift + 20 };
+const int time_bits = pre_shift + 20;
 
 static fixed_t const time_unit = (fixed_t) 1 << time_bits;
 
-enum { bass_shift  = 9 }; /* affects high-pass filter breakpoint frequency */
-enum { end_frame_extra = 2 }; /* allows deltas slightly after frame length */
+const int bass_shift  = 9; /* affects high-pass filter breakpoint frequency */
+const int end_frame_extra = 2; /* allows deltas slightly after frame length */
 
-enum { half_width  = 8 };
-enum { buf_extra   = half_width*2 + end_frame_extra };
-enum { phase_bits  = 5 };
-enum { phase_count = 1 << phase_bits };
-enum { delta_bits  = 15 };
-enum { delta_unit  = 1 << delta_bits };
-enum { frac_bits = time_bits - pre_shift };
+const int half_width  = 8;
+const int buf_extra   = half_width*2 + end_frame_extra;
+const int phase_bits  = 5;
+const int phase_count = 1 << phase_bits;
+const int delta_bits  = 15;
+const int delta_unit  = 1 << delta_bits;
+const int frac_bits = time_bits - pre_shift;
 
 /* We could eliminate avail and encode whole samples in offset, but that would
 limit the total buffered samples to blip_max_frame. That could only be
 increased by decreasing time_bits, which would reduce resample ratio accuracy.
 */
 
+/** First parameter of most functions is blip_t*, or const blip_t* if nothing
+is changed. */
 struct blip_t
 {
 	fixed_t factor;
 	fixed_t offset;
 	int size;
 	int integrator;
-};
+}
 
-typedef int buf_t;
+alias int buf_t;
 
 /* probably not totally portable */
 buf_t* SAMPLES(blip_t* buf) {
@@ -87,8 +80,8 @@ int ARITH_SHIFT(int n, int shift) {
 	return n >> shift;
 }
 
-enum { max_sample = +32767 };
-enum { min_sample = -32768 };
+const int max_sample = +32767;
+const int min_sample = -32768;
 
 int CLAMP(int n) {
 	if (n > max_sample ) {
@@ -100,7 +93,7 @@ int CLAMP(int n) {
 	}
 }
 
-#ifdef BLIP_ASSERT
+version(BLIP_ASSERT) {
 static void check_assumptions( void )
 {
 	int n;
@@ -122,31 +115,35 @@ static void check_assumptions( void )
 	assert( blip_max_ratio <= time_unit );
 	assert( blip_max_frame <= (fixed_t) -1 >> time_bits );
 }
-#endif
+}
 
+/** Creates new buffer that can hold at most sample_count samples. Sets rates
+so that there are blip_max_ratio clocks per sample. Returns pointer to new
+buffer, or NULL if insufficient memory. */
 blip_t* blip_new( int size )
 {
 	blip_t* m;
-#ifdef BLIP_ASSERT
+version(BLIP_ASSERT) {
 	assert( size >= 0 );
-#endif
-  
+}
+
 	m = (blip_t*) malloc( sizeof *m + (size + buf_extra) * sizeof (buf_t) );
 	if ( m )
 	{
-		m->factor = time_unit / blip_max_ratio;
-		m->size   = size;
+		m.factor = time_unit / blip_max_ratio;
+		m.size   = size;
 		blip_clear( m );
-#ifdef BLIP_ASSERT
+version(BLIP_ASSERT) {
 		check_assumptions();
-#endif
+}
   }
 	return m;
 }
 
+/** Frees buffer. No effect if NULL is passed. */
 void blip_delete( blip_t* m )
 {
-	if ( m != NULL )
+	if ( m != null )
 	{
 		/* Clear fields in case user tries to use after freeing */
 		memset( m, 0, sizeof *m );
@@ -154,25 +151,28 @@ void blip_delete( blip_t* m )
 	}
 }
 
+/** Sets approximate input clock rate and output sample rate. For every
+clock_rate input clocks, approximately sample_rate samples are generated. */
 void blip_set_rates( blip_t* m, double clock_rate, double sample_rate )
 {
 	double factor = time_unit * sample_rate / clock_rate;
-	m->factor = (fixed_t) factor;
+	m.factor = (fixed_t) factor;
 	
-#ifdef BLIP_ASSERT
+version(BLIP_ASSERT) {
 	/* Fails if clock_rate exceeds maximum, relative to sample_rate */
-	assert( 0 <= factor - m->factor && factor - m->factor < 1 );
-#endif
+	assert( 0 <= factor - m.factor && factor - m.factor < 1 );
+}
   
 /* Avoid requiring math.h. Equivalent to
-	m->factor = (int) ceil( factor ) */
-	if ( m->factor < factor )
-		m->factor++;
+	m.factor = (int) ceil( factor ) */
+	if ( m.factor < factor )
+		m.factor++;
 	
 	/* At this point, factor is most likely rounded up, but could still
 	have been rounded down in the floating-point calculation. */
 }
 
+/** Clears entire buffer. Afterwards, blip_samples_avail() == 0. */
 void blip_clear( blip_t* m )
 {
 	/* We could set offset to 0, factor/2, or factor-1. 0 is suitable if
@@ -181,83 +181,94 @@ void blip_clear( blip_t* m )
 	with the slight loss of showing an error in half the time. Since for
 	a 64-bit factor this is years, the halving isn't a problem. */
 	
-	m->offset     = m->factor / 2;
-	m->integrator = 0;
-	memset( SAMPLES( m ), 0, (m->size + buf_extra) * sizeof (buf_t) );
+	m.offset     = m.factor / 2;
+	m.integrator = 0;
+	memset( SAMPLES( m ), 0, (m.size + buf_extra) * sizeof (buf_t) );
 }
 
+/** Length of time frame, in clocks, needed to make sample_count additional
+samples available. */
 int blip_clocks_needed( const blip_t* m, int samples )
 {
 	fixed_t needed;
 	
-#ifdef BLIP_ASSERT
+version(BLIP_ASSERT) {
 	/* Fails if buffer can't hold that many more samples */
-	assert( (samples >= 0) && (((m->offset >> time_bits) + samples) <= m->size) );
-#endif
+	assert( (samples >= 0) && (((m.offset >> time_bits) + samples) <= m.size) );
+}
 
   needed = (fixed_t) samples * time_unit;
-	if ( needed < m->offset )
+	if ( needed < m.offset )
 		return 0;
 	
-	return (needed - m->offset + m->factor - 1) / m->factor;
+	return (needed - m.offset + m.factor - 1) / m.factor;
 }
 
+/** Makes input clocks before clock_duration available for reading as output
+samples. Also begins new time frame at clock_duration, so that clock time 0 in
+the new time frame specifies the same clock as clock_duration in the old time
+frame specified. Deltas can have been added slightly past clock_duration (up to
+however many clocks there are in two output samples). */
 void blip_end_frame( blip_t* m, unsigned t )
 {
-	m->offset += t * m->factor;
+	m.offset += t * m.factor;
 	
-#ifdef BLIP_ASSERT
+version(BLIP_ASSERT) {
 	/* Fails if buffer size was exceeded */
-  assert( (m->offset >> time_bits) <= m->size );
-#endif
+  assert( (m.offset >> time_bits) <= m.size );
+}
 }
 
+/** Number of buffered samples available for reading. */
 int blip_samples_avail( const blip_t* m )
 {
-	return (m->offset >> time_bits);
+	return (m.offset >> time_bits);
 }
 
 static void remove_samples( blip_t* m, int count )
 {
 	buf_t* buf = SAMPLES( m );
-	int remain = (m->offset >> time_bits) + buf_extra - count;
-  m->offset -= count * time_unit;
+	int remain = (m.offset >> time_bits) + buf_extra - count;
+  m.offset -= count * time_unit;
   
 	memmove( &buf [0], &buf [count], remain * sizeof buf [0] );
 	memset( &buf [remain], 0, count * sizeof buf [0] );
 }
 
-int blip_read_samples( blip_t* m, s16 out [], int count)
+/** Reads and removes at most 'count' samples and writes them to to every other 
+element of 'out', allowing easy interleaving of two buffers into a stereo sample
+stream. Outputs 16-bit signed samples. Returns number of samples actually read.  */
+int blip_read_samples( blip_t* m, s16[] out_var, int count)
 {
-#ifdef BLIP_ASSERT
+version(BLIP_ASSERT) {
 	assert( count >= 0 );
 	
-	if ( count > (m->offset >> time_bits) )
-		count = m->offset >> time_bits;
+	if ( count > (m.offset >> time_bits) )
+		count = m.offset >> time_bits;
 	
 	if ( count )
-#endif
+}
   {
-		buf_t const* in  = SAMPLES( m );
-		buf_t const* end = in + count;
-		int sum = m->integrator;
+		const buf_t* in_var  = SAMPLES( m );
+		const buf_t* end = in_var + count;
+		int sum = m.integrator;
 		do
 		{
 			/* Eliminate fraction */
 			int s = ARITH_SHIFT( sum, delta_bits );
 			
-			sum += *in++;
+			sum += *in_var++;
 			
 			s = CLAMP( s );
 			
-			*out = s;
-			out += 2;
+			*out_var = s;
+			out_var += 2;
 			
 			/* High-pass filter */
 			sum -= s << (delta_bits - bass_shift);
 		}
-		while ( in != end );
-		m->integrator = sum;
+		while ( in_var != end );
+		m.integrator = sum;
 		
 		remove_samples( m, count );
 	}
@@ -265,40 +276,42 @@ int blip_read_samples( blip_t* m, s16 out [], int count)
 	return count;
 }
 
-int blip_mix_samples( blip_t* m, s16 out [], int count)
+/* Same as above function except sample is added to output buffer previous value */
+/* This allows easy mixing of different blip buffers into a single output stream */
+int blip_mix_samples( blip_t* m, s16[] out_var, int count)
 {
-#ifdef BLIP_ASSERT
+version(BLIP_ASSERT) {
 	assert( count >= 0 );
 	
-	if ( count > (m->offset >> time_bits) )
-		count = m->offset >> time_bits;
+	if ( count > (m.offset >> time_bits) )
+		count = m.offset >> time_bits;
 	
 	if ( count )
-#endif
+}
   {
-		buf_t const* in  = SAMPLES( m );
-		buf_t const* end = in + count;
-		int sum = m->integrator;
+		const buf_t* in_var  = SAMPLES( m );
+		const buf_t* end = in_var + count;
+		int sum = m.integrator;
 		do
 		{
 			/* Eliminate fraction */
 			int s = ARITH_SHIFT( sum, delta_bits );
 			
-			sum += *in++;
+			sum += *in_var++;
 			
 			/* High-pass filter */
 			sum -= s << (delta_bits - bass_shift);
 
             /* Add current buffer value */
-            s += *out;
+            s += *out_var;
 			
 			s = CLAMP( s );
 			
-			*out = s;
-			out += 2;
+			*out_var = s;
+			out_var += 2;
 		}
-		while ( in != end );
-		m->integrator = sum;
+		while ( in_var != end );
+		m.integrator = sum;
 		
 		remove_samples( m, count );
 	}
@@ -313,7 +326,7 @@ int blip_mix_samples( blip_t* m, s16 out [], int count)
 */
 
 /* Sinc_Generator( 0.9, 0.55, 4.5 ) */
-static s16 const bl_step [phase_count + 1] [half_width] =
+static const s16[phase_count + 1][half_width] bl_step =
 {
 {   43, -115,  350, -488, 1136, -914, 5861,21022},
 {   44, -118,  348, -473, 1076, -799, 5274,21001},
@@ -355,58 +368,60 @@ possibly-wider fixed_t. On 32-bit platforms, this is likely more efficient.
 And by having pre_shift 32, a 32-bit platform can easily do the shift by
 simply ignoring the low half. */
 
+/** Adds positive/negative delta into buffer at specified clock time. */
 void blip_add_delta( blip_t* m, unsigned time, int delta )
 {
-	unsigned fixed = (unsigned) ((time * m->factor + m->offset) >> pre_shift);
-	buf_t* out = SAMPLES( m ) + (fixed >> frac_bits);
+	unsigned fixed = (unsigned) ((time * m.factor + m.offset) >> pre_shift);
+	buf_t* out_var = SAMPLES( m ) + (fixed >> frac_bits);
 	
-	int const phase_shift = frac_bits - phase_bits;
+	const int phase_shift = frac_bits - phase_bits;
 	int phase = fixed >> phase_shift & (phase_count - 1);
-	s16 const* in  = bl_step [phase];
-	s16 const* rev = bl_step [phase_count - phase];
+	const s16* in_var  = bl_step [phase];
+	const s16* rev = bl_step [phase_count - phase];
 	
 	int interp = fixed >> (phase_shift - delta_bits) & (delta_unit - 1);
 	int delta2 = (delta * interp) >> delta_bits;
 	delta -= delta2;
 	
-#ifdef BLIP_ASSERT
+version(BLIP_ASSERT) {
 	/* Fails if buffer size was exceeded */
-	assert( out <= &SAMPLES( m ) [m->size + end_frame_extra] );
-#endif
-
-	out [0] += in[0]*delta + in[half_width+0]*delta2;
-	out [1] += in[1]*delta + in[half_width+1]*delta2;
-	out [2] += in[2]*delta + in[half_width+2]*delta2;
-	out [3] += in[3]*delta + in[half_width+3]*delta2;
-	out [4] += in[4]*delta + in[half_width+4]*delta2;
-	out [5] += in[5]*delta + in[half_width+5]*delta2;
-	out [6] += in[6]*delta + in[half_width+6]*delta2;
-	out [7] += in[7]*delta + in[half_width+7]*delta2;
-	
-	in = rev;
-	out [ 8] += in[7]*delta + in[7-half_width]*delta2;
-	out [ 9] += in[6]*delta + in[6-half_width]*delta2;
-	out [10] += in[5]*delta + in[5-half_width]*delta2;
-	out [11] += in[4]*delta + in[4-half_width]*delta2;
-	out [12] += in[3]*delta + in[3-half_width]*delta2;
-	out [13] += in[2]*delta + in[2-half_width]*delta2;
-	out [14] += in[1]*delta + in[1-half_width]*delta2;
-	out [15] += in[0]*delta + in[0-half_width]*delta2;
+	assert( out_var <= &SAMPLES( m ) [m.size + end_frame_extra] );
 }
 
+	out_var [0] += in_var[0]*delta + in_var[half_width+0]*delta2;
+	out_var [1] += in_var[1]*delta + in_var[half_width+1]*delta2;
+	out_var [2] += in_var[2]*delta + in_var[half_width+2]*delta2;
+	out_var [3] += in_var[3]*delta + in_var[half_width+3]*delta2;
+	out_var [4] += in_var[4]*delta + in_var[half_width+4]*delta2;
+	out_var [5] += in_var[5]*delta + in_var[half_width+5]*delta2;
+	out_var [6] += in_var[6]*delta + in_var[half_width+6]*delta2;
+	out_var [7] += in_var[7]*delta + in_var[half_width+7]*delta2;
+	
+	in_var = rev;
+	out_var [ 8] += in_var[7]*delta + in_var[7-half_width]*delta2;
+	out_var [ 9] += in_var[6]*delta + in_var[6-half_width]*delta2;
+	out_var [10] += in_var[5]*delta + in_var[5-half_width]*delta2;
+	out_var [11] += in_var[4]*delta + in_var[4-half_width]*delta2;
+	out_var [12] += in_var[3]*delta + in_var[3-half_width]*delta2;
+	out_var [13] += in_var[2]*delta + in_var[2-half_width]*delta2;
+	out_var [14] += in_var[1]*delta + in_var[1-half_width]*delta2;
+	out_var [15] += in_var[0]*delta + in_var[0-half_width]*delta2;
+}
+
+/** Same as blip_add_delta(), but uses faster, lower-quality synthesis. */
 void blip_add_delta_fast( blip_t* m, unsigned time, int delta )
 {
-	unsigned fixed = (unsigned) ((time * m->factor + m->offset) >> pre_shift);
-	buf_t* out = SAMPLES( m ) + (fixed >> frac_bits);
+	unsigned fixed = (unsigned) ((time * m.factor + m.offset) >> pre_shift);
+	buf_t* out_var = SAMPLES( m ) + (fixed >> frac_bits);
 	
 	int interp = fixed >> (frac_bits - delta_bits) & (delta_unit - 1);
 	int delta2 = delta * interp;
 	
-#ifdef BLIP_ASSERT
+version(BLIP_ASSERT) {
   /* Fails if buffer size was exceeded */
-	assert( out <= &SAMPLES( m ) [m->size + end_frame_extra] );
-#endif
+	assert( out_var <= &SAMPLES( m ) [m.size + end_frame_extra] );
+}
   
-	out [7] += delta * delta_unit - delta2;
-	out [8] += delta2;
+	out_var [7] += delta * delta_unit - delta2;
+	out_var [8] += delta2;
 }
