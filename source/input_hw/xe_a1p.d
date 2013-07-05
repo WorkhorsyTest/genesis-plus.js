@@ -36,14 +36,16 @@
  *
  ****************************************************************************************/
 
-#include "shared.h"
+import shared.d;
 
-static struct
+struct xe_a1p_t
 {
   u8 State;
   u8 Counter;
   u8 Latency;
-} xe_a1p;
+}
+
+static xe_a1p_t xe_a1p;
 
 void xe_a1p_reset()
 {

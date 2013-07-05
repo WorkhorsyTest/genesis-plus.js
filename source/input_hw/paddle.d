@@ -1,8 +1,8 @@
 /***************************************************************************************
  *  Genesis Plus
- *  CD drive processor & CD-DA fader
+ *  Sega Paddle Control support
  *
- *  Copyright (C) 2012  Eke-Eke (Genesis Plus GX)
+ *  Copyright (C) 2007-2011  Eke-Eke (Genesis Plus GX)
  *
  *  Redistribution and use of this code or any derivative works are permitted
  *  provided that the following conditions are met:
@@ -35,71 +35,79 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *
  ****************************************************************************************/
-#ifndef _HW_CDD_
-#define _HW_CDD_
 
-#include "blip_buf.h"
+import shared.d;
 
-#define cdd scd.cdd_hw
-
-/* CDD status */
-#define NO_DISC  0x00
-#define CD_PLAY  0x01
-#define CD_SEEK  0x02
-#define CD_SCAN  0x03
-#define CD_READY 0x04
-#define CD_OPEN  0x05 /* similar to 0x0E ? */
-#define CD_STOP  0x09
-#define CD_END   0x0C
-
-/* CD blocks scanning speed */
-#define CD_SCAN_SPEED 30
-
-#define CD_MAX_TRACKS 100
-
-/* CD track */
-typedef struct
+struct paddle_t
 {
-  FILE *fd;
-  s32 offset;
-  s32 start;
-  s32 end;
-} track_t; 
+  u8 State;
+}
 
-/* CD TOC */
-typedef struct
+static paddle_t[2] paddle;
+
+void paddle_reset(int index)
 {
-  s32 end;
-  s32 last;
-  track_t tracks[CD_MAX_TRACKS];
-} toc_t; 
+  input.analog[index << 2][0] = 128;
+  paddle[index].State = 0x40;
+}
 
-/* CDD hardware */
-typedef struct
+u8 paddle_read(int port)
 {
-  u32 cycles;
-  u32 latency;
-  s32 loaded;
-  s32 index;
-  s32 lba;
-  s32 scanOffset;
-  s32 volume;
-  u8 status;
-  u16 sectorSize;
-  toc_t toc;
-  s16 audio[2];
-} cdd_t; 
+  /* FIRE button status (active low) */
+  u8 temp = ~(input.pad[port] & 0x10);
 
-/* Function prototypes */
-extern void cdd_init(blip_t* left, blip_t* right);
-extern void cdd_reset();
-extern int cdd_context_save(u8 *state);
-extern int cdd_context_load(u8 *state);
-extern int cdd_load(char *filename, char *header);
-extern void cdd_unload();
-extern void cdd_read_data(u8 *dst);
-extern void cdd_read_audio(u32 samples);
-extern void cdd_update();
-extern void cdd_process();
+  /* Pad index */
+  int index = port >> 2;
 
-#endif
+  /* Clear low bits */
+  temp &= 0x70;
+
+  /* Japanese model: automatic flip-flop */
+  if (region_code < REGION_USA)
+  {
+    paddle[index].State ^= 0x40;
+  }
+
+  if (paddle[index].State & 0x40)
+  {
+    /* return higher bits */
+    temp |= (input.analog[port][0] >> 4) & 0x0F;
+  }
+  else
+  {
+    /* return lower bits */
+    temp |= input.analog[port][0] & 0x0F;
+
+    /* set TR low */
+    temp &= ~0x20;
+  }
+
+  return temp;
+}
+
+void paddle_write(int index, u8 data, u8 mask)
+{
+  /* update bits set as output only */
+  paddle[index].State = (paddle[index].State & ~mask) | (data & mask);
+}
+
+
+u8 paddle_1_read()
+{
+  return paddle_read(0);
+}
+
+u8 paddle_2_read()
+{
+  return paddle_read(4);
+}
+
+void paddle_1_write(u8 data, u8 mask)
+{
+  paddle_write(0, data, mask);
+}
+
+void paddle_2_write(u8 data, u8 mask)
+{
+  paddle_write(1, data, mask);
+}

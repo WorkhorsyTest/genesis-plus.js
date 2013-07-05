@@ -36,35 +36,54 @@
  *
  ****************************************************************************************/
 
-#include "shared.h"
+import shared.d;
+
+alias scd.cdc_hw cdc;
+
+/* CDC hardware */
+struct cdc_t
+{
+  u8 ifstat;
+  u8 ifctrl;
+  reg16_t dbc;
+  reg16_t dac;
+  reg16_t pt;
+  reg16_t wa;
+  u8[2] ctrl;
+  u8[2][4] head;
+  u8[4] stat;
+  s32 cycles;
+  void (*dma_w)(u32 words);  /* DMA transfer callback */
+  u8[0x4000 + 2352] ram; /* 16K external RAM (with one block overhead to handle buffer overrun) */
+}
 
 /* IFSTAT register bitmasks */
-#define BIT_DTEI  0x40
-#define BIT_DECI  0x20
-#define BIT_DTBSY 0x08
-#define BIT_DTEN  0x02
+const int BIT_DTEI  = 0x40;
+const int BIT_DECI  = 0x20;
+const int BIT_DTBSY = 0x08;
+const int BIT_DTEN  = 0x02;
 
 /* IFCTRL register bitmasks */
-#define BIT_DTEIEN  0x40
-#define BIT_DECIEN  0x20
-#define BIT_DOUTEN  0x02
+const int BIT_DTEIEN  = 0x40;
+const int BIT_DECIEN  = 0x20;
+const int BIT_DOUTEN  = 0x02;
 
 /* CTRL0 register bitmasks */
-#define BIT_DECEN   0x80
-#define BIT_E01RQ   0x20
-#define BIT_AUTORQ  0x10
-#define BIT_WRRQ    0x04
+const int BIT_DECEN   = 0x80;
+const int BIT_E01RQ   = 0x20;
+const int BIT_AUTORQ  = 0x10;
+const int BIT_WRRQ    = 0x04;
 
 /* CTRL1 register bitmasks */
-#define BIT_MODRQ   0x08
-#define BIT_FORMRQ  0x04
-#define BIT_SHDREN  0x01
+const int BIT_MODRQ   = 0x08;
+const int BIT_FORMRQ  = 0x04;
+const int BIT_SHDREN  = 0x01;
 
 /* CTRL2 register bitmask */
-#define BIT_VALST   0x80
+const int BIT_VALST   = 0x80;
 
 /* TODO: figure exact DMA transfer rate */
-#define DMA_BYTES_PER_LINE 512
+const int DMA_BYTES_PER_LINE = 512;
 
 void cdc_init()
 {
@@ -296,9 +315,9 @@ s32 cdc_decoder_update(u32 header)
 
 void cdc_reg_w(u8 data)
 {
-#ifdef LOG_CDC
+version(LOG_CDC) {
   error("CDC register %X write 0x%04x (%X)\n", scd.regs[0x04>>1].byte.l & 0x0F, data, s68k.pc);
-#endif
+}
   switch (scd.regs[0x04>>1].byte.l & 0x0F)
   {
     case 0x01:  /* IFCTRL */
@@ -429,9 +448,9 @@ void cdc_reg_w(u8 data)
 
           default: /* invalid */
           {
-    #ifdef LOG_CDC
+    version(LOG_CDC) {
             error("invalid CDC tranfer destination (%d)\n", scd.regs[0x04>>1].byte.h & 0x07);
-    #endif
+    }
             break;
           }
         }
@@ -449,17 +468,6 @@ void cdc_reg_w(u8 data)
       /* clear DBCH bits 4-7 */
       cdc.dbc.byte.h &= 0x0f;
 
-#if 0
-      /* no pending decoder interrupt ? */
-      if ((cdc.ifstat | BIT_DECI) || !(cdc.ifctrl & BIT_DECIEN))
-      {
-        /* clear pending level 5 interrupt */
-        scd.pending &= ~(1 << 5);
-
-        /* update IRQ level */
-        s68k_update_irq((scd.pending & scd.regs[0x32>>1].byte.l) >> 1);
-      }
-#endif
       scd.regs[0x04>>1].byte.l = 0x08;
       break;
     }
@@ -607,18 +615,6 @@ u8 cdc_reg_r()
 
       /* clear pending decoder interrupt */
       cdc.ifstat |= BIT_DECI;
-      
-#if 0
-      /* no pending data transfer end interrupt */
-      if ((cdc.ifstat | BIT_DTEI) || !(cdc.ifctrl & BIT_DTEIEN))
-      {
-        /* clear pending level 5 interrupt */
-        scd.pending &= ~(1 << 5);
-
-        /* update IRQ level */
-        s68k_update_irq((scd.pending & scd.regs[0x32>>1].byte.l) >> 1);
-      }
-#endif
 
       scd.regs[0x04>>1].byte.l = 0x00;
       return data;
@@ -637,14 +633,14 @@ u16 cdc_host_r()
     /* read data word from CDC RAM buffer */
     u16 data = *(u16 *)(cdc.ram + (cdc.dac.w & 0x3ffe));
 
-#ifdef LSB_FIRST
+version(LSB_FIRST) {
     /* source data is stored in big endian format */
     data = ((data >> 8) | (data << 8)) & 0xffff;
-#endif
+}
 
-#ifdef LOG_CDC
+version(LOG_CDC) {
     error("CDC host read 0x%04x -> 0x%04x (dbc=0x%x) (%X)\n", cdc.dac.w, data, cdc.dbc.w, s68k.pc);
-#endif
+}
  
     /* increment data address counter */
     cdc.dac.w += 2;
@@ -685,8 +681,8 @@ u16 cdc_host_r()
     return data;
   }
 
-#ifdef LOG_CDC
+version(LOG_CDC) {
   error("error reading CDC host (data transfer disabled)\n");
-#endif
+}
   return 0xffff;
 }

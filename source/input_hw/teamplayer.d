@@ -36,15 +36,16 @@
  *
  ****************************************************************************************/
 
-#include "shared.h"
+import shared.d;
 
-static struct
+struct teamplayer_t
 {
   u8 State;
   u8 Counter;
-  u8 Table[12];
-} teamplayer[2];
+  u8[12] Table;
+}
 
+static teamplayer_t[2] teamplayer;
 
 void teamplayer_init(int port)
 {

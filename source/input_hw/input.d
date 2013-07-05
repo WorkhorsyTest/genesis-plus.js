@@ -37,16 +37,113 @@
  *
  ****************************************************************************************/
 
-#include "shared.h"
-#include "gamepad.h"
-#include "lightgun.h"
-#include "mouse.h"
-#include "activator.h"
-#include "xe_a1p.h"
-#include "teamplayer.h"
-#include "paddle.h"
-#include "sportspad.h"
-#include "terebi_oekaki.h"
+import shared.d;
+import gamepad.d;
+import lightgun.d;
+import mouse.d;
+import activator.d;
+import xe_a1p.d;
+import teamplayer.d;
+import paddle.d;
+import sportspad.d;
+import terebi_oekaki.d;
+
+/* Max. number of devices */
+const int MAX_DEVICES = 8;
+
+/* Ports configuration */
+const int NO_SYSTEM           = 0; /* unconnected port*/
+const int SYSTEM_MD_GAMEPAD   = 1; /* single 3-buttons or 6-buttons Control Pad */
+const int SYSTEM_MOUSE        = 2; /* Sega Mouse */
+const int SYSTEM_MENACER      = 3; /* Sega Menacer (port B only) */
+const int SYSTEM_JUSTIFIER    = 4; /* Konami Justifiers (port B only) */
+const int SYSTEM_XE_A1P       = 5; /* XE-A1P analog controller (port A only) */
+const int SYSTEM_ACTIVATOR    = 6; /* Sega Activator */
+const int SYSTEM_MS_GAMEPAD   = 7; /* single 2-buttons Control Pad (Master System) */
+const int SYSTEM_LIGHTPHASER  = 8; /* Sega Light Phaser (Master System) */
+const int SYSTEM_PADDLE       = 9; /* Sega Paddle Control (Master System) */
+const int SYSTEM_SPORTSPAD   = 10; /* Sega Sports Pad (Master System) */
+const int SYSTEM_TEAMPLAYER  = 11; /* Multi Tap -- Sega TeamPlayer */
+const int SYSTEM_WAYPLAY     = 12; /* Multi Tap -- EA 4-Way Play (use both ports) */
+
+/* Device type */
+const int NO_DEVICE         = 0xff; /* unconnected device (fixed ID for Team Player) */
+const int DEVICE_PAD3B      = 0x00; /* 3-buttons Control Pad (fixed ID for Team Player)*/
+const int DEVICE_PAD6B      = 0x01; /* 6-buttons Control Pad (fixed ID for Team Player) */
+const int DEVICE_PAD2B      = 0x02; /* 2-buttons Control Pad */
+const int DEVICE_MOUSE      = 0x03; /* Sega Mouse */
+const int DEVICE_LIGHTGUN   = 0x04; /* Sega Light Phaser, Menacer or Konami Justifiers */
+const int DEVICE_PADDLE     = 0x05; /* Sega Paddle Control */
+const int DEVICE_SPORTSPAD  = 0x06; /* Sega Sports Pad */
+const int DEVICE_PICO       = 0x07; /* PICO tablet */
+const int DEVICE_TEREBI     = 0x08; /* Terebi Oekaki tablet */
+const int DEVICE_XE_A1P     = 0x09; /* XE-A1P analog controller */
+const int DEVICE_ACTIVATOR  = 0x0a; /* Activator */
+
+/* Default Input bitmasks */
+const int INPUT_MODE         = 0x0800;
+const int INPUT_X            = 0x0400;
+const int INPUT_Y            = 0x0200;
+const int INPUT_Z            = 0x0100;
+const int INPUT_START        = 0x0080;
+const int INPUT_A            = 0x0040;
+const int INPUT_C            = 0x0020;
+const int INPUT_B            = 0x0010;
+const int INPUT_RIGHT        = 0x0008;
+const int INPUT_LEFT         = 0x0004;
+const int INPUT_DOWN         = 0x0002;
+const int INPUT_UP           = 0x0001;
+
+/* Master System specific bitmasks */
+const int INPUT_BUTTON2      = 0x0020;
+const int INPUT_BUTTON1      = 0x0010;
+
+/* Mega Mouse specific bitmask */
+const int INPUT_MOUSE_CENTER = 0x0040;
+const int INPUT_MOUSE_RIGHT  = 0x0020;
+const int INPUT_MOUSE_LEFT   = 0x0010;
+
+/* Pico hardware specific bitmask */
+const int INPUT_PICO_PEN     = 0x0080;
+const int INPUT_PICO_RED     = 0x0010;
+
+/* XE-1AP specific bitmask */
+const int INPUT_XE_E1        = 0x0800;
+const int INPUT_XE_E2        = 0x0400;
+const int INPUT_XE_START     = 0x0200;
+const int INPUT_XE_SELECT    = 0x0100;
+const int INPUT_XE_A         = 0x0080;
+const int INPUT_XE_B         = 0x0040;
+const int INPUT_XE_C         = 0x0020;
+const int INPUT_XE_D         = 0x0010;
+
+/* Activator specific bitmasks */
+const int INPUT_ACTIVATOR_8U = 0x8000;
+const int INPUT_ACTIVATOR_8L = 0x4000;
+const int INPUT_ACTIVATOR_7U = 0x2000;
+const int INPUT_ACTIVATOR_7L = 0x1000;
+const int INPUT_ACTIVATOR_6U = 0x0800;
+const int INPUT_ACTIVATOR_6L = 0x0400;
+const int INPUT_ACTIVATOR_5U = 0x0200;
+const int INPUT_ACTIVATOR_5L = 0x0100;
+const int INPUT_ACTIVATOR_4U = 0x0080;
+const int INPUT_ACTIVATOR_4L = 0x0040;
+const int INPUT_ACTIVATOR_3U = 0x0020;
+const int INPUT_ACTIVATOR_3L = 0x0010;
+const int INPUT_ACTIVATOR_2U = 0x0008;
+const int INPUT_ACTIVATOR_2L = 0x0004;
+const int INPUT_ACTIVATOR_1U = 0x0002;
+const int INPUT_ACTIVATOR_1L = 0x0001;
+
+struct t_input
+{
+  u8 system[2];              /* can be one of the SYSTEM_* values */
+  u8 dev[MAX_DEVICES];       /* can be one of the DEVICE_* values */
+  u16 pad[MAX_DEVICES];      /* digital inputs (any of INPUT_* values)  */
+  s16 analog[MAX_DEVICES][2]; /* analog inputs (x/y) */
+  int x_offset;                 /* gun horizontal offset */
+  int y_offset;                 /* gun vertical offset */
+}
 
 t_input input;
 int old_system[2] = {-1,-1};

@@ -1,8 +1,8 @@
 /***************************************************************************************
  *  Genesis Plus
- *  CD data controller (LC89510 compatible)
+ *  Sega Activator support
  *
- *  Copyright (C) 2012  Eke-Eke (Genesis Plus GX)
+ *  Copyright (C) 2011  Eke-Eke (Genesis Plus GX)
  *
  *  Redistribution and use of this code or any derivative works are permitted
  *  provided that the following conditions are met:
@@ -35,37 +35,102 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *
  ****************************************************************************************/
-#ifndef _HW_CDC_
-#define _HW_CDC_
 
-#define cdc scd.cdc_hw
+import shared.d;
 
-/* CDC hardware */
-typedef struct
+struct activator_t
 {
-  u8 ifstat;
-  u8 ifctrl;
-  reg16_t dbc;
-  reg16_t dac;
-  reg16_t pt;
-  reg16_t wa;
-  u8 ctrl[2];
-  u8 head[2][4];
-  u8 stat[4];
-  s32 cycles;
-  void (*dma_w)(u32 words);  /* DMA transfer callback */
-  u8 ram[0x4000 + 2352]; /* 16K external RAM (with one block overhead to handle buffer overrun) */
-} cdc_t; 
+  u8 State;
+  u8 Counter;
+}
 
-/* Function prototypes */
-extern void cdc_init();
-extern void cdc_reset();
-extern s32 cdc_context_save(u8 *state);
-extern s32 cdc_context_load(u8 *state);
-extern void cdc_dma_update();
-extern s32 cdc_decoder_update(u32 header);
-extern void cdc_reg_w(u8 data);
-extern u8 cdc_reg_r();
-extern u16 cdc_host_r();
+static activator_t[2] activator;
 
-#endif
+void activator_reset(int index)
+{
+
+  activator[index].State = 0x40;
+  activator[index].Counter = 0;
+}
+
+u8 activator_read(int port)
+{
+  /* IR sensors 1-16 data (active low) */
+  u16 data = ~input.pad[port << 2];
+
+  /* D1 = D0 (data is ready) */
+  u8 temp = (activator[port].State & 0x01) << 1;
+
+  switch (activator[port].Counter)
+  {
+    case 0: /* x x x x 0 1 0 0 */
+      temp |= 0x04;
+      break;
+
+    case 1: /* x x l1 l2 l3 l4 1 1 */
+      temp |= ((data << 2) & 0x3C);
+      break;
+
+    case 2: /* x x l5 l6 l7 l8 0 0 */
+      temp |= ((data >> 2) & 0x3C);
+      break;
+
+    case 3: /* x x h1 h2 h3 h4 1 1 */
+      temp |= ((data >> 6) & 0x3C);
+      break;
+
+    case 4: /* x x h5 h6 h7 h8 0 0 */
+      temp |= ((data >> 10) & 0x3C);
+      break;
+  }
+
+  return temp;
+}
+
+void activator_write(int index, u8 data, u8 mask)
+{
+  /* update bits set as output only */
+  data = (activator[index].State & ~mask) | (data & mask);
+
+  /* TH transitions */
+  if ((activator[index].State ^ data) & 0x40)
+  {
+    /* reset sequence cycle */
+    activator[index].Counter = 0;
+  }
+  else
+  {
+    /* D0 transitions */
+    if ((activator[index].State ^ data) & 0x01)
+    {
+      /* increment sequence cycle */
+      if (activator[index].Counter < 4)
+      {
+        activator[index].Counter++;
+      }
+    }
+  }
+
+  /* update internal state */
+  activator[index].State = data;
+}
+
+u8 activator_1_read()
+{
+  return activator_read(0);
+}
+
+u8 activator_2_read()
+{
+  return activator_read(1);
+}
+
+void activator_1_write(u8 data, u8 mask)
+{
+  activator_write(0, data, mask);
+}
+
+void activator_2_write(u8 data, u8 mask)
+{
+  activator_write(1, data, mask);
+}

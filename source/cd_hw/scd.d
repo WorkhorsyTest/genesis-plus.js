@@ -36,41 +36,79 @@
  *
  ****************************************************************************************/
 
-#include "shared.h"
+import shared.d;
+import cdd.d;
+import cdc.d;
+import gfx.d;
+import pcm.d;
+import cd_cart.d;
+
+alias ext.cd_hw scd;
+
+/* 5000000 SCD clocks/s = ~3184 clocks/line with a Master Clock of 53.693175 MHz */
+/* This would be slightly (~30 clocks) more on PAL systems because of the slower */
+/* Master Clock (53.203424 MHz) but not enough to really care about since clocks */
+/* are not running in sync anyway. */
+const int SCD_CLOCK = 50000000;
+const int SCYCLES_PER_LINE = 3184;
+
+/* Timer & Stopwatch clocks divider */
+const int TIMERS_SCYCLES_RATIO = 384 * 4;
+
+/* CD hardware */
+struct cd_hw_t
+{
+  cd_cart_t cartridge;        /* ROM/RAM Cartridge */
+  u8[0x20000] bootrom;     /* 128K internal BOOT ROM */
+  u8[0x80000] prg_ram;     /* 512K PRG-RAM */
+  u8[2][0x20000] word_ram; /* 2 x 128K Word RAM (1M mode) */
+  u8[0x40000] word_ram_2M; /* 256K Word RAM (2M mode) */
+  u8[0x2000] bram;         /* 8K Backup RAM */
+  reg16_t[0x100] regs;        /* 256 x 16-bit ASIC registers */
+  u32 cycles;              /* Master clock counter */
+  s32 stopwatch;            /* Stopwatch counter */
+  s32 timer;                /* Timer counter */
+  u8 pending;              /* Pending interrupts */
+  u8 dmna;                 /* Pending DMNA write status */
+  gfx_t gfx_hw;               /* Graphics processor */
+  cdc_t cdc_hw;               /* CD data controller */
+  cdd_t cdd_hw;               /* CD drive processor */
+  pcm_t pcm_hw;               /* PCM chip */
+}
 
 /*--------------------------------------------------------------------------*/
 /* Unused area (return open bus data, i.e prefetched instruction word)      */
 /*--------------------------------------------------------------------------*/
 static u32 s68k_read_bus_8(u32 address)
 {
-#ifdef LOGERROR
+version(LOGERROR) {
   error("[SUB 68k] Unused read8 %08X (%08X)\n", address, s68k.pc);
-#endif
+}
   address = s68k.pc | (address & 1);
   return READ_BYTE(s68k.memory_map[((address)>>16)&0xff].base, (address) & 0xffff);
 }
 
 static u32 s68k_read_bus_16(u32 address)
 {
-#ifdef LOGERROR
+version(LOGERROR) {
   error("[SUB 68k] Unused read16 %08X (%08X)\n", address, s68k.pc);
-#endif
+}
   address = s68k.pc;
   return *(u16 *)(s68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff));
 }
 
 static void s68k_unused_8_w(u32 address, u32 data)
 {
-#ifdef LOGERROR
+version(LOGERROR) {
   error("[SUB 68k] Unused write8 %08X = %02X (%08X)\n", address, data, s68k.pc);
-#endif
+}
 }
 
 static void s68k_unused_16_w(u32 address, u32 data)
 {
-#ifdef LOGERROR
+version(LOGERROR) {
   error("[SUB 68k] Unused write16 %08X = %04X (%08X)\n", address, data, s68k.pc);
-#endif
+}
 }
 
 /*--------------------------------------------------------------------------*/
@@ -104,10 +142,10 @@ void prg_ram_dma_w(u32 words)
     /* read 16-bit word from CDC buffer */
     data = *(u16 *)(cdc.ram + src_index);
 
-#ifdef LSB_FIRST
+version(LSB_FIRST) {
     /* source data is stored in big endian format */
     data = ((data >> 8) | (data << 8)) & 0xffff;
-#endif
+}
 
     /* write 16-bit word to PRG-RAM */
     *(u16 *)(scd.prg_ram + dst_index) = data ;
@@ -131,9 +169,9 @@ static void prg_ram_write_byte(u32 address, u32 data)
     WRITE_BYTE(scd.prg_ram, address, data);
     return;
   }
-#ifdef LOGERROR
+version(LOGERROR) {
   error("[SUB 68k] PRG-RAM protected write8 %08X = %02X (%08X)\n", address, data, s68k.pc);
-#endif
+}
 }
 
 static void prg_ram_write_word(u32 address, u32 data)
@@ -144,9 +182,9 @@ static void prg_ram_write_word(u32 address, u32 data)
     *(u16 *)(scd.prg_ram + address) = data;
     return;
   }
-#ifdef LOGERROR
+version(LOGERROR) {
   error("[SUB 68k] PRG-RAM protected write16 %08X = %02X (%08X)\n", address, data, s68k.pc);
-#endif
+}
 }
 
 /*--------------------------------------------------------------------------*/
@@ -196,9 +234,9 @@ static void s68k_poll_detect(reg)
       if (s68k.pc == s68k.poll.pc)
       {
         /* stop SUB-CPU until register is modified by MAIN-CPU */
-#ifdef LOG_SCD
+version(LOG_SCD) {
         error("s68k stopped from %d cycles\n", s68k.cycles);
-#endif
+}
         s68k.cycles = s68k.cycle_end;
         s68k.stopped = 1 << reg;
       }
@@ -235,9 +273,9 @@ static void s68k_poll_sync(reg)
 
     /* restart MAIN-CPU */
     m68k.stopped = 0;
-#ifdef LOG_SCD
+version(LOG_SCD) {
     error("m68k started from %d cycles\n", cycles);
-#endif
+}
   }
 
   /* clear CPU register(s) access flags */
@@ -259,9 +297,9 @@ static u32 scd_read_byte(u32 address)
     return s68k_read_bus_8(address);
   }
 
-#ifdef LOG_SCD
+version(LOG_SCD) {
   error("[%d][%d]read byte CD register %X (%X)\n", v_counter, s68k.cycles, address, s68k.pc);
-#endif
+}
 
   /* Memory Mode */
   if (address == 0xff8003)
@@ -281,9 +319,9 @@ static u32 scd_read_byte(u32 address)
   if (address == 0xff8007)
   {
     u32 data = cdc_reg_r();
-#ifdef LOG_CDC
+version(LOG_CDC) {
     error("CDC register %X read 0x%02X (%X)\n", scd.regs[0x04>>1].byte.l & 0x0F, data, s68k.pc);
-#endif
+}
     return data;
   }
   
@@ -351,9 +389,9 @@ static u32 scd_read_word(u32 address)
     return pcm_read((address >> 1) & 0x1fff);
   }
 
-#ifdef LOG_SCD
+version(LOG_SCD) {
   error("[%d][%d]read word CD register %X (%X)\n", v_counter, s68k.cycles, address, s68k.pc);
-#endif
+}
 
   /* Memory Mode */
   if (address == 0xff8002)
@@ -499,9 +537,9 @@ static void scd_write_byte(u32 address, u32 data)
     return;
   }
 
-#ifdef LOG_SCD
+version(LOG_SCD) {
   error("[%d][%d]write byte CD register %X -> 0x%02x (%X)\n", v_counter, s68k.cycles, address, data, s68k.pc);
-#endif
+}
 
   /* Gate-Array registers */
   switch (address & 0x1ff)
@@ -776,9 +814,9 @@ static void scd_write_word(u32 address, u32 data)
     return;
   }
 
-#ifdef LOG_SCD
+version(LOG_SCD) {
   error("[%d][%d]write word CD register %X -> 0x%04x (%X)\n", v_counter, s68k.cycles, address, data, s68k.pc);
-#endif
+}
 
   /* Gate-Array registers */
   switch (address & 0x1fe)
@@ -1011,10 +1049,10 @@ static void scd_write_word(u32 address, u32 data)
     {
       scd.regs[0x4a>>1].w = 0;
       cdd_process();
-#ifdef LOG_CDD
+version(LOG_CDD) {
       error("CDD command: %02x %02x %02x %02x %02x %02x %02x %02x\n",scd.regs[0x42>>1].byte.h, scd.regs[0x42>>1].byte.l, scd.regs[0x44>>1].byte.h, scd.regs[0x44>>1].byte.l, scd.regs[0x46>>1].byte.h, scd.regs[0x46>>1].byte.l, scd.regs[0x48>>1].byte.h, scd.regs[0x48>>1].byte.l);
       error("CDD status:  %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",scd.regs[0x38>>1].byte.h, scd.regs[0x38>>1].byte.l, scd.regs[0x3a>>1].byte.h, scd.regs[0x3a>>1].byte.l, scd.regs[0x3c>>1].byte.h, scd.regs[0x3c>>1].byte.l, scd.regs[0x3e>>1].byte.h, scd.regs[0x3e>>1].byte.l, scd.regs[0x40>>1].byte.h, scd.regs[0x40>>1].byte.l);
-#endif
+}
       break;
     }
 
@@ -1616,15 +1654,10 @@ s32 scd_context_load(u8 *state)
 
 s32 scd_68k_irq_ack(s32 level)
 {
-#ifdef LOG_SCD
+version(LOG_SCD) {
   error("INT ack level %d  (%X)\n", level, s68k.pc);
-#endif
+}
 
-#if 0
-  /* level 5 interrupt is normally acknowledged by CDC */
-  if (level != 5)
-#endif
-  {
     /* clear pending interrupt flag */
     scd.pending &= ~(1 << level);
 
@@ -1637,7 +1670,6 @@ s32 scd_68k_irq_ack(s32 level)
 
     /* update IRQ level */
     s68k_update_irq((scd.pending & scd.regs[0x32>>1].byte.l) >> 1);
-  }
 
   return M68K_INT_ACK_AUTOVECTOR;
 }

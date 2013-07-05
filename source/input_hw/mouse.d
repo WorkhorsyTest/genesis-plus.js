@@ -1,6 +1,6 @@
 /***************************************************************************************
  *  Genesis Plus
- *  Sega Sports Pad support
+ *  Sega Mouse support
  *
  *  Copyright (C) 2007-2011  Eke-Eke (Genesis Plus GX)
  *
@@ -36,99 +36,126 @@
  *
  ****************************************************************************************/
 
-#include "shared.h"
+import shared.d;
 
-static struct
+struct mouse_t
 {
   u8 State;
   u8 Counter;
-} sportspad[2];
-
-void sportspad_reset(int index)
-{
-  input.analog[index << 2][0] = 128;
-  input.analog[index << 2][1] = 128;
-  sportspad[index].State = 0x40;
-  sportspad[index].Counter = 0;
+  u8 Wait;
+  u8 Port;
 }
 
-u8 sportspad_read(int port)
+static mouse_t mouse;
+
+void mouse_reset(int port)
 {
-  /* Buttons 1(B) & 2(C) status (active low) */
-  u8 temp = ~(input.pad[port] & 0x30);
+  input.analog[port][0] = 0;
+  input.analog[port][1] = 0;
+  mouse.State = 0x60;
+  mouse.Counter = 0;
+  mouse.Wait = 0;
+  mouse.Port = port;
+}
 
-  /* Pad index */
-  int index = port >> 2;
+u8 mouse_read()
+{
+  u32 temp = 0x00;
+  int x = input.analog[mouse.Port][0];
+  int y = input.analog[mouse.Port][1];
 
-  /* Clear low bits */
-  temp &= 0x70;
-
-  /* Detect current state */
-  switch (sportspad[index].Counter & 3)
+  switch (mouse.Counter)
   {
-    case 1:
-    {
-      /* X position high bits */
-      temp |= (input.analog[port][0] >> 4) & 0x0F;
+    case 0: /* initial */
+      temp = 0x00;
       break;
-    }
 
-    case 2:
-    {
-      /* X position low bits */
-      temp |= input.analog[port][0] & 0x0F;
+    case 1: /* xxxx1011 */
+      temp = 0x0B;
       break;
-    }
 
-    case 3:
-    {
-      /* Y position high bits */
-      temp |= (input.analog[port][1] >> 4) & 0x0F;
+    case 2: /* xxxx1111 */
+      temp = 0x0F;
       break;
-    }
 
-    default:
-    {
-      /* Y position low bits */
-      temp |= input.analog[port][1] & 0x0F;
+    case 3: /* xxxx1111 */
+      temp = 0x0F;
       break;
-    }
+
+    case 4: /* Axis sign & overflow (not emulated) bits */
+      temp |= (x < 0);
+      temp |= (y < 0) << 1;
+      /*
+      temp |= (abs(x) > 255) << 2;
+      temp |= (abs(y) > 255) << 3;
+      */
+      break;
+
+    case 5: /* START, A, B, C buttons state (active high) */
+      temp = (input.pad[mouse.Port] >> 4) & 0x0F;
+      break;
+
+    case 6: /* X Axis MSB */
+      temp = (x >> 4) & 0x0F;
+      break;
+      
+    case 7: /* X Axis LSB */
+      temp = (x & 0x0F);
+      break;
+
+    case 8: /* Y Axis MSB */
+      temp = (y >> 4) & 0x0F;
+      break;
+      
+    case 9: /* Y Axis LSB */
+      temp = (y & 0x0F);
+      break;
+  }
+
+  /* TL = busy status */
+  if (mouse.Wait)
+  {
+    /* wait before ACK, fix some buggy mouse routine (Cannon Fodder, Shangai 2, Wack World,...) */
+    mouse.Wait = 0;
+
+    /* TL = !TR */
+    temp |= (~mouse.State & 0x20) >> 1;
+  }
+  else
+  {
+    /* TL = TR (data is ready) */
+    temp |= (mouse.State & 0x20) >> 1;
   }
 
   return temp;
 }
 
-void sportspad_write(int index, u8 data, u8 mask)
+void mouse_write(u8 data, u8 mask)
 {
   /* update bits set as output only */
-  data = (sportspad[index].State & ~mask) | (data & mask);
+  data = (mouse.State & ~mask) | (data & mask);
 
-  /* check TH transitions */
-  if ((data ^ sportspad[index].State) & 0x40)
+  /* TH transition */
+  if ((mouse.State ^ data) & 0x40)
   {
-    sportspad[index].Counter++;
+    /* start (TH=0) or stop (TH=1) acquisition */
+    mouse.Counter = 1 - ((data & 0x40) >> 6);
+  }
+
+  /* TR transition */
+  if ((mouse.State ^ data) & 0x20)
+  {
+    /* acquisition in progress */
+    if ((mouse.Counter > 0) && (mouse.Counter < 10))
+    {
+      /* increment phase */
+      mouse.Counter++;
+    }
+
+    /* TL handshake latency */
+    mouse.Wait = 1;
   }
 
   /* update internal state */
-  sportspad[index].State = data;
-}
-
-u8 sportspad_1_read()
-{
-  return sportspad_read(0);
-}
-
-u8 sportspad_2_read()
-{
-  return sportspad_read(4);
-}
-
-void sportspad_1_write(u8 data, u8 mask)
-{
-  sportspad_write(0, data, mask);
-}
-
-void sportspad_2_write(u8 data, u8 mask)
-{
-  sportspad_write(1, data, mask);
+  mouse.State = data;
 }

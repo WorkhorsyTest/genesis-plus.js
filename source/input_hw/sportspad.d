@@ -1,6 +1,6 @@
 /***************************************************************************************
  *  Genesis Plus
- *  Sega Paddle Control support
+ *  Sega Sports Pad support
  *
  *  Copyright (C) 2007-2011  Eke-Eke (Genesis Plus GX)
  *
@@ -36,14 +36,101 @@
  *
  ****************************************************************************************/
 
-#ifndef _PADDLE_H_
-#define _PADDLE_H_
+import shared.d;
 
-/* Function prototypes */
-extern void paddle_reset(int index);
-extern u8 paddle_1_read();
-extern u8 paddle_2_read();
-extern void paddle_1_write(u8 data, u8 mask);
-extern void paddle_2_write(u8 data, u8 mask);
+struct sportspad_t
+{
+  u8 State;
+  u8 Counter;
+}
 
-#endif
+static sportspad_t[2] sportspad;
+
+void sportspad_reset(int index)
+{
+  input.analog[index << 2][0] = 128;
+  input.analog[index << 2][1] = 128;
+  sportspad[index].State = 0x40;
+  sportspad[index].Counter = 0;
+}
+
+u8 sportspad_read(int port)
+{
+  /* Buttons 1(B) & 2(C) status (active low) */
+  u8 temp = ~(input.pad[port] & 0x30);
+
+  /* Pad index */
+  int index = port >> 2;
+
+  /* Clear low bits */
+  temp &= 0x70;
+
+  /* Detect current state */
+  switch (sportspad[index].Counter & 3)
+  {
+    case 1:
+    {
+      /* X position high bits */
+      temp |= (input.analog[port][0] >> 4) & 0x0F;
+      break;
+    }
+
+    case 2:
+    {
+      /* X position low bits */
+      temp |= input.analog[port][0] & 0x0F;
+      break;
+    }
+
+    case 3:
+    {
+      /* Y position high bits */
+      temp |= (input.analog[port][1] >> 4) & 0x0F;
+      break;
+    }
+
+    default:
+    {
+      /* Y position low bits */
+      temp |= input.analog[port][1] & 0x0F;
+      break;
+    }
+  }
+
+  return temp;
+}
+
+void sportspad_write(int index, u8 data, u8 mask)
+{
+  /* update bits set as output only */
+  data = (sportspad[index].State & ~mask) | (data & mask);
+
+  /* check TH transitions */
+  if ((data ^ sportspad[index].State) & 0x40)
+  {
+    sportspad[index].Counter++;
+  }
+
+  /* update internal state */
+  sportspad[index].State = data;
+}
+
+u8 sportspad_1_read()
+{
+  return sportspad_read(0);
+}
+
+u8 sportspad_2_read()
+{
+  return sportspad_read(4);
+}
+
+void sportspad_1_write(u8 data, u8 mask)
+{
+  sportspad_write(0, data, mask);
+}
+
+void sportspad_2_write(u8 data, u8 mask)
+{
+  sportspad_write(1, data, mask);
+}

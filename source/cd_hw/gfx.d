@@ -35,7 +35,26 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *
  ****************************************************************************************/
-#include "shared.h"
+import shared.d;
+
+alias scd.gfx_hw gfx;
+
+struct gfx_t
+{
+  u32 cycles;                    /* current cycles count for graphics operation */
+  u32 cyclesPerLine;             /* current graphics operation timings */
+  u32 dotMask;                   /* stamp map size mask */
+  u16 *tracePtr;                 /* trace vector pointer */
+  u16 *mapPtr;                   /* stamp map table base address */
+  u8 stampShift;                 /* stamp pixel shift value (related to stamp size) */
+  u8 mapShift;                   /* stamp map table shift value (related to stamp map size) */
+  u16 bufferOffset;              /* image buffer column offset */
+  u32 bufferStart;               /* image buffer start index */
+  u16[0x8000] lut_offset;        /* Cell Image -> WORD-RAM offset lookup table (1M Mode) */
+  u8[4][0x100][0x100] lut_prio;  /* WORD-RAM data writes priority lookup table */
+  u8[0x200] lut_pixel;           /* Graphics operation dot offset lookup table */
+  u8[0x100] lut_cell;            /* Graphics operation stamp offset lookup table */
+}
 
 /***************************************************************/
 /*          WORD-RAM DMA interfaces (1M & 2M modes)            */
@@ -63,10 +82,10 @@ void word_ram_0_dma_w(u32 words)
     /* read 16-bit word from CDC buffer */
     data = *(u16 *)(cdc.ram + src_index);
 
-#ifdef LSB_FIRST
+version(LSB_FIRST) {
     /* source data is stored in big endian format */
     data = ((data >> 8) | (data << 8)) & 0xffff;
-#endif
+}
 
     /* write 16-bit word to WORD-RAM */
     *(u16 *)(scd.word_ram[0] + dst_index) = data ;
@@ -101,10 +120,10 @@ void word_ram_1_dma_w(u32 words)
     /* read 16-bit word from CDC buffer */
     data = *(u16 *)(cdc.ram + src_index);
 
-#ifdef LSB_FIRST
+version(LSB_FIRST) {
     /* source data is stored in big endian format */
     data = ((data >> 8) | (data << 8)) & 0xffff;
-#endif
+}
 
     /* write 16-bit word to WORD-RAM */
     *(u16 *)(scd.word_ram[1] + dst_index) = data ;
@@ -139,10 +158,10 @@ void word_ram_2M_dma_w(u32 words)
     /* read 16-bit word from CDC buffer */
     data = *(u16 *)(cdc.ram + src_index);
 
-#ifdef LSB_FIRST
+version(LSB_FIRST) {
     /* source data is stored in big endian format */
     data = ((data >> 8) | (data << 8)) & 0xffff;
-#endif
+}
 
     /* write 16-bit word to WORD-RAM */
     *(u16 *)(scd.word_ram_2M + dst_index) = data ;

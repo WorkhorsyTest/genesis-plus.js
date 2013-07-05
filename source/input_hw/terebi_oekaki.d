@@ -1,8 +1,8 @@
 /***************************************************************************************
  *  Genesis Plus
- *  Sega Light Phaser, Menacer & Konami Justifiers support
+ *  Terebi Oekaki graphic board support
  *
- *  Copyright (C) 2007-2011  Eke-Eke (Genesis Plus GX)
+ *  Copyright (C) 2011  Eke-Eke (Genesis Plus GX)
  *
  *  Redistribution and use of this code or any derivative works are permitted
  *  provided that the following conditions are met:
@@ -36,16 +36,44 @@
  *
  ****************************************************************************************/
 
-#ifndef _LIGHTGUN_H_
-#define _LIGHTGUN_H_
+import shared.d;
 
-/* Input devices port handlers */
-extern void lightgun_reset(int index);
-extern void lightgun_refresh(int port);
-extern u8 phaser_1_read();
-extern u8 phaser_2_read();
-extern u8 menacer_read();
-extern u8 justifier_read();
-extern void justifier_write(u8 data, u8 mask);
+struct tablet_t;
+{
+  u8 axis;
+  u8 busy;
+}
 
-#endif
+static tablet_t tablet;
+
+void terebi_oekaki_reset()
+{
+  input.analog[0][0] = 128;
+  input.analog[0][1] = 128;
+  tablet.axis = 1;
+  tablet.busy = 1;
+}
+
+u16 terebi_oekaki_read()
+{
+  u16 data = (tablet.busy << 15) | input.analog[0][tablet.axis];
+
+  if (!(input.pad[0] & INPUT_B))
+  {
+    data |= 0x100;
+  }
+
+  /* clear BUSY flag */
+  tablet.busy = 0;
+
+  return data;
+}
+
+void terebi_oekaki_write(u8 data)
+{
+  /* X (1) or Y (0) axis */
+  tablet.axis = (data & 1) ^ 1;
+
+  /* set BUSY flag */
+  tablet.busy = 1;
+}

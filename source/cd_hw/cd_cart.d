@@ -36,7 +36,17 @@
  *
  ****************************************************************************************/
 
-#include "shared.h"
+import shared.d;
+
+ /* CD compatible ROM/RAM cartridge */
+struct cd_cart_t
+{
+  u8[0x810000] area;  /* cartridge ROM/RAM area (max. 8MB + 64KB backup) */
+  u8 boot;            /* cartridge boot mode (0x00: boot from CD with ROM/RAM cartridge enabled, 0x40: boot from ROM cartridge with CD enabled) */
+  u8 id;              /* RAM cartridge ID (related to RAM size, 0 if disabled) */
+  u8 prot;            /* RAM cartridge write protection */
+  u32 mask;           /* RAM cartridge size mask */
+}
 
 
 /*--------------------------------------------------------------------------*/
@@ -211,7 +221,7 @@ void cd_cart_init()
     /* RAM cartridge ID register (read-only) */
     for (i=0x40; i<0x60; i++)
     {
-      m68k.memory_map[i].base    = NULL;
+      m68k.memory_map[i].base    = null;
       m68k.memory_map[i].read8   = cart_id_read_byte;
       m68k.memory_map[i].read16  = cart_id_read_word;
       m68k.memory_map[i].write8  = m68k_unused_8_w;
@@ -223,7 +233,7 @@ void cd_cart_init()
     /* RAM cartridge memory */
     for (i=0x60; i<0x70; i++)
     {
-      m68k.memory_map[i].base    = NULL;
+      m68k.memory_map[i].base    = null;
       m68k.memory_map[i].read8   = cart_ram_read_byte;
       m68k.memory_map[i].read16  = cart_ram_read_word;
       m68k.memory_map[i].write8  = cart_ram_write_byte;
@@ -235,7 +245,7 @@ void cd_cart_init()
     /* RAM cartridge write protection register */
     for (i=0x70; i<0x80; i++)
     {
-      m68k.memory_map[i].base    = NULL;
+      m68k.memory_map[i].base    = null;
       m68k.memory_map[i].read8   = cart_prot_read_byte;
       m68k.memory_map[i].read16  = cart_prot_read_word;
       m68k.memory_map[i].write8  = cart_prot_write_byte;

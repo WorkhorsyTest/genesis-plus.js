@@ -37,16 +37,17 @@
  *
  ****************************************************************************************/
 
-#include "shared.h"
-#include "gamepad.h"
+import shared.d;
+import gamepad.d;
 
-static struct
+struct gamepad_t
 {
   u8 State;
   u8 Counter;
   u8 Timeout;
-} gamepad[MAX_DEVICES];
+}
 
+static gamepad_t[MAX_DEVICES] gamepad;
 static u8 pad_index;
 
 

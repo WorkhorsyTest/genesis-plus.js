@@ -35,10 +35,61 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *
  ****************************************************************************************/
-#include "shared.h"
+import shared.d;
+import blip_buf.d;
+
+alias scd.cdd_hw cdd;
+
+/* CDD status */
+const int NO_DISC  = 0x00;
+const int CD_PLAY  = 0x01;
+const int CD_SEEK  = 0x02;
+const int CD_SCAN  = 0x03;
+const int CD_READY = 0x04;
+const int CD_OPEN  = 0x05; /* similar to 0x0E ? */
+const int CD_STOP  = 0x09;
+const int CD_END   = 0x0C;
+
+/* CD blocks scanning speed */
+const int CD_SCAN_SPEED = 30;
+
+const int CD_MAX_TRACKS = 100;
+
+/* CD track */
+struct track_t
+{
+  FILE *fd;
+  s32 offset;
+  s32 start;
+  s32 end;
+}
+
+/* CD TOC */
+struct toc_t
+{
+  s32 end;
+  s32 last;
+  track_t tracks[CD_MAX_TRACKS];
+}
+
+/* CDD hardware */
+struct cdd_t
+{
+  u32 cycles;
+  u32 latency;
+  s32 loaded;
+  s32 index;
+  s32 lba;
+  s32 scanOffset;
+  s32 volume;
+  u8 status;
+  u16 sectorSize;
+  toc_t toc;
+  s16 audio[2];
+}
 
 /* BCD conversion lookup tables */
-static const u8 lut_BCD_8[100] =
+static const u8[100] lut_BCD_8 =
 {
   0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 
   0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 
@@ -52,7 +103,7 @@ static const u8 lut_BCD_8[100] =
   0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 
 };
 
-static const u16 lut_BCD_16[100] =
+static const u16[100] lut_BCD_16 =
 {
   0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006, 0x0007, 0x0008, 0x0009, 
   0x0100, 0x0101, 0x0102, 0x0103, 0x0104, 0x0105, 0x0106, 0x0107, 0x0108, 0x0109, 
@@ -67,14 +118,14 @@ static const u16 lut_BCD_16[100] =
 };
 
 /* pre-build TOC */
-static const u16 toc_snatcher[21] =
+static const u16[21] toc_snatcher =
 {
   56014,   495, 10120, 20555, 1580, 5417, 12502, 16090,  6553, 9681,
    8148, 20228,  8622,  6142, 5858, 1287,  7424,  3535, 31697, 2485,
   31380
 };
 
-static const u16 toc_lunar[52] =
+static const u16[52] toc_lunar =
 {
   5422, 1057, 7932, 5401, 6380, 6592, 5862,  5937, 5478, 5870,
   6673, 6613, 6429, 4996, 4977, 5657, 3720,  5892, 3140, 3263,
@@ -84,26 +135,26 @@ static const u16 toc_lunar[52] =
   685, 3167
 };
 
-static const u32 toc_shadow[15] =
+static const u32[15] toc_shadow =
 {
   10226, 70054, 11100, 12532, 12444, 11923, 10059, 10167, 10138, 13792,
   11637,  2547,  2521,  3856, 900
 };
 
-static const u32 toc_dungeon[13] =
+static const u32[13] toc_dungeon =
 {
   2250, 22950, 16350, 24900, 13875, 19950, 13800, 15375, 17400, 17100,
   3325,  6825, 25275
 };
 
-static const u32 toc_ffight[26] =
+static const u32[26] toc_ffight =
 {
   11994, 9742, 10136, 9685, 9553, 14588, 9430, 8721, 9975, 9764,
   9704, 12796, 585, 754, 951, 624, 9047, 1068, 817, 9191, 1024,
   14562, 10320, 8627, 3795, 3047
 };
 
-static const u32 toc_ffightj[29] =
+static const u32[29] toc_ffightj =
 {
   11994, 9752, 10119, 9690, 9567, 14575, 9431, 8731, 9965, 9763,
   9716, 12791, 579, 751, 958, 630, 9050, 1052, 825, 9193, 1026,
@@ -111,14 +162,14 @@ static const u32 toc_ffightj[29] =
 };
 
 /* supported WAVE file header (16-bit stereo samples @44.1kHz) */
-static const u8 waveHeader[32] =
+static const u8[32] waveHeader =
 {
   0x57,0x41,0x56,0x45,0x66,0x6d,0x74,0x20,0x10,0x00,0x00,0x00,0x01,0x00,0x02,0x00,
   0x44,0xac,0x00,0x00,0x10,0xb1,0x02,0x00,0x04,0x00,0x10,0x00,0x64,0x61,0x74,0x61
 };
 
 /* supported WAVE file extensions */
-static const char extensions[10][16] =
+static const char[10][16] extensions =
 {
   "%02d.wav",
   " %02d.wav",
@@ -132,7 +183,7 @@ static const char extensions[10][16] =
   " - %d.wav"
 };
 
-static blip_t* blip[2];
+static blip_t[2] blip;
 
 void cdd_init(blip_t* left, blip_t* right)
 {
@@ -223,8 +274,8 @@ s32 cdd_context_load(u8 *state)
 
 s32 cdd_load(char *filename, char *header)
 {
-  char fname[256];
-  char line[128];
+  char[256] fname;
+  char[128] line;
   char *ptr = 0;
   char *lptr;
   FILE *fd;
@@ -562,7 +613,7 @@ s32 cdd_load(char *filename, char *header)
     /* repeat until no more valid track files can be found */
     while (fd)
     {
-      u8 head[32];
+      u8[32] head;
 
       /* make sure this is a valid WAVE file (16-bit stereo @44.1kHz only) */
       fseek(fd, 8, SEEK_SET);
@@ -793,11 +844,11 @@ void cdd_read_audio(u32 samples)
     s32 endVol = scd.regs[0x34>>1].w >> 4;
 
     /* use CDD buffer as temporary buffer */
-#ifdef LSB_FIRST
+version(LSB_FIRST) {
     s16 *ptr = (s16 *) (cdc.ram);
-#else
+} else {
     u8 *ptr = cdc.ram;
-#endif
+}
 
     /* read samples from current block */
     fread(cdc.ram, 1, samples * 4, cdd.toc.tracks[cdd.index].fd);
@@ -810,24 +861,24 @@ void cdd_read_audio(u32 samples)
       mul = (curVol & 0x7fc) ? (curVol & 0x7fc) : (curVol & 0x03);
 
       /* left channel */
-#ifdef LSB_FIRST
+version(LSB_FIRST) {
       delta = ((ptr[0] * mul) / 1024) - l;
       ptr++;
-#else
+} else {
       delta = (((s16)((ptr[0] + ptr[1]*256)) * mul) / 1024) - l;
       ptr += 2;
-#endif
+}
       l += delta;
       blip_add_delta_fast(blip[0], i, delta);
 
       /* right channel */
-#ifdef LSB_FIRST
+version(LSB_FIRST) {
       delta = ((ptr[0] * mul) / 1024) - r;
       ptr++;
-#else
+} else {
       delta = (((s16)((ptr[0] + ptr[1]*256)) * mul) / 1024) - r;
       ptr += 2;
-#endif
+}
       r += delta;
       blip_add_delta_fast(blip[1], i, delta);
 
@@ -875,9 +926,9 @@ void cdd_read_audio(u32 samples)
 
 void cdd_update()
 {  
-#ifdef LOG_CDD
+version(LOG_CDD) {
   error("LBA = %d (track n\B0%d)(latency=%d)\n", cdd.lba, cdd.index, cdd.latency);
-#endif
+}
   
   /* seeking disc */
   if (cdd.status == CD_SEEK)
@@ -1134,9 +1185,9 @@ void cdd_process()
 
         default:
         {
-#ifdef LOG_ERROR
+version(LOG_ERROR) {
           error("Unknown CDD Command %02X (%X)\n", scd.regs[0x44>>1].byte.l, s68k.pc);
-#endif
+}
           return;
         }
       }
@@ -1360,9 +1411,9 @@ void cdd_process()
       scd.regs[0x3e>>1].w = 0x0000;
       scd.regs[0x40>>1].w = 0x000f;
 
-#ifdef CD_TRAY_CALLBACK
+version(CD_TRAY_CALLBACK) {
       CD_TRAY_CALLBACK
-#endif
+}
       return;
     }
 
@@ -1379,16 +1430,16 @@ void cdd_process()
       scd.regs[0x3e>>1].w = 0x0000;
       scd.regs[0x40>>1].w = ~CD_OPEN & 0x0f;
 
-#ifdef CD_TRAY_CALLBACK
+version(CD_TRAY_CALLBACK) {
       CD_TRAY_CALLBACK
-#endif
+}
       return;
     }
 
     default:  /* Unknown command */
-#ifdef LOG_CDD
+version(LOG_CDD) {
       error("Unknown CDD Command !!!\n");
-#endif
+}
       scd.regs[0x38>>1].byte.h = cdd.status;
       break;
   }

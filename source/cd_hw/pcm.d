@@ -35,13 +35,39 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *
  ****************************************************************************************/
-#include "shared.h"
+import shared.d;
 
-#define PCM_SCYCLES_RATIO (384 * 4)
+import blip_buf.d;
 
-#define pcm scd.pcm_hw
+/* PCM channel */
+struct chan_t
+{
+  u32 addr;  /* current Wave RAM address (16.11 fixed point) */
+  u32 st;    /* Wave RAM start address (16.11 fixed point) */
+  reg16_t ls;   /* Wave RAM loop address ($0000-$ffff) */
+  reg16_t fd;   /* Wave RAM address increment (5.11 fixed point) */
+  u8 env;    /* enveloppe multiplier */
+  u8 pan;    /* stereo panning */
+}
 
-static blip_t* blip[2];
+/* PCM sound chip */
+struct pcm_t
+{
+  chan_t[8] chan;     /* PCM channels 1-8 */
+  s16[2] out_stereo;  /* previous PCM stereo output */
+  u8 *bank;        /* external RAM bank pointer */
+  u8 enabled;      /* PCM chip ON/OFF status */
+  u8 status;       /* channels ON/OFF status */
+  u8 index;        /* current channel index */
+  u8[0x10000] ram; /* 64k external RAM */
+  u32 cycles;
+}
+
+const int PCM_SCYCLES_RATIO = 384 * 4;
+
+alias scd.pcm_hw pcm;
+
+static blip_t[2] blip;
 
 void pcm_init(blip_t* left, blip_t* right)
 {
@@ -90,7 +116,7 @@ s32 pcm_context_save(u8 *state)
   tmp8 = (pcm.bank - pcm.ram) >> 12;
 
   save_param(&bufferptr, state, pcm.chan, sizeof(pcm.chan));
-  save_param(&bufferptr, state, pcm.out, sizeof(pcm.out));
+  save_param(&bufferptr, state, pcm.out_stereo, sizeof(pcm.out_stereo));
   save_param(&bufferptr, state, &tmp8, 1);
   save_param(&bufferptr, state, &pcm.enabled, sizeof(pcm.enabled));
   save_param(&bufferptr, state, &pcm.status, sizeof(pcm.status));
@@ -106,7 +132,7 @@ s32 pcm_context_load(u8 *state)
   s32 bufferptr = 0;
 
   load_param(&bufferptr, state, pcm.chan, sizeof(pcm.chan));
-  load_param(&bufferptr, state, pcm.out, sizeof(pcm.out));
+  load_param(&bufferptr, state, pcm.out_stereo, sizeof(pcm.out_stereo));
 
   load_param(&bufferptr, state, &tmp8, 1);
   pcm.bank = &pcm.ram[(tmp8 & 0x0f) << 12];
@@ -121,9 +147,9 @@ s32 pcm_context_load(u8 *state)
 
 void pcm_run(u32 length)
 {
-#ifdef LOG_PCM
+version(LOG_PCM) {
   error("[%d][%d]run %d PCM samples (from %d)\n", v_counter, s68k.cycles, length, pcm.cycles);
-#endif
+}
   /* check if PCM chip is running */
   if (pcm.enabled)
   {
@@ -188,34 +214,34 @@ void pcm_run(u32 length)
       else if (r > 32767) r = 32767;
 
       /* check if PCM left output changed */
-      if (pcm.out[0] != l)
+      if (pcm.out_stereo[0] != l)
       {
-        blip_add_delta_fast(blip[0], i, l-pcm.out[0]);
-        pcm.out[0] = l;
+        blip_add_delta_fast(blip[0], i, l-pcm.out_stereo[0]);
+        pcm.out_stereo[0] = l;
       }
 
       /* check if PCM right output changed */
-      if (pcm.out[1] != r)
+      if (pcm.out_stereo[1] != r)
       {
-        blip_add_delta_fast(blip[1], i, r-pcm.out[1]);
-        pcm.out[1] = r;
+        blip_add_delta_fast(blip[1], i, r-pcm.out_stereo[1]);
+        pcm.out_stereo[1] = r;
       }
     }
   }
   else
   {
     /* check if PCM left output changed */
-    if (pcm.out[0])
+    if (pcm.out_stereo[0])
     {
-      blip_add_delta_fast(blip[0], 0, -pcm.out[0]);
-      pcm.out[0] = 0;
+      blip_add_delta_fast(blip[0], 0, -pcm.out_stereo[0]);
+      pcm.out_stereo[0] = 0;
     }
 
     /* check if PCM right output changed */
-    if (pcm.out[1])
+    if (pcm.out_stereo[1])
     {
-      blip_add_delta_fast(blip[1], 0, -pcm.out[1]);
-      pcm.out[1] = 0;
+      blip_add_delta_fast(blip[1], 0, -pcm.out_stereo[1]);
+      pcm.out_stereo[1] = 0;
     }
   }
 
@@ -253,9 +279,9 @@ void pcm_write(u32 address, u8 data)
     pcm_run(clocks);
   }
 
-#ifdef LOG_PCM
+version(LOG_PCM) {
   error("[%d][%d]PCM write %x -> 0x%02x (%X)\n", v_counter, s68k.cycles, address, data, s68k.pc);
-#endif
+}
 
   /* external RAM is mapped to $1000-$1FFF */
   if (address >= 0x1000)
@@ -377,9 +403,9 @@ u8 pcm_read(u32 address)
     pcm_run(clocks);
   }
 
-#ifdef LOG_PCM
+version(LOG_PCM) {
   error("[%d][%d]PCM read (%X)\n", v_counter, s68k.cycles, address, s68k.pc);
-#endif
+}
 
   /* external RAM (TODO: verify if possible to read, some docs claim it's not !) */
   if (address >= 0x1000)
