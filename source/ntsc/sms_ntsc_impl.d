@@ -2,9 +2,6 @@
 
 /* Common implementation of NTSC filters */
 
-#include <assert.h>
-#include <math.h>
-
 /* Copyright (C) 2006 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
 General Public License as published by the Free Software Foundation; either
@@ -16,48 +13,36 @@ details. You should have received a copy of the GNU Lesser General Public
 License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
-#define DISABLE_CORRECTION 0
+import std.math;
 
-#undef PI
-#define PI 3.14159265358979323846f
+const int DISABLE_CORRECTION = 0;
+const float PI = 3.14159265358979323846f;
 
-#ifndef LUMA_CUTOFF
-  #define LUMA_CUTOFF 0.20
-#endif
-#ifndef gamma_size
-  #define gamma_size 1
-#endif
-#ifndef rgb_bits
-  #define rgb_bits 8
-#endif
-#ifndef artifacts_max
-  #define artifacts_max (artifacts_mid * 1.5f)
-#endif
-#ifndef fringing_max
-  #define fringing_max (fringing_mid * 2)
-#endif
-#ifndef STD_HUE_CONDITION
-  #define STD_HUE_CONDITION( setup ) 1
-#endif
+const float LUMA_CUTOFF = 0.20f;
+const int gamma_size = 1;
+const int rgb_bits = 8;
+//const float artifacts_max = artifacts_mid * 1.5f;
+const float fringing_max = fringing_mid * 2;
+int STD_HUE_CONDITION(sms_ntsc_setup_t const* setup) { return 1; }
 
-#define ext_decoder_hue     (std_decoder_hue + 15)
-#define rgb_unit            (1 << rgb_bits)
-#define rgb_offset          (rgb_unit * 2 + 0.5f)
+const int ext_decoder_hue     = std_decoder_hue + 15;
+const int rgb_unit            = 1 << rgb_bits;
+const float rgb_offset        = rgb_unit * 2 + 0.5f;
 
-enum { burst_size  = sms_ntsc_entry_size / burst_count };
-enum { kernel_half = 16 };
-enum { kernel_size = kernel_half * 2 + 1 };
+const float burst_size  = sms_ntsc_entry_size / burst_count;
+const int kernel_half = 16;
+const int kernel_size = kernel_half * 2 + 1;
 
-typedef struct init_t
+struct init_t
 {
-  float to_rgb [burst_count * 6];
-  float to_float [gamma_size];
+  float[burst_count * 6] to_rgb;
+  float[gamma_size] to_float;
   float contrast;
   float brightness;
   float artifacts;
   float fringing;
-  float kernel [rescale_out * kernel_size * 2];
-} init_t;
+  float[rescale_out * kernel_size * 2] kernel;
+}
 
 static void ROTATE_IQ(float* i, float* q, float sin_b, float cos_b) {
   float t;
@@ -68,11 +53,11 @@ static void ROTATE_IQ(float* i, float* q, float sin_b, float cos_b) {
 
 static void init_filters( init_t* impl, sms_ntsc_setup_t const* setup )
 {
-#if rescale_out > 1
-  float kernels [kernel_size * 2];
-#else
+static if(rescale_out > 1) {
+  float[kernel_size * 2] kernels;
+} else {
   float* const kernels = impl->kernel;
-#endif
+]
 
   /* generate luma (y) filter using sinc kernel */
   {
@@ -169,7 +154,7 @@ static void init_filters( init_t* impl, sms_ntsc_setup_t const* setup )
   */
   
   /* generate linear rescale kernels */
-  #if rescale_out > 1
+  static(if rescale_out > 1) {
   {
     float weight = 1.0f;
     float* out = impl->kernel;
@@ -189,20 +174,20 @@ static void init_filters( init_t* impl, sms_ntsc_setup_t const* setup )
     }
     while ( --n );
   }
-  #endif
+  }
 }
 
-static float const default_decoder [6] =
+static const float[6] default_decoder =
   { 0.956f, 0.621f, -0.272f, -0.647f, -1.105f, 1.702f };
 
 static void init( init_t* impl, sms_ntsc_setup_t const* setup )
 {
   impl->brightness = (float) setup->brightness * (0.5f * rgb_unit) + rgb_offset;
   impl->contrast   = (float) setup->contrast   * (0.5f * rgb_unit) + rgb_unit;
-  #ifdef default_palette_contrast
+  version(default_palette_contrast) {
     if ( !setup->palette )
       impl->contrast *= default_palette_contrast;
-  #endif
+  }
   
   impl->artifacts = (float) setup->artifacts;
   if ( impl->artifacts > 0 )
@@ -286,35 +271,37 @@ static sms_ntsc_rgb_t PACK_RGB(int r, int g, int b) {
     return r << 21 | g << 11 | b << 1;
 }
 
-enum { rgb_kernel_size = burst_size / alignment_count };
-enum { rgb_bias = rgb_unit * 2 * sms_ntsc_rgb_builder };
+const float rgb_kernel_size = burst_size / alignment_count;
+const int rgb_bias = rgb_unit * 2 * sms_ntsc_rgb_builder;
 
-typedef struct pixel_info_t
+struct pixel_info_t
 {
   int offset;
   float negate;
-  float kernel [4];
-} pixel_info_t;
+  float[4] kernel;
+}
 
-#if rescale_in > 1
-  #define PIXEL_OFFSET_( ntsc, scaled ) \
-    (kernel_size / 2 + ntsc + (scaled != 0) + (rescale_out - scaled) % rescale_out + \
-        (kernel_size * 2 * scaled))
+static if(rescale_in > 1) {
+  int PIXEL_OFFSET_(int ntsc, int scaled) {
+    return (kernel_size / 2 + ntsc + (scaled != 0) + (rescale_out - scaled) % rescale_out + 
+        (kernel_size * 2 * scaled));
+  }
 
-  #define PIXEL_OFFSET( ntsc, scaled ) \
-    PIXEL_OFFSET_( ((ntsc) - (scaled) / rescale_out * rescale_in),\
-        (((scaled) + rescale_out * 10) % rescale_out) ),\
-    (1.0f - (((ntsc) + 100) & 2))
-#else
-  #define PIXEL_OFFSET( ntsc, scaled ) \
-    (kernel_size / 2 + (ntsc) - (scaled)),\
-    (1.0f - (((ntsc) + 100) & 2))
-#endif
-
-extern pixel_info_t const sms_ntsc_pixels [alignment_count];
+  int PIXEL_OFFSET(int ntsc, int scaled) {
+    return PIXEL_OFFSET_(
+        (ntsc - scaled / rescale_out * rescale_in),
+        ((scaled + rescale_out * 10) % rescale_out) ),
+        (1.0f - ((ntsc + 100) & 2));
+  }
+} else {
+  int PIXEL_OFFSET(int ntsc, int scaled ) {
+    return (kernel_size / 2 + ntsc - scaled),
+    (1.0f - ((ntsc + 100) & 2));
+  }
+}
 
 /* Generate pixel at all burst phases and column alignments */
-static void gen_kernel( init_t* impl, float y, float i, float q, sms_ntsc_rgb_t* out )
+static void gen_kernel( init_t* impl, float y, float i, float q, sms_ntsc_rgb_t* out_var )
 {
   /* generate for each scanline burst phase */
   float* to_rgb = impl->to_rgb;
@@ -364,7 +351,7 @@ static void gen_kernel( init_t* impl, float y, float i, float q, sms_ntsc_rgb_t*
         {
           int r, g, b;
           YIQ_TO_RGB(y, i, q, to_rgb, &r, &g, &b);
-          *out++ = PACK_RGB( r, g, b ) - rgb_bias;
+          *out_var++ = PACK_RGB( r, g, b ) - rgb_bias;
         }
       }
     }
@@ -380,33 +367,18 @@ static void gen_kernel( init_t* impl, float y, float i, float q, sms_ntsc_rgb_t*
   while ( --burst_remain );
 }
 
-static void correct_errors( sms_ntsc_rgb_t color, sms_ntsc_rgb_t* out );
-
-#if DISABLE_CORRECTION
-  static void CORRECT_ERROR(sms_ntsc_rgb_t* out, u32 i, u32 a) { out[i] += rgb_bias; }
-#else
-  static void CORRECT_ERROR(sms_ntsc_rgb_t* out, u32 i, u32 a) { out[a] += error; }
-#endif
-
-static void RGB_PALETTE_OUT(sms_ntsc_rgb_t rgb, u8* out_) {
-  u8* out = out_;
-  sms_ntsc_rgb_t clamped = rgb;
-  SMS_NTSC_CLAMP_( clamped, (8 - rgb_bits) );
-  out[0] = (u8) (clamped >> 21);
-  out[1] = (u8) (clamped >> 11);
-  out[2] = (u8) (clamped >>  1);
+static if(DISABLE_CORRECTION) {
+  static void CORRECT_ERROR(sms_ntsc_rgb_t* out_var, u32 i, u32 a) { out_var[i] += rgb_bias; }
+} else {
+  static void CORRECT_ERROR(sms_ntsc_rgb_t* out_var, u32 i, u32 a) { out_var[a] += error; }
 }
 
-/* blitter related */
-
-#ifndef restrict
-  #if defined (__GNUC__)
-    #define restrict __restrict__
-  #elif defined (_MSC_VER) && _MSC_VER > 1300
-    #define restrict __restrict
-  #else
-    /* no support for restricted pointers */
-    #define restrict
-  #endif
-#endif
+static void RGB_PALETTE_OUT(sms_ntsc_rgb_t rgb, u8* out_) {
+  u8* out_var = out_;
+  sms_ntsc_rgb_t clamped = rgb;
+  SMS_NTSC_CLAMP_( clamped, (8 - rgb_bits) );
+  out_var[0] = (u8) (clamped >> 21);
+  out_var[1] = (u8) (clamped >> 11);
+  out_var[2] = (u8) (clamped >>  1);
+}
 

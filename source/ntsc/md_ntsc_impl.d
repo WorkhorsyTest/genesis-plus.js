@@ -2,9 +2,6 @@
 
 /* Common implementation of NTSC filters */
 
-#include <assert.h>
-#include <math.h>
-
 /* Copyright (C) 2006-2007 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
 General Public License as published by the Free Software Foundation; either
@@ -16,48 +13,37 @@ details. You should have received a copy of the GNU Lesser General Public
 License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
-#define DISABLE_CORRECTION 0
+import std.math;
 
-#undef PI
-#define PI 3.14159265358979323846f
+const int DISABLE_CORRECTION = 0;
 
-#ifndef LUMA_CUTOFF
-  #define LUMA_CUTOFF 0.20
-#endif
-#ifndef gamma_size
-  #define gamma_size 1
-#endif
-#ifndef rgb_bits
-  #define rgb_bits 8
-#endif
-#ifndef artifacts_max
-  #define artifacts_max (artifacts_mid * 1.5f)
-#endif
-#ifndef fringing_max
-  #define fringing_max (fringing_mid * 2)
-#endif
-#ifndef STD_HUE_CONDITION
-  #define STD_HUE_CONDITION( setup ) 1
-#endif
+const float PI = 3.14159265358979323846f;
 
-#define ext_decoder_hue     (std_decoder_hue + 15)
-#define rgb_unit            (1 << rgb_bits)
-#define rgb_offset          (rgb_unit * 2 + 0.5f)
+//const float LUMA_CUTOFF = 0.20f;
+//const int gamma_size = 1;
+const int rgb_bits = 8;
+//const float artifacts_max = artifacts_mid * 1.5f;
+const float fringing_max = fringing_mid * 2;
+int STD_HUE_CONDITION(md_ntsc_setup_t const* setup) { return 1; }
 
-enum { burst_size  = md_ntsc_entry_size / burst_count };
-enum { kernel_half = 16 };
-enum { kernel_size = kernel_half * 2 + 1 };
+const int ext_decoder_hue     = std_decoder_hue + 15;
+const int rgb_unit            = 1 << rgb_bits;
+const float rgb_offset          = rgb_unit * 2 + 0.5f;
 
-typedef struct init_t
+const float burst_size  = md_ntsc_entry_size / burst_count;
+const int kernel_half = 16;
+const int kernel_size = kernel_half * 2 + 1;
+
+struct init_t
 {
-  float to_rgb [burst_count * 6];
-  float to_float [gamma_size];
+  float[burst_count * 6] to_rgb;
+  float[gamma_size] to_float;
   float contrast;
   float brightness;
   float artifacts;
   float fringing;
   float kernel [rescale_out * kernel_size * 2];
-} init_t;
+}
 
 static void ROTATE_IQ(float* i, float* q, float sin_b, float cos_b) {
   float t;
@@ -68,11 +54,11 @@ static void ROTATE_IQ(float* i, float* q, float sin_b, float cos_b) {
 
 static void init_filters( init_t* impl, md_ntsc_setup_t const* setup )
 {
-#if rescale_out > 1
-  float kernels [kernel_size * 2];
-#else
+static if(rescale_out > 1) {
+    float kernels [kernel_size * 2];
+} else {
   float* const kernels = impl->kernel;
-#endif
+}
 
   /* generate luma (y) filter using sinc kernel */
   {
@@ -380,35 +366,21 @@ static void gen_kernel( init_t* impl, float y, float i, float q, md_ntsc_rgb_t* 
   while ( --burst_remain );
 }
 
-static void correct_errors( md_ntsc_rgb_t color, md_ntsc_rgb_t* out );
-
-#if DISABLE_CORRECTION
-  static void CORRECT_ERROR(md_ntsc_rgb_t* out, u32 i, u32 a) { out[i] += rgb_bias; }
-#else
-  static void CORRECT_ERROR(md_ntsc_rgb_t* out, u32 i, u32 a) { out[a] += error; }
-#endif
+static if(DISABLE_CORRECTION) {
+  static void CORRECT_ERROR(md_ntsc_rgb_t* out_var, u32 i, u32 a) { out_var[i] += rgb_bias; }
+} else {
+  static void CORRECT_ERROR(md_ntsc_rgb_t* out_var, u32 i, u32 a) { out_var[a] += error; }
+]
 
 static void RGB_PALETTE_OUT(md_ntsc_rgb_t rgb, u8* out_ ) {
-  u8* out = out_;
+  u8* out_var = out_;
   md_ntsc_rgb_t clamped = rgb;
   MD_NTSC_CLAMP_( clamped, (8 - rgb_bits) );
-  out[0] = (u8) (clamped >> 21);
-  out[1] = (u8) (clamped >> 11);
-  out[2] = (u8) (clamped >>  1);
+  out_var[0] = (u8) (clamped >> 21);
+  out_var[1] = (u8) (clamped >> 11);
+  out_var[2] = (u8) (clamped >>  1);
 }
 
-/* blitter related */
-
-#ifndef restrict
-  #if defined (__GNUC__)
-    #define restrict __restrict__
-  #elif defined (_MSC_VER) && _MSC_VER > 1300
-    #define restrict
-  #else
-    /* no support for restricted pointers */
-    #define restrict
-  #endif
-#endif
 
 
 
