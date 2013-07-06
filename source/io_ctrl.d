@@ -63,8 +63,8 @@ u8 region_code = REGION_USA;
 
 struct port_t
 {
-  void (*data_w)(u8 data, u8 mask);
-  u8 (*data_r)();
+  void function(u8 data, u8 mask) data_w;
+  u8 function() data_r;
 }
 
 port_t[3] port;

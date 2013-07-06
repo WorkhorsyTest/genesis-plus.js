@@ -39,9 +39,9 @@
  *
  ****************************************************************************************/
 
-import shared.d;
-import eq.d;
-import blip_buf.d;
+import shared;
+import eq;
+import blip_buf;
 
 /* Supported hardware models */
 const int SYSTEM_SG         = 0x10;
@@ -222,9 +222,9 @@ void audio_reset()
 void audio_set_equalizer()
 {
   init_3band_state(&eq,config.low_freq,config.high_freq,snd.sample_rate);
-  eq.lg = (double)(config.lg) / 100.0;
-  eq.mg = (double)(config.mg) / 100.0;
-  eq.hg = (double)(config.hg) / 100.0;
+  eq.lg = cast(double)(config.lg) / 100.0;
+  eq.mg = cast(double)(config.mg) / 100.0;
+  eq.hg = cast(double)(config.hg) / 100.0;
 }
 
 void audio_shutdown()
@@ -1447,23 +1447,23 @@ u8 READ_BYTE(u8* BASE, u32 ADDR) {
 }
 
 u16 READ_WORD(u8* BASE, u32 ADDR) {
-    return *(u16 *)((BASE) + (ADDR));
+    return *cast(u16 *)(BASE + ADDR);
 }
 
 u32 READ_WORD_LONG(u8* BASE, u32 ADDR) {
-    *(u32 *)((BASE) + (ADDR));
+    return *cast(u32 *)(BASE + ADDR);
 }
 
 void WRITE_BYTE(u8* BASE, u32 ADDR, u8 VAL) {
-    (BASE)[ADDR] = VAL & 0xff;
+    BASE[ADDR] = VAL & 0xff;
 }
 
 void WRITE_WORD(u8* BASE, u32 ADDR, u16 VAL) {
-    *(u16 *)((BASE) + (ADDR)) = VAL & 0xffff;
+    *cast(u16 *)(BASE + ADDR) = VAL & 0xffff;
 }
 
 void WRITE_WORD_LONG(u8* BASE, u32 ADDR, u32 VAL) {
-    *(u32 *)((BASE) + (ADDR)) = VAL & 0xffffffff;
+    *cast(u32 *)(BASE + ADDR) = VAL & 0xffffffff;
 }
 
 }

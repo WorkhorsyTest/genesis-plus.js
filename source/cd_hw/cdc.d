@@ -93,7 +93,7 @@ void cdc_init()
 void cdc_reset()
 {
   /* reset CDC register index */
-  scd.regs[0x04>>1].byte.l = 0x00;
+  scd.regs[0x04>>1].b.l = 0x00;
 
   /* reset CDC registers */
   cdc.ifstat  = 0xff;
@@ -126,7 +126,7 @@ void cdc_reset()
     scd.pending &= ~(1 << 5);
 
     /* update IRQ level */
-    s68k_update_irq((scd.pending & scd.regs[0x32>>1].byte.l) >> 1);
+    s68k_update_irq((scd.pending & scd.regs[0x32>>1].b.l) >> 1);
   }
 }
 
@@ -226,15 +226,15 @@ void cdc_dma_update()
       scd.pending |= (1 << 5);
 
       /* level 5 interrupt enabled ? */
-      if (scd.regs[0x32>>1].byte.l & 0x20)
+      if (scd.regs[0x32>>1].b.l & 0x20)
       {
         /* update IRQ level */
-        s68k_update_irq((scd.pending & scd.regs[0x32>>1].byte.l) >> 1);
+        s68k_update_irq((scd.pending & scd.regs[0x32>>1].b.l) >> 1);
       }
     }
 
     /* clear DSR bit & set EDT bit (SCD register $04) */
-    scd.regs[0x04>>1].byte.h = (scd.regs[0x04>>1].byte.h & 0x07) | 0x80;
+    scd.regs[0x04>>1].b.h = (scd.regs[0x04>>1].b.h & 0x07) | 0x80;
 
     /* disable DMA transfer */
     cdc.dma_w = 0;
@@ -270,10 +270,10 @@ s32 cdc_decoder_update(u32 header)
       scd.pending |= (1 << 5);
 
       /* level 5 interrupt enabled ? */
-      if (scd.regs[0x32>>1].byte.l & 0x20)
+      if (scd.regs[0x32>>1].b.l & 0x20)
       {
         /* update IRQ level */
-        s68k_update_irq((scd.pending & scd.regs[0x32>>1].byte.l) >> 1);
+        s68k_update_irq((scd.pending & scd.regs[0x32>>1].b.l) >> 1);
       }
     }
 
@@ -316,9 +316,9 @@ s32 cdc_decoder_update(u32 header)
 void cdc_reg_w(u8 data)
 {
 version(LOG_CDC) {
-  error("CDC register %X write 0x%04x (%X)\n", scd.regs[0x04>>1].byte.l & 0x0F, data, s68k.pc);
+  error("CDC register %X write 0x%04x (%X)\n", scd.regs[0x04>>1].b.l & 0x0F, data, s68k.pc);
 }
-  switch (scd.regs[0x04>>1].byte.l & 0x0F)
+  switch (scd.regs[0x04>>1].b.l & 0x0F)
   {
     case 0x01:  /* IFCTRL */
     {
@@ -330,10 +330,10 @@ version(LOG_CDC) {
         scd.pending |= (1 << 5);
 
         /* level 5 interrupt enabled ? */
-        if (scd.regs[0x32>>1].byte.l & 0x20)
+        if (scd.regs[0x32>>1].b.l & 0x20)
         {
           /* update IRQ level */
-          s68k_update_irq((scd.pending & scd.regs[0x32>>1].byte.l) >> 1);
+          s68k_update_irq((scd.pending & scd.regs[0x32>>1].b.l) >> 1);
         }
       }
       else if (scd.pending & (1 << 5))
@@ -342,7 +342,7 @@ version(LOG_CDC) {
         scd.pending &= ~(1 << 5);
 
         /* update IRQ level */
-        s68k_update_irq((scd.pending & scd.regs[0x32>>1].byte.l) >> 1);
+        s68k_update_irq((scd.pending & scd.regs[0x32>>1].b.l) >> 1);
       }
 
       /* abort any data transfer if data output is disabled */
@@ -353,28 +353,28 @@ version(LOG_CDC) {
       }
 
       cdc.ifctrl = data;
-      scd.regs[0x04>>1].byte.l = 0x02;
+      scd.regs[0x04>>1].b.l = 0x02;
       break;
     }
 
     case 0x02:  /* DBCL */
-      cdc.dbc.byte.l = data;
-      scd.regs[0x04>>1].byte.l = 0x03;
+      cdc.dbc.b.l = data;
+      scd.regs[0x04>>1].b.l = 0x03;
       break;
 
     case 0x03:  /* DBCH */
-      cdc.dbc.byte.h = data;
-      scd.regs[0x04>>1].byte.l = 0x04;
+      cdc.dbc.b.h = data;
+      scd.regs[0x04>>1].b.l = 0x04;
       break;
 
     case 0x04:  /* DACL */
-      cdc.dac.byte.l = data;
-      scd.regs[0x04>>1].byte.l = 0x05;
+      cdc.dac.b.l = data;
+      scd.regs[0x04>>1].b.l = 0x05;
       break;
 
     case 0x05:  /* DACH */
-      cdc.dac.byte.h = data;
-      scd.regs[0x04>>1].byte.l = 0x06;
+      cdc.dac.b.h = data;
+      scd.regs[0x04>>1].b.l = 0x06;
       break;
 
     case 0x06:  /* DTRG */
@@ -386,13 +386,13 @@ version(LOG_CDC) {
         cdc.ifstat &= ~BIT_DTBSY;
 
         /* clear DBCH bits 4-7 */
-        cdc.dbc.byte.h &= 0x0f;
+        cdc.dbc.b.h &= 0x0f;
 
         /* clear EDT & DSR bits (SCD register $04) */
-        scd.regs[0x04>>1].byte.h &= 0x07;
+        scd.regs[0x04>>1].b.h &= 0x07;
 
         /* setup data transfer destination */
-        switch (scd.regs[0x04>>1].byte.h & 0x07)
+        switch (scd.regs[0x04>>1].b.h & 0x07)
         {
           case 2: /* MAIN-CPU host read */
           case 3: /* SUB-CPU host read */
@@ -401,7 +401,7 @@ version(LOG_CDC) {
             cdc.ifstat &= ~BIT_DTEN;
 
             /* set DSR bit (register $04) */
-            scd.regs[0x04>>1].byte.h |= 0x40;
+            scd.regs[0x04>>1].b.h |= 0x40;
             break;
           }
 
@@ -420,10 +420,10 @@ version(LOG_CDC) {
           case 7: /* WORD-RAM DMA */
           {
             /* check memory mode */
-            if (scd.regs[0x02 >> 1].byte.l & 0x04)
+            if (scd.regs[0x02 >> 1].b.l & 0x04)
             {
               /* 1M mode */
-              if (scd.regs[0x02 >> 1].byte.l & 0x01)
+              if (scd.regs[0x02 >> 1].b.l & 0x01)
               {
                 /* Word-RAM bank 0 is assigned to SUB-CPU */
                 cdc.dma_w = word_ram_0_dma_w;
@@ -437,7 +437,7 @@ version(LOG_CDC) {
             else
             {
               /* 2M mode */
-              if (scd.regs[0x02 >> 1].byte.l & 0x02)
+              if (scd.regs[0x02 >> 1].b.l & 0x02)
               {
                 /* only process DMA if Word-RAM is assigned to SUB-CPU */
                 cdc.dma_w = word_ram_2M_dma_w;
@@ -449,14 +449,14 @@ version(LOG_CDC) {
           default: /* invalid */
           {
     version(LOG_CDC) {
-            error("invalid CDC tranfer destination (%d)\n", scd.regs[0x04>>1].byte.h & 0x07);
+            error("invalid CDC tranfer destination (%d)\n", scd.regs[0x04>>1].b.h & 0x07);
     }
             break;
           }
         }
       }
 
-      scd.regs[0x04>>1].byte.l = 0x07;
+      scd.regs[0x04>>1].b.l = 0x07;
       break;
     }
 
@@ -466,20 +466,20 @@ version(LOG_CDC) {
       cdc.ifstat |= BIT_DTEI;
 
       /* clear DBCH bits 4-7 */
-      cdc.dbc.byte.h &= 0x0f;
+      cdc.dbc.b.h &= 0x0f;
 
-      scd.regs[0x04>>1].byte.l = 0x08;
+      scd.regs[0x04>>1].b.l = 0x08;
       break;
     }
 
     case 0x08:  /* WAL */
-      cdc.wa.byte.l = data;
-      scd.regs[0x04>>1].byte.l = 0x09;
+      cdc.wa.b.l = data;
+      scd.regs[0x04>>1].b.l = 0x09;
       break;
 
     case 0x09:  /* WAH */
-      cdc.wa.byte.h = data;
-      scd.regs[0x04>>1].byte.l = 0x0a;
+      cdc.wa.b.h = data;
+      scd.regs[0x04>>1].b.l = 0x0a;
       break;
 
     case 0x0a:  /* CTRL0 */
@@ -500,7 +500,7 @@ version(LOG_CDC) {
       }
 
       cdc.ctrl[0] = data;
-      scd.regs[0x04>>1].byte.l = 0x0b;
+      scd.regs[0x04>>1].b.l = 0x0b;
       break;
     }
 
@@ -519,22 +519,22 @@ version(LOG_CDC) {
       }
 
       cdc.ctrl[1] = data;
-      scd.regs[0x04>>1].byte.l = 0x0c;
+      scd.regs[0x04>>1].b.l = 0x0c;
       break;
     }
 
     case 0x0c:  /* PTL */
-      cdc.pt.byte.l = data;
-      scd.regs[0x04>>1].byte.l = 0x0d;
+      cdc.pt.b.l = data;
+      scd.regs[0x04>>1].b.l = 0x0d;
       break;
   
     case 0x0d:  /* PTH */
-      cdc.pt.byte.h = data;
-      scd.regs[0x04>>1].byte.l = 0x0e;
+      cdc.pt.b.h = data;
+      scd.regs[0x04>>1].b.l = 0x0e;
       break;
 
     case 0x0e:  /* CTRL2 (unused) */
-      scd.regs[0x04>>1].byte.l = 0x0f;
+      scd.regs[0x04>>1].b.l = 0x0f;
       break;
 
     case 0x0f:  /* RESET */
@@ -548,62 +548,62 @@ version(LOG_CDC) {
 
 u8 cdc_reg_r()
 {
-  switch (scd.regs[0x04>>1].byte.l & 0x0F)
+  switch (scd.regs[0x04>>1].b.l & 0x0F)
   {
     case 0x01:  /* IFSTAT */
-      scd.regs[0x04>>1].byte.l = 0x02;
+      scd.regs[0x04>>1].b.l = 0x02;
       return cdc.ifstat;
 
     case 0x02:  /* DBCL */
-      scd.regs[0x04>>1].byte.l = 0x03;
-      return cdc.dbc.byte.l;
+      scd.regs[0x04>>1].b.l = 0x03;
+      return cdc.dbc.b.l;
 
     case 0x03:  /* DBCH */
-      scd.regs[0x04>>1].byte.l = 0x04;
-      return cdc.dbc.byte.h;
+      scd.regs[0x04>>1].b.l = 0x04;
+      return cdc.dbc.b.h;
 
     case 0x04:  /* HEAD0 */
-      scd.regs[0x04>>1].byte.l = 0x05;
+      scd.regs[0x04>>1].b.l = 0x05;
       return cdc.head[cdc.ctrl[1] & BIT_SHDREN][0];
 
     case 0x05:  /* HEAD1 */
-      scd.regs[0x04>>1].byte.l = 0x06;
+      scd.regs[0x04>>1].b.l = 0x06;
       return cdc.head[cdc.ctrl[1] & BIT_SHDREN][1];
 
     case 0x06:  /* HEAD2 */
-      scd.regs[0x04>>1].byte.l = 0x07;
+      scd.regs[0x04>>1].b.l = 0x07;
       return cdc.head[cdc.ctrl[1] & BIT_SHDREN][2];
 
     case 0x07:  /* HEAD3 */
-      scd.regs[0x04>>1].byte.l = 0x08;
+      scd.regs[0x04>>1].b.l = 0x08;
       return cdc.head[cdc.ctrl[1] & BIT_SHDREN][3];
 
     case 0x08:  /* PTL */
-      scd.regs[0x04>>1].byte.l = 0x09;
-      return cdc.pt.byte.l;
+      scd.regs[0x04>>1].b.l = 0x09;
+      return cdc.pt.b.l;
 
     case 0x09:  /* PTH */
-      scd.regs[0x04>>1].byte.l = 0x0a;
-      return cdc.pt.byte.h;
+      scd.regs[0x04>>1].b.l = 0x0a;
+      return cdc.pt.b.h;
 
     case 0x0a:  /* WAL */
-      scd.regs[0x04>>1].byte.l = 0x0b;
-      return cdc.wa.byte.l;
+      scd.regs[0x04>>1].b.l = 0x0b;
+      return cdc.wa.b.l;
 
     case 0x0b:  /* WAH */
-      scd.regs[0x04>>1].byte.l = 0x0c;
-      return cdc.wa.byte.h;
+      scd.regs[0x04>>1].b.l = 0x0c;
+      return cdc.wa.b.h;
 
     case 0x0c: /* STAT0 */
-      scd.regs[0x04>>1].byte.l = 0x0d;
+      scd.regs[0x04>>1].b.l = 0x0d;
       return cdc.stat[0];
 
     case 0x0d: /* STAT1 (always return 0) */
-      scd.regs[0x04>>1].byte.l = 0x0e;
+      scd.regs[0x04>>1].b.l = 0x0e;
       return 0x00;
 
     case 0x0e:  /* STAT2 */
-      scd.regs[0x04>>1].byte.l = 0x0f;
+      scd.regs[0x04>>1].b.l = 0x0f;
       return cdc.stat[2];
 
     case 0x0f:  /* STAT3 */
@@ -616,7 +616,7 @@ u8 cdc_reg_r()
       /* clear pending decoder interrupt */
       cdc.ifstat |= BIT_DECI;
 
-      scd.regs[0x04>>1].byte.l = 0x00;
+      scd.regs[0x04>>1].b.l = 0x00;
       return data;
     }
 
@@ -667,15 +667,15 @@ version(LOG_CDC) {
         scd.pending |= (1 << 5);
 
         /* level 5 interrupt enabled ? */
-        if (scd.regs[0x32>>1].byte.l & 0x20)
+        if (scd.regs[0x32>>1].b.l & 0x20)
         {
           /* update IRQ level */
-          s68k_update_irq((scd.pending & scd.regs[0x32>>1].byte.l) >> 1);
+          s68k_update_irq((scd.pending & scd.regs[0x32>>1].b.l) >> 1);
         }
       }
 
       /* clear DSR bit & set EDT bit (SCD register $04) */
-      scd.regs[0x04>>1].byte.h = (scd.regs[0x04>>1].byte.h & 0x07) | 0x80;
+      scd.regs[0x04>>1].b.h = (scd.regs[0x04>>1].b.h & 0x07) | 0x80;
     }
 
     return data;

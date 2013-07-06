@@ -39,13 +39,9 @@
  *
  ****************************************************************************************/
 
-import shared.d;
-import md_ntsc.d;
-import sms_ntsc.d;
-
-/*** NTSC Filters ***/
-extern md_ntsc_t *md_ntsc;
-extern sms_ntsc_t *sms_ntsc;
+import shared;
+import md_ntsc;
+import sms_ntsc;
 
 
 /* Output pixels type*/
@@ -140,10 +136,10 @@ u8 object_count;
 u16 spr_col;
 
 /* Function pointers */
-void (*render_bg)(int line, int width);
-void (*render_obj)(int max_width);
-void (*parse_satb)(int line);
-void (*update_bg_pattern_cache)(int index);
+void function(int line, int width) render_bg;
+void function(int max_width) render_obj;
+void function(int line) parse_satb;
+void function(int index) update_bg_pattern_cache;
 
 
 struct Mode5Data {
@@ -164,41 +160,41 @@ version(ALIGN_LONG) {
 
 u32 READ_LONG(void *address)
 {
-  if ((u32)address & 3)
+  if (cast(u32)address & 3)
   {
 version(LSB_FIRST) {  /* little endian version */
-    return ( *((u8 *)address) +
-        (*((u8 *)address+1) << 8)  +
-        (*((u8 *)address+2) << 16) +
-        (*((u8 *)address+3) << 24) );
+    return ( *(cast(u8 *)address) +
+        (*(cast(u8 *)address+1) << 8)  +
+        (*(cast(u8 *)address+2) << 16) +
+        (*(cast(u8 *)address+3) << 24) );
 } else {       /* big endian version */
-    return ( *((u8 *)address+3) +
-        (*((u8 *)address+2) << 8)  +
-        (*((u8 *)address+1) << 16) +
-        (*((u8 *)address)   << 24) );
+    return ( *(cast(u8 *)address+3) +
+        (*(cast(u8 *)address+2) << 8)  +
+        (*(cast(u8 *)address+1) << 16) +
+        (*(cast(u8 *)address)   << 24) );
 }  /* LSB_FIRST */
   }
-  else return *(u32 *)address;
+  else return *cast(u32 *)address;
 }
 
 void WRITE_LONG(void *address, u32 data)
 {
-  if ((u32)address & 3)
+  if (cast(u32)address & 3)
   {
 version(LSB_FIRST) {
-      *((u8 *)address) =  data;
-      *((u8 *)address+1) = (data >> 8);
-      *((u8 *)address+2) = (data >> 16);
-      *((u8 *)address+3) = (data >> 24);
+      *(cast(u8 *)address) =  data;
+      *(cast(u8 *)address+1) = (data >> 8);
+      *(cast(u8 *)address+2) = (data >> 16);
+      *(cast(u8 *)address+3) = (data >> 24);
 } else {
-      *((u8 *)address+3) =  data;
-      *((u8 *)address+2) = (data >> 8);
-      *((u8 *)address+1) = (data >> 16);
-      *((u8 *)address)   = (data >> 24);
+      *(cast(u8 *)address+3) =  data;
+      *(cast(u8 *)address+2) = (data >> 8);
+      *(cast(u8 *)address+1) = (data >> 16);
+      *(cast(u8 *)address)   = (data >> 24);
 } /* LSB_FIRST */
     return;
   }
-  else *(u32 *)address = data;
+  else *cast(u32 *)address = data;
 }
 
 }  /* ALIGN_LONG */
@@ -215,12 +211,12 @@ version(LSB_FIRST) {
       V = Vertical Flip bit from pattern attribute
 */
 void GET_LSB_TILE(Mode5Data* mode_data) {
-  mode_data->atex = atex_table[(mode_data->atbuf >> 13) & 7];
-  mode_data->src = (u32 *)&bg_pattern_cache[(mode_data->atbuf & 0x00001FFF) << 6 | (mode_data->v_line)];
+  mode_data.atex = atex_table[(mode_data.atbuf >> 13) & 7];
+  mode_data.src = cast(u32 *)&bg_pattern_cache[(mode_data.atbuf & 0x00001FFF) << 6 | (mode_data.v_line)];
 }
 void GET_MSB_TILE(Mode5Data* mode_data) {
-  mode_data->atex = atex_table[(mode_data->atbuf >> 29) & 7];
-  mode_data->src = (u32 *)&bg_pattern_cache[(mode_data->atbuf & 0x1FFF0000) >> 10 | (mode_data->v_line)];
+  mode_data.atex = atex_table[(mode_data.atbuf >> 29) & 7];
+  mode_data.src = cast(u32 *)&bg_pattern_cache[(mode_data.atbuf & 0x1FFF0000) >> 10 | (mode_data.v_line)];
 }
 
 /* Draw 2-cell column (16 pixels high) */
@@ -234,12 +230,12 @@ void GET_MSB_TILE(Mode5Data* mode_data) {
       V = Vertical Flip bit
 */
 void GET_LSB_TILE_IM2(Mode5Data* mode_data) {
-  mode_data->atex = atex_table[(mode_data->atbuf >> 13) & 7];
-  mode_data->src = (u32 *)&bg_pattern_cache[((mode_data->atbuf & 0x000003FF) << 7 | (mode_data->atbuf & 0x00001800) << 6 | (mode_data->v_line)) ^ ((mode_data->atbuf & 0x00001000) >> 6)];
+  mode_data.atex = atex_table[(mode_data.atbuf >> 13) & 7];
+  mode_data.src = cast(u32 *)&bg_pattern_cache[((mode_data.atbuf & 0x000003FF) << 7 | (mode_data.atbuf & 0x00001800) << 6 | (mode_data.v_line)) ^ ((mode_data.atbuf & 0x00001000) >> 6)];
 }
 void GET_MSB_TILE_IM2(Mode5Data* mode_data) {
-  mode_data->atex = atex_table[(mode_data->atbuf >> 29) & 7];
-  mode_data->src = (u32 *)&bg_pattern_cache[((mode_data->atbuf & 0x03FF0000) >> 9 | (mode_data->atbuf & 0x18000000) >> 10 | (mode_data->v_line)) ^ ((mode_data->atbuf & 0x10000000) >> 22)];
+  mode_data.atex = atex_table[(mode_data.atbuf >> 29) & 7];
+  mode_data.src = cast(u32 *)&bg_pattern_cache[((mode_data.atbuf & 0x03FF0000) >> 9 | (mode_data.atbuf & 0x18000000) >> 10 | (mode_data.v_line)) ^ ((mode_data.atbuf & 0x10000000) >> 22)];
 }
 /*   
    One column = 2 tiles
@@ -276,88 +272,88 @@ version(ALIGN_LONG) {
 version(LSB_FIRST) {
 void DRAW_COLUMN(Mode5Data* mode_data) {
   GET_LSB_TILE(mode_data);
-  WRITE_LONG(mode_data->dst, mode_data->src[0] | mode_data->atex);
-  mode_data->dst++;
-  WRITE_LONG(mode_data->dst, mode_data->src[1] | mode_data->atex);
-  mode_data->dst++;
+  WRITE_LONG(mode_data.dst, mode_data.src[0] | mode_data.atex);
+  mode_data.dst++;
+  WRITE_LONG(mode_data.dst, mode_data.src[1] | mode_data.atex);
+  mode_data.dst++;
   GET_MSB_TILE(mode_data);
-  WRITE_LONG(mode_data->dst, mode_data->src[0] | mode_data->atex);
-  mode_data->dst++;
-  WRITE_LONG(mode_data->dst, mode_data->src[1] | mode_data->atex);
-  mode_data->dst++;
+  WRITE_LONG(mode_data.dst, mode_data.src[0] | mode_data.atex);
+  mode_data.dst++;
+  WRITE_LONG(mode_data.dst, mode_data.src[1] | mode_data.atex);
+  mode_data.dst++;
 }
 void DRAW_COLUMN_IM2(Mode5Data* mode_data) {
   GET_LSB_TILE_IM2(mode_data);
-  WRITE_LONG(mode_data->dst, mode_data->src[0] | mode_data->atex);
-  mode_data->dst++;
-  WRITE_LONG(mode_data->dst, mode_data->src[1] | mode_data->atex);
-  mode_data->dst++;
+  WRITE_LONG(mode_data.dst, mode_data.src[0] | mode_data.atex);
+  mode_data.dst++;
+  WRITE_LONG(mode_data.dst, mode_data.src[1] | mode_data.atex);
+  mode_data.dst++;
   GET_MSB_TILE_IM2(mode_data);
-  WRITE_LONG(mode_data->dst, mode_data->src[0] | mode_data->atex);
-  mode_data->dst++;
-  WRITE_LONG(mode_data->dst, mode_data->src[1] | mode_data->atex);
-  mode_data->dst++;
+  WRITE_LONG(mode_data.dst, mode_data.src[0] | mode_data.atex);
+  mode_data.dst++;
+  WRITE_LONG(mode_data.dst, mode_data.src[1] | mode_data.atex);
+  mode_data.dst++;
 }
 } else {
 void DRAW_COLUMN(Mode5Data* mode_data) {
   GET_MSB_TILE(mode_data);
-  WRITE_LONG(mode_data->dst, mode_data->src[0] | mode_data->atex);
-  mode_data->dst++;
-  WRITE_LONG(mode_data->dst, mode_data->src[1] | mode_data->atex);
-  mode_data->dst++;
+  WRITE_LONG(mode_data.dst, mode_data.src[0] | mode_data.atex);
+  mode_data.dst++;
+  WRITE_LONG(mode_data.dst, mode_data.src[1] | mode_data.atex);
+  mode_data.dst++;
   GET_LSB_TILE(mode_data);
-  WRITE_LONG(mode_data->dst, mode_data->src[0] | mode_data->atex);
-  mode_data->dst++;
-  WRITE_LONG(mode_data->dst, mode_data->src[1] | mode_data->atex);
-  mode_data->dst++;
+  WRITE_LONG(mode_data.dst, mode_data.src[0] | mode_data.atex);
+  mode_data.dst++;
+  WRITE_LONG(mode_data.dst, mode_data.src[1] | mode_data.atex);
+  mode_data.dst++;
 }
 void DRAW_COLUMN_IM2(Mode5Data* mode_data) {
   GET_MSB_TILE_IM2(mode_data);
-  WRITE_LONG(mode_data->dst, mode_data->src[0] | mode_data->atex);
-  mode_data->dst++;
-  WRITE_LONG(mode_data->dst, mode_data->src[1] | mode_data->atex);
-  mode_data->dst++;
+  WRITE_LONG(mode_data.dst, mode_data.src[0] | mode_data.atex);
+  mode_data.dst++;
+  WRITE_LONG(mode_data.dst, mode_data.src[1] | mode_data.atex);
+  mode_data.dst++;
   GET_LSB_TILE_IM2(mode_data);
-  WRITE_LONG(mode_data->dst, mode_data->src[0] | mode_data->atex);
-  mode_data->dst++;
-  WRITE_LONG(mode_data->dst, mode_data->src[1] | mode_data->atex);
-  mode_data->dst++;
+  WRITE_LONG(mode_data.dst, mode_data.src[0] | mode_data.atex);
+  mode_data.dst++;
+  WRITE_LONG(mode_data.dst, mode_data.src[1] | mode_data.atex);
+  mode_data.dst++;
 }
 }
 } else { /* NOT ALIGNED */
 version(LSB_FIRST) {
 void DRAW_COLUMN(Mode5Data* mode_data) {
   GET_LSB_TILE(mode_data);
-  *mode_data->dst++ = (mode_data->src[0] | mode_data->atex);
-  *mode_data->dst++ = (mode_data->src[1] | mode_data->atex);
+  *mode_data.dst++ = (mode_data.src[0] | mode_data.atex);
+  *mode_data.dst++ = (mode_data.src[1] | mode_data.atex);
   GET_MSB_TILE(mode_data);
-  *mode_data->dst++ = (mode_data->src[0] | mode_data->atex);
-  *mode_data->dst++ = (mode_data->src[1] | mode_data->atex);
+  *mode_data.dst++ = (mode_data.src[0] | mode_data.atex);
+  *mode_data.dst++ = (mode_data.src[1] | mode_data.atex);
 }
 void DRAW_COLUMN_IM2(Mode5Data* mode_data) {
   GET_LSB_TILE_IM2(mode_data);
-  *mode_data->dst++ = (mode_data->src[0] | mode_data->atex);
-  *mode_data->dst++ = (mode_data->src[1] | mode_data->atex);
+  *mode_data.dst++ = (mode_data.src[0] | mode_data.atex);
+  *mode_data.dst++ = (mode_data.src[1] | mode_data.atex);
   GET_MSB_TILE_IM2(mode_data);
-  *mode_data->dst++ = (mode_data->src[0] | mode_data->atex);
-  *mode_data->dst++ = (mode_data->src[1] | mode_data->atex);
+  *mode_data.dst++ = (mode_data.src[0] | mode_data.atex);
+  *mode_data.dst++ = (mode_data.src[1] | mode_data.atex);
 }
 } else {
 void DRAW_COLUMN(Mode5Data* mode_data) {
   GET_MSB_TILE(mode_data);
-  *mode_data->dst++ = (mode_data->src[0] | mode_data->atex);
-  *mode_data->dst++ = (mode_data->src[1] | mode_data->atex);
+  *mode_data.dst++ = (mode_data.src[0] | mode_data.atex);
+  *mode_data.dst++ = (mode_data.src[1] | mode_data.atex);
   GET_LSB_TILE(mode_data);
-  *mode_data->dst++ = (mode_data->src[0] | mode_data->atex);
-  *mode_data->dst++ = (mode_data->src[1] | mode_data->atex);
+  *mode_data.dst++ = (mode_data.src[0] | mode_data.atex);
+  *mode_data.dst++ = (mode_data.src[1] | mode_data.atex);
 }
 void DRAW_COLUMN_IM2(Mode5Data* mode_data) {
   GET_MSB_TILE_IM2(mode_data);
-  *mode_data->dst++ = (mode_data->src[0] | mode_data->atex);
-  *mode_data->dst++ = (mode_data->src[1] | mode_data->atex);
+  *mode_data.dst++ = (mode_data.src[0] | mode_data.atex);
+  *mode_data.dst++ = (mode_data.src[1] | mode_data.atex);
   GET_LSB_TILE_IM2(mode_data);
-  *mode_data->dst++ = (mode_data->src[0] | mode_data->atex);
-  *mode_data->dst++ = (mode_data->src[1] | mode_data->atex);
+  *mode_data.dst++ = (mode_data.src[0] | mode_data.atex);
+  *mode_data.dst++ = (mode_data.src[1] | mode_data.atex);
 }
 }
 } /* ALIGN_LONG */
@@ -371,17 +367,17 @@ void DRAW_COLUMN_IM2(Mode5Data* mode_data) {
 
 version(LSB_FIRST) {
 void DRAW_BG_TILE(Mode5Data* mode_data) {
-  *mode_data->lb++ = mode_data->table[((mode_data->yscroll << 8) & 0xff00) | (mode_data->xscroll & 0xff)];
-  *mode_data->lb++ = mode_data->table[(mode_data->yscroll & 0xff00) | ((mode_data->xscroll >> 8) & 0xff)];
-  *mode_data->lb++ = mode_data->table[((mode_data->yscroll >> 8) & 0xff00) | ((mode_data->xscroll >> 16) & 0xff)];
-  *mode_data->lb++ = mode_data->table[((mode_data->yscroll >> 16) & 0xff00) | ((mode_data->xscroll >> 24) & 0xff)];
+  *mode_data.lb++ = mode_data.table[((mode_data.yscroll << 8) & 0xff00) | (mode_data.xscroll & 0xff)];
+  *mode_data.lb++ = mode_data.table[(mode_data.yscroll & 0xff00) | ((mode_data.xscroll >> 8) & 0xff)];
+  *mode_data.lb++ = mode_data.table[((mode_data.yscroll >> 8) & 0xff00) | ((mode_data.xscroll >> 16) & 0xff)];
+  *mode_data.lb++ = mode_data.table[((mode_data.yscroll >> 16) & 0xff00) | ((mode_data.xscroll >> 24) & 0xff)];
 }
 } else {
 void DRAW_BG_TILE(Mode5Data* mode_data) {
-  *mode_data->lb++ = mode_data->table[((mode_data->yscroll >> 16) & 0xff00) | ((mode_data->xscroll >> 24) & 0xff)];
-  *mode_data->lb++ = mode_data->table[((mode_data->yscroll >> 8) & 0xff00) | ((mode_data->xscroll >> 16) & 0xff)];
-  *mode_data->lb++ = mode_data->table[(mode_data->yscroll & 0xff00) | ((mode_data->xscroll >> 8) & 0xff)];
-  *mode_data->lb++ = mode_data->table[((mode_data->yscroll << 8) & 0xff00) | (mode_data->xscroll & 0xff)];
+  *mode_data.lb++ = mode_data.table[((mode_data.yscroll >> 16) & 0xff00) | ((mode_data.xscroll >> 24) & 0xff)];
+  *mode_data.lb++ = mode_data.table[((mode_data.yscroll >> 8) & 0xff00) | ((mode_data.xscroll >> 16) & 0xff)];
+  *mode_data.lb++ = mode_data.table[(mode_data.yscroll & 0xff00) | ((mode_data.xscroll >> 8) & 0xff)];
+  *mode_data.lb++ = mode_data.table[((mode_data.yscroll << 8) & 0xff00) | (mode_data.xscroll & 0xff)];
 }
 }
 
@@ -389,67 +385,67 @@ version(ALIGN_LONG) {
 version(LSB_FIRST) {
 void DRAW_BG_COLUMN(Mode5Data* mode_data) {
   GET_LSB_TILE(mode_data);
-  mode_data->xscroll = READ_LONG((u32 *)mode_data->lb);
-  mode_data->yscroll = (mode_data->src[0] | mode_data->atex);
+  mode_data.xscroll = READ_LONG(cast(u32 *)mode_data.lb);
+  mode_data.yscroll = (mode_data.src[0] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
-  mode_data->xscroll = READ_LONG((u32 *)mode_data->lb);
-  mode_data->yscroll = (mode_data->src[1] | mode_data->atex);
+  mode_data.xscroll = READ_LONG(cast(u32 *)mode_data.lb);
+  mode_data.yscroll = (mode_data.src[1] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
   GET_MSB_TILE(mode_data);
-  mode_data->xscroll = READ_LONG((u32 *)mode_data->lb);
-  mode_data->yscroll = (mode_data->src[0] | mode_data->atex);
+  mode_data.xscroll = READ_LONG(cast(u32 *)mode_data.lb);
+  mode_data.yscroll = (mode_data.src[0] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
-  mode_data->xscroll = READ_LONG((u32 *)mode_data->lb);
-  mode_data->yscroll = (mode_data->src[1] | mode_data->atex);
+  mode_data.xscroll = READ_LONG(cast(u32 *)mode_data.lb);
+  mode_data.yscroll = (mode_data.src[1] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
 }
 void DRAW_BG_COLUMN_IM2(Mode5Data* mode_data) {
   GET_LSB_TILE_IM2(mode_data);
-  mode_data->xscroll = READ_LONG((u32 *)mode_data->lb);
-  mode_data->yscroll = (mode_data->src[0] | mode_data->atex);
+  mode_data.xscroll = READ_LONG(cast(u32 *)mode_data.lb);
+  mode_data.yscroll = (mode_data.src[0] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
-  mode_data->xscroll = READ_LONG((u32 *)mode_data->lb);
-  mode_data->yscroll = (mode_data->src[1] | mode_data->atex);
+  mode_data.xscroll = READ_LONG(cast(u32 *)mode_data.lb);
+  mode_data.yscroll = (mode_data.src[1] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
   GET_MSB_TILE_IM2(mode_data);
-  mode_data->xscroll = READ_LONG((u32 *)mode_data->lb);
-  mode_data->yscroll = (mode_data->src[0] | mode_data->atex);
+  mode_data.xscroll = READ_LONG(cast(u32 *)mode_data.lb);
+  mode_data.yscroll = (mode_data.src[0] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
-  mode_data->xscroll = READ_LONG((u32 *)mode_data->lb);
-  mode_data->yscroll = (mode_data->src[1] | mode_data->atex);
+  mode_data.xscroll = READ_LONG(cast(u32 *)mode_data.lb);
+  mode_data.yscroll = (mode_data.src[1] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
 }
 } else {
 void DRAW_BG_COLUMN(Mode5Data* mode_data) {
   GET_MSB_TILE(mode_data);
-  mode_data->xscroll = READ_LONG((u32 *)mode_data->lb);
-  mode_data->yscroll = (mode_data->src[0] | mode_data->atex);
+  mode_data.xscroll = READ_LONG(cast(u32 *)mode_data.lb);
+  mode_data.yscroll = (mode_data.src[0] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
-  mode_data->xscroll = READ_LONG((u32 *)mode_data->lb);
-  mode_data->yscroll = (mode_data->src[1] | mode_data->atex);
+  mode_data.xscroll = READ_LONG(cast(u32 *)mode_data.lb);
+  mode_data.yscroll = (mode_data.src[1] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
   GET_LSB_TILE(mode_data);
-  mode_data->xscroll = READ_LONG((u32 *)mode_data->lb);
-  mode_data->yscroll = (mode_data->src[0] | mode_data->atex);
+  mode_data.xscroll = READ_LONG(cast(u32 *)mode_data.lb);
+  mode_data.yscroll = (mode_data.src[0] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
-  mode_data->xscroll = READ_LONG((u32 *)mode_data->lb);
-  mode_data->yscroll = (mode_data->src[1] | mode_data->atex);
+  mode_data.xscroll = READ_LONG(cast(u32 *)mode_data.lb);
+  mode_data.yscroll = (mode_data.src[1] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
 }
 void DRAW_BG_COLUMN_IM2(Mode5Data* mode_data) {
   GET_MSB_TILE_IM2(mode_data);
-  mode_data->xscroll = READ_LONG((u32 *)mode_data->lb);
-  mode_data->yscroll = (mode_data->src[0] | mode_data->atex);
+  mode_data.xscroll = READ_LONG(cast(u32 *)mode_data.lb);
+  mode_data.yscroll = (mode_data.src[0] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
-  mode_data->xscroll = READ_LONG((u32 *)mode_data->lb);
-  mode_data->yscroll = (mode_data->src[1] | mode_data->atex);
+  mode_data.xscroll = READ_LONG(cast(u32 *)mode_data.lb);
+  mode_data.yscroll = (mode_data.src[1] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
   GET_LSB_TILE_IM2(mode_data);
-  mode_data->xscroll = READ_LONG((u32 *)mode_data->lb);
-  mode_data->yscroll = (mode_data->src[0] | mode_data->atex);
+  mode_data.xscroll = READ_LONG(cast(u32 *)mode_data.lb);
+  mode_data.yscroll = (mode_data.src[0] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
-  mode_data->xscroll = READ_LONG((u32 *)mode_data->lb);
-  mode_data->yscroll = (mode_data->src[1] | mode_data->atex);
+  mode_data.xscroll = READ_LONG(cast(u32 *)mode_data.lb);
+  mode_data.yscroll = (mode_data.src[1] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
 }
 }
@@ -457,67 +453,67 @@ void DRAW_BG_COLUMN_IM2(Mode5Data* mode_data) {
 version(LSB_FIRST) {
 void DRAW_BG_COLUMN(Mode5Data* mode_data) {
   GET_LSB_TILE(mode_data);
-  mode_data->xscroll = *(u32 *)(mode_data->lb);
-  mode_data->yscroll = (mode_data->src[0] | mode_data->atex);
+  mode_data.xscroll = *cast(u32 *)(mode_data.lb);
+  mode_data.yscroll = (mode_data.src[0] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
-  mode_data->xscroll = *(u32 *)(mode_data->lb);
-  mode_data->yscroll = (mode_data->src[1] | mode_data->atex);
+  mode_data.xscroll = *cast(u32 *)(mode_data.lb);
+  mode_data.yscroll = (mode_data.src[1] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
   GET_MSB_TILE(mode_data);
-  mode_data->xscroll = *(u32 *)(mode_data->lb);
-  mode_data->yscroll = (mode_data->src[0] | mode_data->atex);
+  mode_data.xscroll = *cast(u32 *)(mode_data.lb);
+  mode_data.yscroll = (mode_data.src[0] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
-  mode_data->xscroll = *(u32 *)(mode_data->lb);
-  mode_data->yscroll = (mode_data->src[1] | mode_data->atex);
+  mode_data.xscroll = *cast(u32 *)(mode_data.lb);
+  mode_data.yscroll = (mode_data.src[1] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
 }
 void DRAW_BG_COLUMN_IM2(Mode5Data* mode_data) {
   GET_LSB_TILE_IM2(mode_data);
-  mode_data->xscroll = *(u32 *)(mode_data->lb);
-  mode_data->yscroll = (mode_data->src[0] | mode_data->atex);
+  mode_data.xscroll = *cast(u32 *)(mode_data.lb);
+  mode_data.yscroll = (mode_data.src[0] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
-  mode_data->xscroll = *(u32 *)(mode_data->lb);
-  mode_data->yscroll = (mode_data->src[1] | mode_data->atex);
+  mode_data.xscroll = *cast(u32 *)(mode_data.lb);
+  mode_data.yscroll = (mode_data.src[1] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
   GET_MSB_TILE_IM2(mode_data);
-  mode_data->xscroll = *(u32 *)(mode_data->lb);
-  mode_data->yscroll = (mode_data->src[0] | mode_data->atex);
+  mode_data.xscroll = *cast(u32 *)(mode_data.lb);
+  mode_data.yscroll = (mode_data.src[0] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
-  mode_data->xscroll = *(u32 *)(mode_data->lb);
-  mode_data->yscroll = (mode_data->src[1] | mode_data->atex);
+  mode_data.xscroll = *cast(u32 *)(mode_data.lb);
+  mode_data.yscroll = (mode_data.src[1] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
 }
 } else {
 void DRAW_BG_COLUMN(Mode5Data* mode_data) {
   GET_MSB_TILE(mode_data);
-  mode_data->xscroll = *(u32 *)(mode_data->lb);
-  mode_data->yscroll = (mode_data->src[0] | mode_data->atex);
+  mode_data.xscroll = *cast(u32 *)(mode_data.lb);
+  mode_data.yscroll = (mode_data.src[0] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
-  mode_data->xscroll = *(u32 *)(mode_data->lb);
-  mode_data->yscroll = (mode_data->src[1] | mode_data->atex);
+  mode_data.xscroll = *cast(u32 *)(mode_data.lb);
+  mode_data.yscroll = (mode_data.src[1] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
   GET_LSB_TILE(mode_data);
-  mode_data->xscroll = *(u32 *)(mode_data->lb);
-  mode_data->yscroll = (mode_data->src[0] | mode_data->atex);
+  mode_data.xscroll = *cast(u32 *)(mode_data.lb);
+  mode_data.yscroll = (mode_data.src[0] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
-  mode_data->xscroll = *(u32 *)(mode_data->lb);
-  mode_data->yscroll = (mode_data->src[1] | mode_data->atex);
+  mode_data.xscroll = *cast(u32 *)(mode_data.lb);
+  mode_data.yscroll = (mode_data.src[1] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
 }
 void DRAW_BG_COLUMN_IM2(Mode5Data* mode_data) {
   GET_MSB_TILE_IM2(mode_data);
-  mode_data->xscroll = *(u32 *)(mode_data->lb);
-  mode_data->yscroll = (mode_data->src[0] | mode_data->atex);
+  mode_data.xscroll = *cast(u32 *)(mode_data.lb);
+  mode_data.yscroll = (mode_data.src[0] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
-  mode_data->xscroll = *(u32 *)(mode_data->lb);
-  mode_data->yscroll = (mode_data->src[1] | mode_data->atex);
+  mode_data.xscroll = *cast(u32 *)(mode_data.lb);
+  mode_data.yscroll = (mode_data.src[1] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
   GET_LSB_TILE_IM2(mode_data);
-  mode_data->xscroll = *(u32 *)(mode_data->lb);
-  mode_data->yscroll = (mode_data->src[0] | mode_data->atex);
+  mode_data.xscroll = *cast(u32 *)(mode_data.lb);
+  mode_data.yscroll = (mode_data.src[0] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
-  mode_data->xscroll = *(u32 *)(mode_data->lb);
-  mode_data->yscroll = (mode_data->src[1] | mode_data->atex);
+  mode_data.xscroll = *cast(u32 *)(mode_data.lb);
+  mode_data.yscroll = (mode_data.src[1] | mode_data.atex);
   DRAW_BG_TILE(mode_data);
 }
 }
@@ -626,7 +622,7 @@ static void make_name_lut()
 static void make_bp_lut()
 {
   int x,i,j;
-  u32 out;
+  u32 out_var;
 
   /* ---------------------- */
   /* Pattern color encoding */
@@ -643,21 +639,21 @@ static void make_bp_lut()
   for(i = 0; i < 0x100; i++)
   for(j = 0; j < 0x100; j++)
   {
-    out = 0;
+    out_var = 0;
     for(x = 0; x < 8; x++)
     {
       /* pixel line data = hh00gg00ff00ee00dd00cc00bb00aa00 (32-bit) */
       /* aa-hh = upper or lower 2-bit values of pixels 0-7 (shifted) */
-      out |= (j & (0x80 >> x)) ? (u32)(8 << (x << 2)) : 0;
-      out |= (i & (0x80 >> x)) ? (u32)(4 << (x << 2)) : 0;
+      out_var |= (j & (0x80 >> x)) ? cast(u32)(8 << (x << 2)) : 0;
+      out_var |= (i & (0x80 >> x)) ? cast(u32)(4 << (x << 2)) : 0;
     }
 
     /* i = low byte in VRAM  (bp0 or bp2) */
     /* j = high byte in VRAM (bp1 or bp3) */
 version(LSB_FIRST) {
-    bp_lut[(j << 8) | (i)] = out;
+    bp_lut[(j << 8) | (i)] = out_var;
 } else {
-    bp_lut[(i << 8) | (j)] = out;
+    bp_lut[(i << 8) | (j)] = out_var;
 }
    }
 }
@@ -1238,10 +1234,10 @@ void render_bg_m2(int line, int width)
 {
   u8 color, pattern;
   u16 name;
-  u8 *ct, *pg;
+  u8* ct, pg;
 
-  u8 *lb = &linebuf[0][0x20];
-  u8 *nt = &vram[((reg[2] << 10) & 0x3C00) + ((line & 0xF8) << 2)];
+  u8* lb = &linebuf[0][0x20];
+  u8* nt = &vram[((reg[2] << 10) & 0x3C00) + ((line & 0xF8) << 2)];
 
   u16 ct_mask = ~0x3FC0 ^ (reg[3] << 6);
   u16 pg_mask = ~0x3800 ^ (reg[4] << 11);
@@ -1381,15 +1377,16 @@ void render_bg_inv(int line, int width)
 void render_bg_m4(int line, int width)
 {
   int column;
-  u16 *nt;
-  u32 attr, atex, *src;
+  u16* nt;
+  u32 attr, atex;
+  u32* src;
   
   /* Horizontal scrolling */
   int index = ((reg[0] & 0x40) && (line < 0x10)) ? 0x100 : reg[0x08];
   int shift = index & 7;
 
   /* Background line buffer */
-  u32 *dst = (u32 *)&linebuf[0][0x20 + shift];
+  u32 *dst = cast(u32 *)&linebuf[0][0x20 + shift];
 
   /* Vertical scrolling */
   int v_line = line + vscroll;
@@ -1410,7 +1407,7 @@ void render_bg_m4(int line, int width)
     v_line = v_line % 256;
     
     /* Pattern name Table */
-    nt = (u16 *)&vram[(0x3700 & nt_mask) + ((v_line >> 3) << 6)];
+    nt = cast(u16 *)&vram[(0x3700 & nt_mask) + ((v_line >> 3) << 6)];
   }
   else
   {
@@ -1418,7 +1415,7 @@ void render_bg_m4(int line, int width)
     v_line = v_line % 224;
 
     /* Pattern name Table */
-    nt = (u16 *)&vram[(0x3800 + ((v_line >> 3) << 6)) & nt_mask];
+    nt = cast(u16 *)&vram[(0x3800 + ((v_line >> 3) << 6)) & nt_mask];
   }
 
   /* Pattern row index */
@@ -1446,11 +1443,11 @@ void render_bg_m4(int line, int width)
       /* Clear Pattern name table start address */
       if (bitmap.viewport.h > 192)
       {
-        nt = (u16 *)&vram[(0x3700 & nt_mask) + ((line >> 3) << 6)];
+        nt = cast(u16 *)&vram[(0x3700 & nt_mask) + ((line >> 3) << 6)];
       }
       else
       {
-        nt = (u16 *)&vram[(0x3800 + ((line >> 3) << 6)) & nt_mask];
+        nt = cast(u16 *)&vram[(0x3800 + ((line >> 3) << 6)) & nt_mask];
       }
 
       /* Clear Pattern row index */
@@ -1467,7 +1464,7 @@ version(LSB_FIRST) {
     atex = atex_table[(attr >> 11) & 3];
 
     /* Cached pattern data line (4 bytes = 4 pixels at once) */
-    src = (u32 *)&bg_pattern_cache[((attr & 0x7FF) << 6) | (v_line)];
+    src = cast(u32 *)&bg_pattern_cache[((attr & 0x7FF) << 6) | (v_line)];
 
     /* Copy left & right half, adding the attribute bits in */
 version(ALIGN_DWORD) {
@@ -1478,7 +1475,7 @@ version(ALIGN_DWORD) {
 } else {
     *dst++ = (src[0] | atex);
     *dst++ = (src[1] | atex);
-]
+}
   }
 }
 
@@ -1490,8 +1487,8 @@ void render_bg_m5(int line, int width)
   u32* nt;
 
   /* Scroll Planes common data */
-  mode_data.xscroll      = *(u32 *)&vram[hscb + ((line & hscroll_mask) << 2)];
-  mode_data.yscroll      = *(u32 *)&vsram[0];
+  mode_data.xscroll      = *cast(u32 *)&vram[hscb + ((line & hscroll_mask) << 2)];
+  mode_data.yscroll      = *cast(u32 *)&vsram[0];
   u32 pf_col_mask  = playfield_col_mask;
   u32 pf_row_mask  = playfield_row_mask;
   u32 pf_shift     = playfield_shift;
@@ -1541,10 +1538,10 @@ version(LSB_FIRST) {
 }
 
     /* Background line buffer */
-    mode_data.dst = (u32 *)&linebuf[0][0x20 + (start << 4) + mode_data.shift];
+    mode_data.dst = cast(u32 *)&linebuf[0][0x20 + (start << 4) + mode_data.shift];
 
     /* Plane A name table */
-    nt = (u32 *)&vram[ntab + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
+    nt = cast(u32 *)&vram[ntab + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
 
     /* Pattern row index */
     mode_data.v_line = (mode_data.v_line & 7) << 3;
@@ -1588,10 +1585,10 @@ version(LSB_FIRST) {
   if (w)
   {
     /* Background line buffer */
-    mode_data.dst = (u32 *)&linebuf[0][0x20 + (start << 4)];
+    mode_data.dst = cast(u32 *)&linebuf[0][0x20 + (start << 4)];
 
     /* Window name table */
-    nt = (u32 *)&vram[ntwb | ((line >> 3) << (6 + (reg[12] & 1)))];
+    nt = cast(u32 *)&vram[ntwb | ((line >> 3) << (6 + (reg[12] & 1)))];
 
     /* Pattern row index */
     mode_data.v_line = (line & 7) << 3;
@@ -1615,7 +1612,7 @@ version(LSB_FIRST) {
 }
 
   /* Plane B name table */
-  nt = (u32 *)&vram[ntbb + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
+  nt = cast(u32 *)&vram[ntbb + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
   
   /* Pattern row index */
   mode_data.v_line = (mode_data.v_line & 7) << 3;
@@ -1643,15 +1640,16 @@ void render_bg_m5_vs(int line, int width)
 {
   int column, start, end;
   Mode5Data mode_data;
-  u32 shift, index, *nt;
+  u32 shift, index;
+  u32* nt;
 
   /* Scroll Planes common data */
-  mode_data.xscroll      = *(u32 *)&vram[hscb + ((line & hscroll_mask) << 2)];
+  mode_data.xscroll      = *cast(u32 *)&vram[hscb + ((line & hscroll_mask) << 2)];
   mode_data.yscroll      = 0;
   u32 pf_col_mask  = playfield_col_mask;
   u32 pf_row_mask  = playfield_row_mask;
   u32 pf_shift     = playfield_shift;
-  u32 *vs          = (u32 *)&vsram[0];
+  u32 *vs          = cast(u32 *)&vsram[0];
 
   /* Layer priority table */
   mode_data.table = lut[(reg[12] & 8) >> 2];
@@ -1704,7 +1702,7 @@ version(LSB_FIRST) {
 }
 
     /* Background line buffer */
-    mode_data.dst = (u32 *)&linebuf[0][0x20 + (start << 4) + shift];
+    mode_data.dst = cast(u32 *)&linebuf[0][0x20 + (start << 4) + shift];
 
     if(shift)
     {
@@ -1715,7 +1713,7 @@ version(LSB_FIRST) {
       mode_data.v_line = (line + mode_data.yscroll) & pf_row_mask;
 
       /* Plane A name table */
-      nt = (u32 *)&vram[ntab + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
+      nt = cast(u32 *)&vram[ntab + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
 
       /* Pattern row index */
       mode_data.v_line = (mode_data.v_line & 7) << 3;
@@ -1743,7 +1741,7 @@ version(LSB_FIRST) {
 }
 
       /* Plane A name table */
-      nt = (u32 *)&vram[ntab + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
+      nt = cast(u32 *)&vram[ntab + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
 
       /* Pattern row index */
       mode_data.v_line = (mode_data.v_line & 7) << 3;
@@ -1767,10 +1765,10 @@ version(LSB_FIRST) {
   if (w)
   {
     /* Background line buffer */
-    mode_data.dst = (u32 *)&linebuf[0][0x20 + (start << 4)];
+    mode_data.dst = cast(u32 *)&linebuf[0][0x20 + (start << 4)];
 
     /* Window name table */
-    nt = (u32 *)&vram[ntwb | ((line >> 3) << (6 + (reg[12] & 1)))];
+    nt = cast(u32 *)&vram[ntwb | ((line >> 3) << (6 + (reg[12] & 1)))];
 
     /* Pattern row index */
     mode_data.v_line = (line & 7) << 3;
@@ -1803,7 +1801,7 @@ version(LSB_FIRST) {
     mode_data.v_line = (line + mode_data.yscroll) & pf_row_mask;
 
     /* Plane B name table */
-    nt = (u32 *)&vram[ntbb + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
+    nt = cast(u32 *)&vram[ntbb + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
 
     /* Pattern row index */
     mode_data.v_line = (mode_data.v_line & 7) << 3;
@@ -1822,7 +1820,7 @@ version(LSB_FIRST) {
 }
 
     /* Plane B name table */
-    nt = (u32 *)&vram[ntbb + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
+    nt = cast(u32 *)&vram[ntbb + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
 
     /* Pattern row index */
     mode_data.v_line = (mode_data.v_line & 7) << 3;
@@ -1836,12 +1834,13 @@ void render_bg_m5_im2(int line, int width)
 {
   int column, start, end;
   Mode5Data mode_data;
-  u32 shift, index, *nt;
+  u32 shift, index;
+  u32* nt;
 
   /* Scroll Planes common data */
   int odd = odd_frame;
-  mode_data.xscroll      = *(u32 *)&vram[hscb + ((line & hscroll_mask) << 2)];
-  mode_data.yscroll      = *(u32 *)&vsram[0];
+  mode_data.xscroll      = *cast(u32 *)&vram[hscb + ((line & hscroll_mask) << 2)];
+  mode_data.yscroll      = *cast(u32 *)&vsram[0];
   u32 pf_col_mask  = playfield_col_mask;
   u32 pf_row_mask  = playfield_row_mask;
   u32 pf_shift     = playfield_shift;
@@ -1891,10 +1890,10 @@ version(LSB_FIRST) {
 }
 
     /* Background line buffer */
-    mode_data.dst = (u32 *)&linebuf[0][0x20 + (start << 4) + shift];
+    mode_data.dst = cast(u32 *)&linebuf[0][0x20 + (start << 4) + shift];
 
     /* Plane A name table */
-    nt = (u32 *)&vram[ntab + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
+    nt = cast(u32 *)&vram[ntab + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
 
     /* Pattern row index */
     mode_data.v_line = (((mode_data.v_line & 7) << 1) | odd) << 3;
@@ -1938,10 +1937,10 @@ version(LSB_FIRST) {
   if (w)
   {
     /* Background line buffer */
-    mode_data.dst = (u32 *)&linebuf[0][0x20 + (start << 4)];
+    mode_data.dst = cast(u32 *)&linebuf[0][0x20 + (start << 4)];
 
     /* Window name table */
-    nt = (u32 *)&vram[ntwb | ((line >> 3) << (6 + (reg[12] & 1)))];
+    nt = cast(u32 *)&vram[ntwb | ((line >> 3) << (6 + (reg[12] & 1)))];
 
     /* Pattern row index */
     mode_data.v_line = ((line & 7) << 1 | odd) << 3;
@@ -1965,7 +1964,7 @@ version(LSB_FIRST) {
 }
 
   /* Plane B name table */
-  nt = (u32 *)&vram[ntbb + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
+  nt = cast(u32 *)&vram[ntbb + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
 
   /* Pattern row index */
   mode_data.v_line = (((mode_data.v_line & 7) << 1) | odd) << 3;
@@ -1993,16 +1992,17 @@ void render_bg_m5_im2_vs(int line, int width)
 {
   int column, start, end;
   Mode5Data mode_data;
-  u32 shift, index, *nt;
+  u32 shift, index;
+ u32* nt;
 
   /* common data */
   int odd = odd_frame;
-  mode_data.xscroll      = *(u32 *)&vram[hscb + ((line & hscroll_mask) << 2)];
+  mode_data.xscroll      = *cast(u32 *)&vram[hscb + ((line & hscroll_mask) << 2)];
   mode_data.yscroll      = 0;
   u32 pf_col_mask  = playfield_col_mask;
   u32 pf_row_mask  = playfield_row_mask;
   u32 pf_shift     = playfield_shift;
-  u32 *vs          = (u32 *)&vsram[0];
+  u32 *vs          = cast(u32 *)&vsram[0];
 
   /* Layer priority table */
   mode_data.table = lut[(reg[12] & 8) >> 2];
@@ -2056,7 +2056,7 @@ version(LSB_FIRST) {
 }
 
     /* Background line buffer */
-    mode_data.dst = (u32 *)&linebuf[0][0x20 + (start << 4) + shift];
+    mode_data.dst = cast(u32 *)&linebuf[0][0x20 + (start << 4) + shift];
 
     if(shift)
     {
@@ -2067,7 +2067,7 @@ version(LSB_FIRST) {
       mode_data.v_line = (line + mode_data.yscroll) & pf_row_mask;
 
       /* Plane A name table */
-      nt = (u32 *)&vram[ntab + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
+      nt = cast(u32 *)&vram[ntab + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
 
       /* Pattern row index */
       mode_data.v_line = (((mode_data.v_line & 7) << 1) | odd) << 3;
@@ -2095,7 +2095,7 @@ version(LSB_FIRST) {
 }
 
       /* Plane A name table */
-      nt = (u32 *)&vram[ntab + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
+      nt = cast(u32 *)&vram[ntab + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
 
       /* Pattern row index */
       mode_data.v_line = (((mode_data.v_line & 7) << 1) | odd) << 3;
@@ -2119,10 +2119,10 @@ version(LSB_FIRST) {
   if (w)
   {
     /* Background line buffer */
-    mode_data.dst = (u32 *)&linebuf[0][0x20 + (start << 4)];
+    mode_data.dst = cast(u32 *)&linebuf[0][0x20 + (start << 4)];
 
     /* Window name table */
-    nt = (u32 *)&vram[ntwb | ((line >> 3) << (6 + (reg[12] & 1)))];
+    nt = cast(u32 *)&vram[ntwb | ((line >> 3) << (6 + (reg[12] & 1)))];
 
     /* Pattern row index */
     mode_data.v_line = ((line & 7) << 1 | odd) << 3;
@@ -2155,7 +2155,7 @@ version(LSB_FIRST) {
     mode_data.v_line = (line + mode_data.yscroll) & pf_row_mask;
 
     /* Plane B name table */
-    nt = (u32 *)&vram[ntbb + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
+    nt = cast(u32 *)&vram[ntbb + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
 
     /* Pattern row index */
     mode_data.v_line = (((mode_data.v_line & 7) << 1) | odd) << 3;
@@ -2174,7 +2174,7 @@ version(LSB_FIRST) {
 }
 
     /* Plane B name table */
-    nt = (u32 *)&vram[ntbb + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
+    nt = cast(u32 *)&vram[ntbb + (((mode_data.v_line >> 3) << pf_shift) & 0x1FC0)];
 
     /* Pattern row index */
     mode_data.v_line = (((mode_data.v_line & 7) << 1) | odd) << 3;
@@ -2192,8 +2192,9 @@ version(LSB_FIRST) {
 void render_obj_tms(int max_width)
 {
   int x, count, start, end;
-  u8 *lb, *sg;
-  u8 color, pattern[2];
+  u8* lb, sg;
+  u8 color;
+  u8[2] pattern;
   u16 temp;
 
   /* Default sprite width (8 pixels) */
@@ -2257,7 +2258,7 @@ void render_obj_tms(int max_width)
     temp &= ~((reg[1] & 0x02) >> 1);
 
     /* Pointer to sprite generator table */
-    sg = (u8 *)&vram[((reg[6] << 11) & 0x3800) | (temp << 3) | object_info[count].ypos];
+    sg = cast(u8 *)&vram[((reg[6] << 11) & 0x3800) | (temp << 3) | object_info[count].ypos];
 
     /* Sprite Pattern data (2 x 8 pixels) */
     pattern[0] = sg[0x00];
@@ -2317,7 +2318,7 @@ void render_obj_tms(int max_width)
 void render_obj_m4(int max_width)
 {
   int count, xpos, end;
-  u8 *src, *lb;
+  u8* src, lb;
   u16 temp;
 
   /* Default sprite width */
@@ -2359,7 +2360,7 @@ void render_obj_m4(int max_width)
     temp = (object_info[count].attr | 0x100) & sg_mask;
 
     /* Pointer to pattern cache line */
-    src = (u8 *)&bg_pattern_cache[(temp << 6) | (object_info[count].ypos << 3)];
+    src = cast(u8 *)&bg_pattern_cache[(temp << 6) | (object_info[count].ypos << 3)];
 
     /* Sprite X position */
     xpos = object_info[count].xpos;
@@ -2426,7 +2427,7 @@ void render_obj_m5(int max_width)
   int pixelcount = 0;
   int masked = 0;
 
-  u8 *src, *s, *lb;
+  u8* src, s, lb;
   u32 temp, v_line;
   u32 attr, name, atex;
 
@@ -2527,7 +2528,7 @@ void render_obj_m5_ste(int max_width)
   int pixelcount = 0;
   int masked = 0;
 
-  u8 *src, *s, *lb;
+  u8* src, s, lb;
   u32 temp, v_line;
   u32 attr, name, atex;
 
@@ -2638,7 +2639,7 @@ void render_obj_m5_im2(int max_width)
   int masked = 0;
   int odd = odd_frame;
 
-  u8 *src, *s, *lb;
+  u8* src, s, lb;
   u32 temp, v_line;
   u32 attr, name, atex;
 
@@ -2740,7 +2741,7 @@ void render_obj_m5_im2_ste(int max_width)
   int masked = 0;
   int odd = odd_frame;
 
-  u8 *src, *s, *lb;
+  u8* src, s, lb;
   u32 temp, v_line;
   u32 attr, name, atex;
 
@@ -3037,10 +3038,10 @@ void parse_satb_m5(int line)
   int total = max << 2;
 
   /* Pointer to sprite attribute table */
-  u16 *p = (u16 *) &vram[satb];
+  u16* p = cast(u16 *) &vram[satb];
 
   /* Pointer to internal RAM */
-  u16 *q = (u16 *) &sat[0];
+  u16* q = cast(u16 *) &sat[0];
 
   /* Adjust line offset */
   line += 0x81;
@@ -3115,8 +3116,8 @@ void update_bg_pattern_cache_m4(int index)
         dst = &bg_pattern_cache[name << 6];
 
         /* Byteplane data */
-        bp01 = *(u16 *)&vram[(name << 5) | (y << 2) | (0)];
-        bp23 = *(u16 *)&vram[(name << 5) | (y << 2) | (2)];
+        bp01 = *cast(u16 *)&vram[(name << 5) | (y << 2) | (0)];
+        bp23 = *cast(u16 *)&vram[(name << 5) | (y << 2) | (2)];
 
         /* Convert to pixel line data (4 bytes = 8 pixels)*/
         /* (msb) p7p6 p5p4 p3p2 p1p0 (lsb) */
@@ -3171,7 +3172,7 @@ void update_bg_pattern_cache_m5(int index)
         /* Byteplane data (one pattern = 4 bytes) */
         /* LIT_ENDIAN: byte0 (lsb) p2p3 p0p1 p6p7 p4p5 (msb) byte3 */
         /* BIG_ENDIAN: byte0 (msb) p0p1 p2p3 p4p5 p6p7 (lsb) byte3 */
-        bp = *(u32 *)&vram[(name << 5) | (y << 2)];
+        bp = *cast(u32 *)&vram[(name << 5) | (y << 2)];
 
         /* Update cached line (8 pixels = 8 bytes) */
         for(x = 0; x < 8; x ++)
@@ -3303,7 +3304,7 @@ void render_reset()
   memset(pixel, 0, sizeof(pixel));
 
   /* Clear pattern cache */
-  memset ((char *) bg_pattern_cache, 0, sizeof (bg_pattern_cache));
+  memset (cast(char *) bg_pattern_cache, 0, sizeof (bg_pattern_cache));
 
   /* Reset Sprite infos */
   spr_ovr = spr_col = object_count = 0;
@@ -3410,20 +3411,20 @@ void remap_line(int line)
   {
     if (reg[12] & 0x01)
     {
-      md_ntsc_blit(md_ntsc, ( MD_NTSC_IN_T const * )pixel, src, width, line);
+      md_ntsc_blit(md_ntsc, cast(const MD_NTSC_IN_T*)pixel, src, width, line);
     }
     else
     {
-      sms_ntsc_blit(sms_ntsc, ( SMS_NTSC_IN_T const * )pixel, src, width, line);
+      sms_ntsc_blit(sms_ntsc, cast(const SMS_NTSC_IN_T*)pixel, src, width, line);
     }
   }
   else
   {
     /* Convert VDP pixel data to output pixel format */
 version(CUSTOM_BLITTER) {
-    CUSTOM_BLITTER(line, width, pixel, src)
+    CUSTOM_BLITTER(line, width, pixel, src);
 } else {
-    PIXEL_OUT_T *dst =((PIXEL_OUT_T *)&bitmap.data[(line * bitmap.pitch)]);
+    PIXEL_OUT_T* dst = (cast(PIXEL_OUT_T *)&bitmap.data[(line * bitmap.pitch)]);
     do
     {
       *dst++ = pixel[*src++];

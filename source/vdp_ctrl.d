@@ -39,8 +39,8 @@
  *
  ****************************************************************************************/
 
-import shared.d;
-import hvc.d;
+import shared;
+import hvc;
 
 /* VDP context */
 u8[0x400] sat;     /* Internal copy of sprite attribute table */
@@ -91,31 +91,10 @@ void MARK_BG_DIRTY(int index, int* name)
 }
 
 /* Function pointers */
-void (*vdp_68k_data_w)(u32 data);
-void (*vdp_z80_data_w)(u32 data);
-u32 (*vdp_68k_data_r)();
-u32 (*vdp_z80_data_r)();
-
-/* Function prototypes */
-static void vdp_68k_data_w_m4(u32 data);
-static void vdp_68k_data_w_m5(u32 data);
-static u32 vdp_68k_data_r_m4();
-static u32 vdp_68k_data_r_m5();
-static void vdp_z80_data_w_m4(u32 data);
-static void vdp_z80_data_w_m5(u32 data);
-static u32 vdp_z80_data_r_m4();
-static u32 vdp_z80_data_r_m5();
-static void vdp_z80_data_w_ms(u32 data);
-static void vdp_z80_data_w_gg(u32 data);
-static void vdp_z80_data_w_sg(u32 data);
-static void vdp_bus_w(u32 data);
-static void vdp_fifo_update(u32 cycles);
-static void vdp_reg_w(u32 r, u32 d, u32 cycles);
-static void vdp_dma_68k_ext(u32 length);
-static void vdp_dma_68k_ram(u32 length);
-static void vdp_dma_68k_io(u32 length);
-static void vdp_dma_copy(u32 length);
-static void vdp_dma_fill(u32 length);
+void function(u32 data) vdp_68k_data_w;
+void function(u32 data) vdp_z80_data_w;
+u32 function() vdp_68k_data_r;
+u32 function() vdp_z80_data_r;
 
 /* Tables that define the playfield layout */
 static const u8[] hscroll_mask_table = { 0x00, 0x07, 0xF8, 0xFF };
@@ -139,8 +118,8 @@ static int cached_write;      /* 2nd part of 32-bit CTRL port write (Genesis mod
 static u16[4] fifo;        /* FIFO buffer */
 
  /* set Z80 or 68k interrupt lines */
-static void (*set_irq_line)(u32 level);
-static void (*set_irq_line_delay)(u32 level);
+static void function(u32 level) set_irq_line;
+static void function(u32 level) set_irq_line_delay;
 
 /* Vertical counter overflow values (see hvc.h) */
 static const u16[4][2] vc_table = 
@@ -161,7 +140,7 @@ static const u8[2][2] dma_timing =
 };
 
 /* DMA processing functions (set by VDP register 23 high nibble) */
-static void (*const dma_func[16])(u32 length) =
+static const void function(u32 length)[16] dma_func=
 {
   /* 0x0-0x3 : DMA from 68k bus $000000-$7FFFFF (external area) */
   vdp_dma_68k_ext,vdp_dma_68k_ext,vdp_dma_68k_ext,vdp_dma_68k_ext,
@@ -205,11 +184,11 @@ void vdp_reset()
 {
   int i;
 
-  memset ((char *) sat, 0, sizeof (sat));
-  memset ((char *) vram, 0, sizeof (vram));
-  memset ((char *) cram, 0, sizeof (cram));
-  memset ((char *) vsram, 0, sizeof (vsram));
-  memset ((char *) reg, 0, sizeof (reg));
+  memset (cast(char *) sat, 0, sizeof (sat));
+  memset (cast(char *) vram, 0, sizeof (vram));
+  memset (cast(char *) cram, 0, sizeof (cram));
+  memset (cast(char *) vsram, 0, sizeof (vsram));
+  memset (cast(char *) reg, 0, sizeof (reg));
 
   addr            = 0;
   addr_latch      = 0;
@@ -247,8 +226,8 @@ void vdp_reset()
 
   /* reset pattern cache changes */
   bg_list_index = 0;
-  memset ((char *) bg_name_dirty, 0, sizeof (bg_name_dirty));
-  memset ((char *) bg_name_list, 0, sizeof (bg_name_list));
+  memset (cast(char *) bg_name_dirty, 0, sizeof (bg_name_dirty));
+  memset (cast(char *) bg_name_list, 0, sizeof (bg_name_list));
 
   /* default HVC */
   hvc_latch = 0x10000;
@@ -494,10 +473,10 @@ int vdp_context_load(u8 *state)
     bg_list_index = 0x800;
 
     /* reinitialize palette */
-    color_update_m5(0, *(u16 *)&cram[border << 1]);
+    color_update_m5(0, *cast(u16 *)&cram[border << 1]);
     for(i = 1; i < 0x40; i++)
     {
-      color_update_m5(i, *(u16 *)&cram[i << 1]);
+      color_update_m5(i, *cast(u16 *)&cram[i << 1]);
     }
   }
   else
@@ -508,9 +487,9 @@ int vdp_context_load(u8 *state)
     /* reinitialize palette */
     for(i = 0; i < 0x20; i ++)
     {
-      color_update_m4(i, *(u16 *)&cram[i << 1]);
+      color_update_m4(i, *cast(u16 *)&cram[i << 1]);
     }
-    color_update_m4(0x40, *(u16 *)&cram[(0x10 | (border & 0x0F)) << 1]);
+    color_update_m4(0x40, *cast(u16 *)&cram[(0x10 | (border & 0x0F)) << 1]);
   }
 
   /* invalidate cache */
@@ -586,7 +565,7 @@ version(LOGVDP) {
 }
 
   /* Check if DMA can be finished before the end of current line */
-  if (dma_length < (u32) dma_bytes)
+  if (dma_length < cast(u32) dma_bytes)
   {
     /* Adjust remaining DMA bytes */
     dma_bytes = dma_length;
@@ -1093,9 +1072,9 @@ void vdp_sms_ctrl_w(u32 data)
           /* reinitialize palette */
           for(i = 0; i < 0x20; i ++)
           {
-            color_update_m4(i, *(u16 *)&cram[i << 1]);
+            color_update_m4(i, *cast(u16 *)&cram[i << 1]);
           }
-          color_update_m4(0x40, *(u16 *)&cram[(0x10 | (border & 0x0F)) << 1]);
+          color_update_m4(0x40, *cast(u16 *)&cram[(0x10 | (border & 0x0F)) << 1]);
         }
       }
     }
@@ -1524,10 +1503,10 @@ version(LOGVDP) {
           if (reg[1] & 0x04)
           {
             /* Mode 5 */
-            color_update_m5(0x00, *(u16 *)&cram[border << 1]);
+            color_update_m5(0x00, *cast(u16 *)&cram[border << 1]);
             for (i = 1; i < 0x40; i++)
             {
-              color_update_m5(i, *(u16 *)&cram[i << 1]);
+              color_update_m5(i, *cast(u16 *)&cram[i << 1]);
             }
           }
           else
@@ -1535,9 +1514,9 @@ version(LOGVDP) {
             /* Mode 4 */
             for (i = 0; i < 0x20; i++)
             {
-              color_update_m4(i, *(u16 *)&cram[i << 1]);
+              color_update_m4(i, *cast(u16 *)&cram[i << 1]);
             }
-            color_update_m4(0x40, *(u16 *)&cram[(0x10 | (border & 0x0F)) << 1]);
+            color_update_m4(0x40, *cast(u16 *)&cram[(0x10 | (border & 0x0F)) << 1]);
           }
         }
       }
@@ -1695,10 +1674,10 @@ version(LOGVDP) {
             }
 
             /* Reset color palette */
-            color_update_m5(0x00, *(u16 *)&cram[border << 1]);
+            color_update_m5(0x00, *cast(u16 *)&cram[border << 1]);
             for (i = 1; i < 0x40; i++)
             {
-              color_update_m5(i, *(u16 *)&cram[i << 1]);
+              color_update_m5(i, *cast(u16 *)&cram[i << 1]);
             }
 
             /* Mode 5 bus access */
@@ -1744,9 +1723,9 @@ version(LOGVDP) {
             /* Reset color palette */
             for (i = 0; i < 0x20; i++)
             {
-              color_update_m4(i, *(u16 *)&cram[i << 1]);
+              color_update_m4(i, *cast(u16 *)&cram[i << 1]);
             }
-            color_update_m4(0x40, *(u16 *)&cram[(0x10 | (border & 0x0F)) << 1]);
+            color_update_m4(0x40, *cast(u16 *)&cram[(0x10 | (border & 0x0F)) << 1]);
 
             /* Mode 4 bus access */
             vdp_68k_data_w = vdp_68k_data_w_m4;
@@ -1865,12 +1844,12 @@ version(LOGVDP) {
         if (reg[1] & 4)
         {
           /* Mode 5 */
-          color_update_m5(0x00, *(u16 *)&cram[d << 1]);
+          color_update_m5(0x00, *cast(u16 *)&cram[d << 1]);
         }
         else
         {
           /* Mode 4 */
-          color_update_m4(0x40, *(u16 *)&cram[(0x10 | (d & 0x0F)) << 1]);
+          color_update_m4(0x40, *cast(u16 *)&cram[(0x10 | (d & 0x0F)) << 1]);
         }
 
         /* Backdrop color modified during HBLANK (Road Rash 1,2,3)*/
@@ -1936,10 +1915,10 @@ version(LOGVDP) {
       {
         /* Reset color palette */
         int i;
-        color_update_m5(0x00, *(u16 *)&cram[border << 1]);
+        color_update_m5(0x00, *cast(u16 *)&cram[border << 1]);
         for (i = 1; i < 0x40; i++)
         {
-          color_update_m5(i, *(u16 *)&cram[i << 1]);
+          color_update_m5(i, *cast(u16 *)&cram[i << 1]);
         }
 
         /* Update sprite rendering function */
@@ -2102,7 +2081,7 @@ static void vdp_bus_w(u32 data)
       int index = addr & 0xFFFE;
 
       /* Pointer to VRAM */
-      u16 *p = (u16 *)&vram[index];
+      u16 *p = cast(u16 *)&vram[index];
 
       /* Byte-swap data if A0 is set */
       if (addr & 1)
@@ -2114,7 +2093,7 @@ static void vdp_bus_w(u32 data)
       if ((index & sat_base_mask) == satb)
       {
         /* Update internal SAT */
-        *(u16 *) &sat[index & sat_addr_mask] = data;
+        *cast(u16 *) &sat[index & sat_addr_mask] = data;
       }
 
       /* Only write unique data to VRAM */
@@ -2138,7 +2117,7 @@ version(LOGVDP) {
     case 0x03:  /* CRAM */
     {
       /* Pointer to CRAM 9-bit word */
-      u16 *p = (u16 *)&cram[addr & 0x7E];
+      u16 *p = cast(u16 *)&cram[addr & 0x7E];
 
       /* Pack 16-bit bus data (BBB0GGG0RRR0) to 9-bit CRAM data (BBBGGGRRR) */
       data = ((data & 0xE00) >> 3) | ((data & 0x0E0) >> 2) | ((data & 0x00E) >> 1);
@@ -2180,7 +2159,7 @@ version(LOGVDP) {
 
     case 0x05:  /* VSRAM */
     {
-      *(u16 *)&vsram[addr & 0x7E] = data;
+      *cast(u16 *)&vsram[addr & 0x7E] = data;
 
       /* 2-cell Vscroll mode */
       if (reg[11] & 0x04)
@@ -2254,7 +2233,7 @@ static void vdp_68k_data_w_m4(u32 data)
     int index = addr & 0x1F;
 
     /* Pointer to CRAM 9-bit word */
-    u16 *p = (u16 *)&cram[index << 1];
+    u16 *p = cast(u16 *)&cram[index << 1];
 
     /* Pack 16-bit data (xxx000BBGGRR) to 9-bit CRAM data (xxxBBGGRR) */
     data = ((data & 0xE00) >> 3) | (data & 0x3F);
@@ -2281,7 +2260,7 @@ static void vdp_68k_data_w_m4(u32 data)
     int index = ((addr << 1) & 0x3FC) | ((addr & 0x200) >> 8) | (addr & 0x3C00);
 
     /* Pointer to VRAM */
-    u16 *p = (u16 *)&vram[index];
+    u16 *p = cast(u16 *)&vram[index];
 
     /* Byte-swap data if A0 is set */
     if (addr & 1)
@@ -2373,7 +2352,7 @@ static u32 vdp_68k_data_r_m4()
   addr += (reg[15] + 1);
 
   /* Read VRAM data */
-  return *(u16 *) &vram[index];
+  return *cast(u16 *) &vram[index];
 }
 
 static u32 vdp_68k_data_r_m5()
@@ -2388,7 +2367,7 @@ static u32 vdp_68k_data_r_m5()
     case 0x00: /* VRAM */
     {
       /* Read data */
-      data = *(u16 *)&vram[addr & 0xFFFE];
+      data = *cast(u16 *)&vram[addr & 0xFFFE];
 
 version(LOGVDP) {
       error("[%d(%d)][%d(%d)] VRAM 0x%x read -> 0x%x (%x)\n", v_counter, m68k.cycles/MCYCLES_PER_LINE-1, m68k.cycles, m68k.cycles%MCYCLES_PER_LINE, addr, data, m68k_get_reg(M68K_REG_PC));
@@ -2399,7 +2378,7 @@ version(LOGVDP) {
     case 0x04: /* VSRAM */
     {
       /* Read data */
-      data = *(u16 *)&vsram[addr & 0x7E];
+      data = *cast(u16 *)&vsram[addr & 0x7E];
 
 version(LOGVDP) {
       error("[%d(%d)][%d(%d)] VSRAM 0x%x read -> 0x%x (%x)\n", v_counter, m68k.cycles/MCYCLES_PER_LINE-1, m68k.cycles, m68k.cycles%MCYCLES_PER_LINE, addr, data, m68k_get_reg(M68K_REG_PC));
@@ -2410,7 +2389,7 @@ version(LOGVDP) {
     case 0x08: /* CRAM */
     {
       /* Read data */
-      data = *(u16 *)&cram[addr & 0x7E];
+      data = *cast(u16 *)&cram[addr & 0x7E];
 
       /* Unpack 9-bit CRAM data (BBBGGGRRR) to 16-bit bus data (BBB0GGG0RRR0) */
       data = ((data & 0x1C0) << 3) | ((data & 0x038) << 2) | ((data & 0x007) << 1);
@@ -2424,7 +2403,7 @@ version(LOGVDP) {
     case 0x0c: /* undocumented 8-bit VRAM read (cf. http://gendev.spritesmind.net/forum/viewtopic.php?t=790) */
     {
       /* Read data (MSB forced to zero) */
-      data = *(u16 *)&vram[addr & 0xFFFE] & 0xff;
+      data = *cast(u16 *)&vram[addr & 0xFFFE] & 0xff;
 
 version(LOGVDP) {
       error("[%d(%d)][%d(%d)] 8-bit VRAM 0x%x read -> 0x%x (%x)\n", v_counter, m68k.cycles/MCYCLES_PER_LINE-1, m68k.cycles, m68k.cycles%MCYCLES_PER_LINE, addr, data, m68k_get_reg(M68K_REG_PC));
@@ -2466,7 +2445,7 @@ static void vdp_z80_data_w_m4(u32 data)
     int index = addr & 0x1F;
 
     /* Pointer to CRAM word */
-    u16 *p = (u16 *)&cram[index << 1];
+    u16 *p = cast(u16 *)&cram[index << 1];
 
     /* Check if CRAM data is being modified */
     if (data != *p)
@@ -2543,7 +2522,7 @@ static void vdp_z80_data_w_m5(u32 data)
     case 0x03:  /* CRAM */
     {
       /* Pointer to CRAM word */
-      u16 *p = (u16 *)&cram[addr & 0x7E];
+      u16 *p = cast(u16 *)&cram[addr & 0x7E];
 
       /* Pack 8-bit value into 9-bit CRAM data */
       if (addr & 1)
@@ -2658,7 +2637,7 @@ static u32 vdp_z80_data_r_m5()
     case 0x08: /* CRAM */
     {
       /* Read CRAM data */
-      data = *(u16 *)&cram[addr & 0x7E];
+      data = *cast(u16 *)&cram[addr & 0x7E];
 
       /* Unpack 9-bit CRAM data (BBBGGGRRR) to 16-bit data (BBB0GGG0RRR0) */
       data = ((data & 0x1C0) << 3) | ((data & 0x038) << 2) | ((data & 0x007) << 1);
@@ -2724,7 +2703,7 @@ version(LOGVDP) {
     int index = addr & 0x1F;
 
     /* Pointer to CRAM word */
-    u16 *p = (u16 *)&cram[index << 1];
+    u16 *p = cast(u16 *)&cram[index << 1];
 
     /* Check if CRAM data is being modified */
     if (data != *p)
@@ -2789,7 +2768,7 @@ version(LOGVDP) {
     if (addr & 1)
     {
       /* Pointer to CRAM word */
-      u16 *p = (u16 *)&cram[addr & 0x3E];
+      u16 *p = cast(u16 *)&cram[addr & 0x3E];
 
       /* 12-bit data word */
       data = (data << 8) | cached_write;
@@ -2876,7 +2855,7 @@ static void vdp_dma_68k_ext(u32 length)
     }
     else
     {
-      data = *(u16 *)(m68k.memory_map[source>>16].base + (source & 0xFFFF));
+      data = *cast(u16 *)(m68k.memory_map[source>>16].base + (source & 0xFFFF));
     }
  
     /* Increment source address */
@@ -2905,7 +2884,7 @@ static void vdp_dma_68k_ram(u32 length)
   do
   {
     /* access Work-RAM by default  */
-    data = *(u16 *)(work_ram + (source & 0xFFFF));
+    data = *cast(u16 *)(work_ram + (source & 0xFFFF));
    
     /* Increment source address */
     source += 2;
@@ -2937,7 +2916,7 @@ static void vdp_dma_68k_io(u32 length)
     {
       /* Return $FFFF only when the Z80 isn't hogging the Z-bus.
       (e.g. Z80 isn't reset and 68000 has the bus) */
-      data = ((zstate ^ 3) ? *(u16 *)(work_ram + (source & 0xFFFF)) : 0xFFFF);
+      data = ((zstate ^ 3) ? *cast(u16 *)(work_ram + (source & 0xFFFF)) : 0xFFFF);
     }
 
     /* The I/O chip and work RAM try to drive the data bus which results 
@@ -2952,7 +2931,7 @@ static void vdp_dma_68k_io(u32 length)
     /* All remaining locations access work RAM */
     else
     {
-      data = *(u16 *)(work_ram + (source & 0xFFFF));
+      data = *cast(u16 *)(work_ram + (source & 0xFFFF));
     }
 
     /* Increment source address */

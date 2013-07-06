@@ -41,8 +41,8 @@ import shared;
 
 struct _zbank_memory_map
 {
-  u32 (*read)(u32 address);
-  void (*write)(u32 address, u32 data);
+  u32 function(u32 address) read;
+  void function(u32 address, u32 data) write;
 }
 
 _zbank_memory_map[256] zbank_memory_map;

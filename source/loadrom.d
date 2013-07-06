@@ -300,7 +300,7 @@ void getrominfo(char *romheader)
 version(LSB_FIRST) {
     rominfo.checksum =  (rominfo.checksum >> 8) | ((rominfo.checksum & 0xff) << 8);
 }
-    rominfo.realchecksum = getchecksum(((u8 *) cart.rom) + 0x200, cart.romsize - 0x200);
+    rominfo.realchecksum = getchecksum((cast(u8 *) cart.rom) + 0x200, cart.romsize - 0x200);
 
     /* Supported peripherals */
     rominfo.peripherals = 0;
@@ -558,7 +558,7 @@ s32 load_rom(char *filename)
   }
 
   /* auto-detect CD image files */
-  size = cdd_load(filename, (char *)(cart.rom));
+  size = cdd_load(filename, cast(char *)(cart.rom));
   if (size < 0)
   {
     /* error opening file */
@@ -574,7 +574,7 @@ s32 load_rom(char *filename)
   {
     /* load file into ROM buffer */
     char extension[4];
-    u32* extension32 = (u32*) &extension;
+    u32* extension32 = cast(u32*) &extension;
     size = load_archive(filename, cart.rom, sizeof(cart.rom), extension);
     if (!size)
     {
@@ -630,8 +630,8 @@ s32 load_rom(char *filename)
       }
 
       /* auto-detect byte-swapped dumps */
-      if (!memcmp((char *)(cart.rom + 0x100),"ESAGM GE ARDVI E", 16) ||
-          !memcmp((char *)(cart.rom + 0x100),"ESAGG NESESI", 12))
+      if (!memcmp(cast(char *)(cart.rom + 0x100),"ESAGM GE ARDVI E", 16) ||
+          !memcmp(cast(char *)(cart.rom + 0x100),"ESAGG NESESI", 12))
       {
         for(i = 0; i < size; i += 2)
         {
@@ -643,7 +643,7 @@ s32 load_rom(char *filename)
     }
 
     /* auto-detect 512 byte extra header */
-    if (memcmp((char *)(cart.rom + 0x100), "SEGA", 4) && ((size / 512) & 1) && !(size % 512))
+    if (memcmp(cast(char *)(cart.rom + 0x100), "SEGA", 4) && ((size / 512) & 1) && !(size % 512))
     {
       /* remove header */
       size -= 512;
@@ -664,10 +664,10 @@ s32 load_rom(char *filename)
   cart.romsize = size;
 
   /* get infos from ROM header */
-  getrominfo((char *)(cart.rom));
+  getrominfo(cast(char *)(cart.rom));
 
   /* set console region */
-  get_region((char *)(cart.rom));
+  get_region(cast(char *)(cart.rom));
 
   /* CD image file */
   if (system_hw == SYSTEM_MCD)
@@ -688,7 +688,7 @@ s32 load_rom(char *filename)
 
 version(LSB_FIRST) {
   /* 16-bit ROM specific */
-  else if (system_hw == SYSTEM_MD)
+  if (system_hw == SYSTEM_MD)
   {
     /* Byteswap ROM to optimize 16-bit access */
     for (u32 i = 0; i < cart.romsize; i += 2)
@@ -748,7 +748,7 @@ version(LSB_FIRST) {
 
         /* automatically load associated .iso image */
         strncpy(&filename[strlen(filename) - 4], ".iso", 4);
-        cdd_load(filename, (char *)cdc.ram);
+        cdd_load(filename, cast(char *)cdc.ram);
       }
       else
       {
@@ -1019,7 +1019,7 @@ void get_region(char *romheader)
         /* look for each characters */
         for(i = 0; i < 4; i++)
         {
-          c = toupper((s32)rominfo.country[i]);
+          c = toupper(cast(s32)rominfo.country[i]);
 
           if (c == 'U') country |= 4;
           else if (c == 'J') country |= 1;
@@ -1100,9 +1100,9 @@ void get_region(char *romheader)
  * It seems that there can be pretty much anything you like following the
  * copyright (C) symbol!
  ****************************************************************************/
-char *get_company()
+char* get_company()
 {
-  char *s;
+  char* s;
   s32 i;
   char[10] company;
 
@@ -1116,7 +1116,7 @@ char *get_company()
    *  Capcom use T-12 for example
    */
   s = strstr (company, "-");
-  if (s != NULL)
+  if (s != null)
   {
     s++;
     strcpy (company, s);
@@ -1128,15 +1128,15 @@ char *get_company()
       company[i] = 0;
 
   if (strlen (company) == 0)
-    return (char *)companyinfo[MAXCOMPANY - 1].company;
+    return cast(char *)companyinfo[MAXCOMPANY - 1].company;
 
   for (i = 0; i < MAXCOMPANY - 1; i++)
   {
     if (!(strncmp (company, companyinfo[i].companyid, strlen (company))))
-      return (char *)companyinfo[i].company;
+      return cast(char *)companyinfo[i].company;
   }
 
-  return (char *)companyinfo[MAXCOMPANY - 1].company;
+  return cast(char *)companyinfo[MAXCOMPANY - 1].company;
 }
 
 /****************************************************************************
@@ -1145,10 +1145,10 @@ char *get_company()
  * Return peripheral name based on header code
  *
  ****************************************************************************/
-char *get_peripheral(s32 index)
+char* get_peripheral(s32 index)
 {
   if (index < MAXPERIPHERALS)
-    return (char *)peripheralinfo[index].pName;
-  return (char *)companyinfo[MAXCOMPANY - 1].company;
+    return cast(char *)peripheralinfo[index].pName;
+  return cast(char *)companyinfo[MAXCOMPANY - 1].company;
 }
 

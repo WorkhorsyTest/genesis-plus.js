@@ -506,7 +506,7 @@ void gfx_render(u32 bufferIndex, u32 width)
   while (width--)
   {
     /* check if stamp map is repeated */
-    if (scd.regs[0x58>>1].byte.l & 0x01)
+    if (scd.regs[0x58>>1].b.l & 0x01)
     {
       /* stamp map range */
       xpos &= gfx.dotMask;
@@ -549,7 +549,7 @@ void gfx_render(u32 bufferIndex, u32 width)
         /*       xx = cell column (0-3) = (xpos >> (11 + 3)) & 3 */
         /*        s = stamp size (0=16x16, 1=32x32)              */
         /*      hrr = HFLIP & ROTATION bits                      */
-        stamp_index |= gfx.lut_cell[stamp_data | ((scd.regs[0x58>>1].byte.l & 0x02) << 2 ) | ((ypos >> 8) & 0xc0) | ((xpos >> 10) & 0x30)] << 6;
+        stamp_index |= gfx.lut_cell[stamp_data | ((scd.regs[0x58>>1].b.l & 0x02) << 2 ) | ((ypos >> 8) & 0xc0) | ((xpos >> 10) & 0x30)] << 6;
             
         /* pixel  offset (0-63)                              */
         /* table entry = yyyxxxhrr (9 bits)                  */
@@ -618,7 +618,7 @@ void gfx_render(u32 bufferIndex, u32 width)
 void gfx_start(u32 base, s32 cycles)
 {
   /* make sure 2M mode is enabled */
-  if (!(scd.regs[0x02>>1].byte.l & 0x04))
+  if (!(scd.regs[0x02>>1].b.l & 0x04))
   {
     u32 mask;
     
@@ -626,7 +626,7 @@ void gfx_start(u32 base, s32 cycles)
     gfx.tracePtr = (u16 *)(scd.word_ram_2M + ((base << 2) & 0x3fff8));
 
     /* stamps & stamp map size */
-    switch ((scd.regs[0x58>>1].byte.l >> 1) & 0x03)
+    switch ((scd.regs[0x58>>1].b.l >> 1) & 0x03)
     {
       case 0:
         gfx.dotMask = 0x07ffff;   /* 256x256 dots/map  */
@@ -661,13 +661,13 @@ void gfx_start(u32 base, s32 cycles)
     gfx.mapPtr = (u16 *)(scd.word_ram_2M + ((scd.regs[0x5a>>1].w << 2) & mask));
 
     /* image buffer column offset (64 pixels/cell, minus 7 pixels to restart at cell beginning) */
-    gfx.bufferOffset = (((scd.regs[0x5c>>1].byte.l & 0x1f) + 1) << 6) - 7;
+    gfx.bufferOffset = (((scd.regs[0x5c>>1].b.l & 0x1f) + 1) << 6) - 7;
 
     /* image buffer start index in dot units (2 pixels/byte) */
     gfx.bufferStart = (scd.regs[0x5e>>1].w << 3) & 0x7ffc0;
 
     /* add image buffer horizontal dot offset */
-    gfx.bufferStart += (scd.regs[0x60>>1].byte.l & 0x3f);
+    gfx.bufferStart += (scd.regs[0x60>>1].b.l & 0x3f);
 
     /* reset GFX chip cycle counter */
     gfx.cycles = cycles;
@@ -676,7 +676,7 @@ void gfx_start(u32 base, s32 cycles)
     gfx.cyclesPerLine = 4 * 5 * scd.regs[0x62>>1].w; 
 
     /* start graphics operation */
-    scd.regs[0x58>>1].byte.h = 0x80;
+    scd.regs[0x58>>1].b.h = 0x80;
   }
 }
 
@@ -692,10 +692,10 @@ void gfx_update(s32 cycles)
     u32 lines = (cycles + gfx.cyclesPerLine - 1) / gfx.cyclesPerLine;
 
     /* check against remaining lines */
-    if (lines < scd.regs[0x64>>1].byte.l)
+    if (lines < scd.regs[0x64>>1].b.l)
     {
       /* update Vdot remaining size */
-      scd.regs[0x64>>1].byte.l -= lines;
+      scd.regs[0x64>>1].b.l -= lines;
 
       /* increment cycle counter */
       gfx.cycles += lines * gfx.cyclesPerLine;
@@ -703,22 +703,22 @@ void gfx_update(s32 cycles)
     else
     {
       /* process remaining lines */
-      lines = scd.regs[0x64>>1].byte.l;
+      lines = scd.regs[0x64>>1].b.l;
 
       /* clear Vdot remaining size */
-      scd.regs[0x64>>1].byte.l = 0;
+      scd.regs[0x64>>1].b.l = 0;
 
       /* end of graphics operation */
-      scd.regs[0x58>>1].byte.h = 0;
+      scd.regs[0x58>>1].b.h = 0;
  
       /* level 1 interrupt enabled ? */
-      if (scd.regs[0x32>>1].byte.l & 0x02)
+      if (scd.regs[0x32>>1].b.l & 0x02)
       {
         /* trigger level 1 interrupt */
         scd.pending |= (1 << 1);
 
         /* update IRQ level */
-        s68k_update_irq((scd.pending & scd.regs[0x32>>1].byte.l) >> 1);
+        s68k_update_irq((scd.pending & scd.regs[0x32>>1].b.l) >> 1);
       }
     }
 

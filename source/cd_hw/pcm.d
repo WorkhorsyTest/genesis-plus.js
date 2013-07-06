@@ -310,28 +310,28 @@ version(LOG_PCM) {
     case 0x02: /* FD register (LSB) */
     {
       /* update channel WAVE RAM address increment LSB */
-      pcm.chan[pcm.index].fd.byte.l = data;
+      pcm.chan[pcm.index].fd.b.l = data;
       return;
     }
 
     case 0x03: /* FD register (MSB) */
     {
       /* update channel WAVE RAM address increment MSB */
-      pcm.chan[pcm.index].fd.byte.h = data;
+      pcm.chan[pcm.index].fd.b.h = data;
       return;
     }
 
     case 0x04: /* LS register (LSB) */
     {
       /* update channel WAVE RAM loop address LSB */
-      pcm.chan[pcm.index].ls.byte.l = data;
+      pcm.chan[pcm.index].ls.b.l = data;
       return;
     }
 
     case 0x05: /* LS register (MSB) */
     {
       /* update channel WAVE RAM loop address MSB */
-      pcm.chan[pcm.index].ls.byte.h = data;
+      pcm.chan[pcm.index].ls.b.h = data;
       return;
     }
 

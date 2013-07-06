@@ -36,7 +36,7 @@
  *
  ****************************************************************************************/
 
-import shared.d;
+import shared;
 
 const int STATE_SIZE    = 0xfd000;
 const stirng STATE_VERSION = "GENPLUS-GX 1.7.1";

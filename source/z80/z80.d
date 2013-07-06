@@ -167,7 +167,7 @@ struct Z80_Regs
   u8  after_ei;       /* are we in the EI shadow? */
   u32 cycles;         /* master clock cycles global counter */
   const z80_irq_daisy_chain* daisy;
-  s32    (*irq_callback)();
+  s32 function() irq_callback;
 }
 
 bool VERBOSE = false;
@@ -175,6 +175,7 @@ bool VERBOSE = false;
 void LOG(x) {
   if(VERBOSE)
     logerror(x);
+}
 
 u32 cpu_readop(u32 a) {
 	return z80_readmap[(a) >> 10][(a) & 0x03FF];
@@ -250,10 +251,10 @@ Z80_Regs Z80;
 u8[64] z80_readmap;
 u8[64] z80_writemap;
 
-void (*z80_writemem)(u32 address, u8 data);
-u8 (*z80_readmem)(u32 address);
-void (*z80_writeport)(u32 port, u8 data);
-u8 (*z80_readport)(u32 port);
+void function(u32 address, u8 data) z80_writemem;
+u8 function(u32 address) z80_readmem;
+void function(u32 port, u8 data) z80_writeport;
+u8 function(u32 port) z80_readport;
 
 static u32 EA;
 
@@ -379,10 +380,8 @@ static const u16[0x100] cc_ex = {
 
 static const u16[6] cc;
 
-typedef void (*funcptr)();
 
-
-static const funcptr[0x100] Z80op = {  
+static const void function()[0x100] Z80op = [
   op_00,op_01,op_02,op_03,op_04,op_05,op_06,op_07, 
   op_08,op_09,op_0a,op_0b,op_0c,op_0d,op_0e,op_0f, 
   op_10,op_11,op_12,op_13,op_14,op_15,op_16,op_17, 
@@ -416,9 +415,9 @@ static const funcptr[0x100] Z80op = {
   op_e8,op_e9,op_ea,op_eb,op_ec,op_ed,op_ee,op_ef, 
   op_f0,op_f1,op_f2,op_f3,op_f4,op_f5,op_f6,op_f7, 
   op_f8,op_f9,op_fa,op_fb,op_fc,op_fd,op_fe,op_ff  
-};
+];
 
-static const funcptr[0x100] Z80cb = {  
+static const void function()[0x100] Z80cb = [
   cb_00,cb_01,cb_02,cb_03,cb_04,cb_05,cb_06,cb_07, 
   cb_08,cb_09,cb_0a,cb_0b,cb_0c,cb_0d,cb_0e,cb_0f, 
   cb_10,cb_11,cb_12,cb_13,cb_14,cb_15,cb_16,cb_17, 
@@ -452,9 +451,9 @@ static const funcptr[0x100] Z80cb = {
   cb_e8,cb_e9,cb_ea,cb_eb,cb_ec,cb_ed,cb_ee,cb_ef, 
   cb_f0,cb_f1,cb_f2,cb_f3,cb_f4,cb_f5,cb_f6,cb_f7, 
   cb_f8,cb_f9,cb_fa,cb_fb,cb_fc,cb_fd,cb_fe,cb_ff 
-};
+];
 
-static const funcptr[0x100] Z80dd = {  
+static const void function()[0x100] Z80dd = [
   dd_00,dd_01,dd_02,dd_03,dd_04,dd_05,dd_06,dd_07, 
   dd_08,dd_09,dd_0a,dd_0b,dd_0c,dd_0d,dd_0e,dd_0f, 
   dd_10,dd_11,dd_12,dd_13,dd_14,dd_15,dd_16,dd_17, 
@@ -487,9 +486,9 @@ static const funcptr[0x100] Z80dd = {
   dd_e8,dd_e9,dd_ea,dd_eb,dd_ec,dd_ed,dd_ee,dd_ef, 
   dd_f0,dd_f1,dd_f2,dd_f3,dd_f4,dd_f5,dd_f6,dd_f7, 
   dd_f8,dd_f9,dd_fa,dd_fb,dd_fc,dd_fd,dd_fe,dd_ff  
-};
+];
 
-static const funcptr[0x100] Z80ed = {  
+static const void function()[0x100] Z80ed = [
   ed_00,ed_01,ed_02,ed_03,ed_04,ed_05,ed_06,ed_07, 
   ed_08,ed_09,ed_0a,ed_0b,ed_0c,ed_0d,ed_0e,ed_0f, 
   ed_10,ed_11,ed_12,ed_13,ed_14,ed_15,ed_16,ed_17, 
@@ -522,9 +521,9 @@ static const funcptr[0x100] Z80ed = {
   ed_e8,ed_e9,ed_ea,ed_eb,ed_ec,ed_ed,ed_ee,ed_ef, 
   ed_f0,ed_f1,ed_f2,ed_f3,ed_f4,ed_f5,ed_f6,ed_f7, 
   ed_f8,ed_f9,ed_fa,ed_fb,ed_fc,ed_fd,ed_fe,ed_ff  
-};
+];
 
-static const funcptr[0x100] Z80fd = {  
+static const void function()[0x100] Z80fd = [
   fd_00,fd_01,fd_02,fd_03,fd_04,fd_05,fd_06,fd_07, 
   fd_08,fd_09,fd_0a,fd_0b,fd_0c,fd_0d,fd_0e,fd_0f, 
   fd_10,fd_11,fd_12,fd_13,fd_14,fd_15,fd_16,fd_17, 
@@ -557,9 +556,9 @@ static const funcptr[0x100] Z80fd = {
   fd_e8,fd_e9,fd_ea,fd_eb,fd_ec,fd_ed,fd_ee,fd_ef, 
   fd_f0,fd_f1,fd_f2,fd_f3,fd_f4,fd_f5,fd_f6,fd_f7, 
   fd_f8,fd_f9,fd_fa,fd_fb,fd_fc,fd_fd,fd_fe,fd_ff  
-};
+];
 
-static const funcptr[0x100] Z80xycb = {  
+static const void function()[0x100] Z80xycb = [
   xycb_00,xycb_01,xycb_02,xycb_03,xycb_04,xycb_05,xycb_06,xycb_07, 
   xycb_08,xycb_09,xycb_0a,xycb_0b,xycb_0c,xycb_0d,xycb_0e,xycb_0f, 
   xycb_10,xycb_11,xycb_12,xycb_13,xycb_14,xycb_15,xycb_16,xycb_17, 
@@ -592,7 +591,7 @@ static const funcptr[0x100] Z80xycb = {
   xycb_e8,xycb_e9,xycb_ea,xycb_eb,xycb_ec,xycb_ed,xycb_ee,xycb_ef, 
   xycb_f0,xycb_f1,xycb_f2,xycb_f3,xycb_f4,xycb_f5,xycb_f6,xycb_f7, 
   xycb_f8,xycb_f9,xycb_fa,xycb_fb,xycb_fc,xycb_fd,xycb_fe,xycb_ff  
-};
+];
 
 /****************************************************************************/
 /* Burn an odd amount of cycles, that is instructions taking something    */
@@ -704,8 +703,8 @@ void WM(u32 address, u8 value) {
  ***************************************************************/
 void RM16( u32 addr, PAIR *r )
 {
-  r->b.l = RM(addr);
-  r->b.h = RM((addr+1)&0xffff);
+  r.b.l = RM(addr);
+  r.b.h = RM((addr+1)&0xffff);
 }
 
 /***************************************************************
@@ -713,8 +712,8 @@ void RM16( u32 addr, PAIR *r )
  ***************************************************************/
 void WM16( u32 addr, PAIR *r )
 {
-  WM(addr,r->b.l);
-  WM((addr+1)&0xffff,r->b.h);
+  WM(addr,r.b.l);
+  WM((addr+1)&0xffff,r.b.h);
 }
 
 /***************************************************************
@@ -754,12 +753,12 @@ u32 ARG16()
  * IX+offset resp. IY+offset addressing.
  ***************************************************************/
 void EAX() {
-    EA = (u32)(u16)(IX + (s8)ARG());
+    EA = cast(u32)cast(u16)(IX + cast(s8)ARG());
     WZ = EA;
 }
 
 void EAY() {
-    EA = (u32)(u16)(IY + (s8)ARG());
+    EA = cast(u32)cast(u16)(IY + cast(s8)ARG());
     WZ = EA;
 }
 
@@ -863,7 +862,7 @@ void JP_COND(bool cond) {
  * JR
  ***************************************************************/
 void JR() {
-  s8 arg = (s8)ARG(); /* ARG() also increments PC */
+  s8 arg = cast(s8)ARG(); /* ARG() also increments PC */
   PC += arg;        /* so don't do PC += ARG() */
   WZ = PC;
 }
@@ -987,7 +986,7 @@ u8 INC(u8 value)
 {
   u8 res = value + 1;
   F = (F & CF) | SZHV_inc[res];
-  return (u8)res;
+  return cast(u8)res;
 }
 
 /***************************************************************
@@ -1064,7 +1063,7 @@ void RLD() {
  ***************************************************************/
 void ADD(u8 value) {
   u32 ah = AFD & 0xff00;
-  u32 res = (u8)((ah >> 8) + value);
+  u32 res = cast(u8)((ah >> 8) + value);
   F = SZHVC_add[ah | res];
   A = res;
 }
@@ -1074,7 +1073,7 @@ void ADD(u8 value) {
  ***************************************************************/
 void ADC(u8 value) {
   u32 ah = AFD & 0xff00, c = AFD & 1;
-  u32 res = (u8)((ah >> 8) + value + c);
+  u32 res = cast(u8)((ah >> 8) + value + c);
   F = SZHVC_add[(c << 16) | ah | res];
   A = res;
 }
@@ -1084,7 +1083,7 @@ void ADC(u8 value) {
  ***************************************************************/
 void SUB(u8 value) {
   u32 ah = AFD & 0xff00;
-  u32 res = (u8)((ah >> 8) - value);
+  u32 res = cast(u8)((ah >> 8) - value);
   F = SZHVC_sub[ah | res];
   A = res;
 }
@@ -1094,7 +1093,7 @@ void SUB(u8 value) {
  ***************************************************************/
 void SBC(u8 value) {
   u32 ah = AFD & 0xff00, c = AFD & 1;
-  u32 res = (u8)((ah >> 8) - value - c);
+  u32 res = cast(u8)((ah >> 8) - value - c);
   F = SZHVC_sub[(c<<16) | ah | res];
   A = res;
 }
@@ -1155,7 +1154,7 @@ void XOR(u8 value) {
 void CP(u8 value) {
   u32 val = value;
   u32 ah = AFD & 0xff00;
-  u32 res = (u8)((ah >> 8) - val);
+  u32 res = cast(u8)((ah >> 8) - val);
   F = (SZHVC_sub[ah | res] & ~(YF | XF)) | (val & (YF | XF));
 }
 
@@ -1221,12 +1220,12 @@ void EXSP_hl()
  * ADD16
  ***************************************************************/
 void ADD16(PAIR* DR, PAIR* SR) {
-  u32 res = DR->d + SR->d;
-  WZ = DR->d + 1;
+  u32 res = DR.d + SR.d;
+  WZ = DR.d + 1;
   F = (F & (SF | ZF | VF)) |
-    (((DR->d ^ res ^ SR->d) >> 8) & HF) |
+    (((DR.d ^ res ^ SR.d) >> 8) & HF) |
     ((res >> 16) & CF) | ((res >> 8) & (YF | XF));
-  DR->w.l = (u16)res;
+  DR.w.l = cast(u16)res;
 }
 
 /***************************************************************
@@ -1240,7 +1239,7 @@ void ADC16(u32 reg) {
     ((res >> 8) & (SF | YF | XF)) |
     ((res & 0xffff) ? 0 : ZF) |
     (((reg ^ HLD ^ 0x8000) & (reg ^ res) & 0x8000) >> 13);
-  HL = (u16)res;
+  HL = cast(u16)res;
 }
 
 /***************************************************************
@@ -1254,7 +1253,7 @@ void SBC16(u32 reg) {
     ((res >> 8) & (SF | YF | XF)) |
     ((res & 0xffff) ? 0 : ZF) |
     (((reg ^ HLD) & (HLD ^ res) &0x8000) >> 13);
-  HL = (u16)res;
+  HL = cast(u16)res;
 }
 
 /***************************************************************
@@ -1430,10 +1429,10 @@ void INI() {
   WM( HL, io );
   HL++;
   F = SZ[B];
-  t = (u32)((C + 1) & 0xff) + (u32)io;
+  t = cast(u32)((C + 1) & 0xff) + cast(u32)io;
   if( io & SF ) F |= NF;
   if( t & 0x100 ) F |= HF | CF;
-  F |= SZP[(u8)(t & 0x07) ^ B] & PF;
+  F |= SZP[cast(u8)(t & 0x07) ^ B] & PF;
 }
 
 /***************************************************************
@@ -1447,10 +1446,10 @@ void OUTI() {
   OUT( BC, io );
   HL++;
   F = SZ[B];
-  t = (u32)L + (u32)io;
+  t = cast(u32)L + cast(u32)io;
   if( io & SF ) F |= NF;
   if( t & 0x100 ) F |= HF | CF;
-  F |= SZP[(u8)(t & 0x07) ^ B] & PF;
+  F |= SZP[cast(u8)(t & 0x07) ^ B] & PF;
 }
 
 /***************************************************************
@@ -1493,10 +1492,10 @@ void IND() {
   WM( HL, io );
   HL--;
   F = SZ[B];
-  t = ((u32)(C - 1) & 0xff) + (u32)io;
+  t = (cast(u32)(C - 1) & 0xff) + cast(u32)io;
   if( io & SF ) F |= NF;
   if( t & 0x100 ) F |= HF | CF;
-  F |= SZP[(u8)(t & 0x07) ^ B] & PF;
+  F |= SZP[cast(u8)(t & 0x07) ^ B] & PF;
 }
 
 /***************************************************************
@@ -1510,10 +1509,10 @@ void OUTD() {
   OUT( BC, io );
   HL--;
   F = SZ[B];
-  t = (u32)L + (u32)io;
+  t = cast(u32)L + cast(u32)io;
   if( io & SF ) F |= NF;
   if( t & 0x100 ) F |= HF | CF;
-  F |= SZP[(u8)(t & 0x07) ^ B] & PF;
+  F |= SZP[cast(u8)(t & 0x07) ^ B] & PF;
 }
 
 /***************************************************************
@@ -3411,7 +3410,7 @@ static void take_interrupt()
   else
   {
     /* call back the cpu interface to retrieve the vector */
-    s32 irq_vector = (*Z80.irq_callback)();
+    s32 irq_vector = Z80.irq_callback();
 
     /* Interrupt mode 2. Call [Z80.i:databyte] */
     if( IM == 2 )
@@ -3457,7 +3456,7 @@ static void take_interrupt()
 /****************************************************************************
  * Processor initialization
  ****************************************************************************/
-void z80_init(const void *config, s32 (*irqcallback)(s32))
+void z80_init(const void *config, s32 function(s32) irqcallback)
 {
   s32 i, p;
 
@@ -3594,7 +3593,7 @@ void z80_run(u32 cycles)
 void z80_get_context (void *dst)
 {
   if( dst )
-    *(Z80_Regs*)dst = Z80;
+    *cast(Z80_Regs*)dst = Z80;
 }
 
 /****************************************************************************
@@ -3603,7 +3602,7 @@ void z80_get_context (void *dst)
 void z80_set_context (void *src)
 {
   if( src )
-    Z80 = *(Z80_Regs*)src;
+    Z80 = *cast(Z80_Regs*)src;
 }
 
 /****************************************************************************

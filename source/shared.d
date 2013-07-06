@@ -1,31 +1,31 @@
 
 import std.stdio;
-import std.string.d;
-import std.math.d;
+import std.string;
+import std.math;
 
-import types.d;
-import macros.d;
-import osd.d;
-import loadrom.d;
-import m68k.d;
-import z80.d;
-import system.d;
-import genesis.d;
-import vdp_ctrl.d;
-import vdp_render.d;
-import mem68k.d;
-import memz80.d;
-import membnk.d;
-import io_ctrl.d;
-import input.d;
-import sound.d;
-import sn76489.d;
-import ym2413.d;
-import ym2612.d;
-import sram.d;
-import ggenie.d;
-import areplay.d;
-import svp.d;
-import state.d;
+import types;
+import macros;
+import osd;
+import loadrom;
+import m68k;
+import z80;
+import system;
+import genesis;
+import vdp_ctrl;
+import vdp_render;
+import mem68k;
+import memz80;
+import membnk;
+import io_ctrl;
+import input;
+import sound;
+import sn76489;
+import ym2413;
+import ym2612;
+import sram;
+import ggenie;
+import areplay;
+import svp;
+import state;
 
 

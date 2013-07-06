@@ -39,6 +39,7 @@
  *
  ****************************************************************************************/
 
+import types;
 import shared;
 
 external_t ext;           /* External Hardware (Cartridge, CD unit, ...) */
@@ -240,7 +241,7 @@ void gen_reset(int hard_reset)
   }
 
   /* 68k & Z80 could be anywhere in VDP frame (Bonkers, Eternal Champions, X-Men 2) */
-  m68k.cycles = Z80.cycles = (u32)((MCYCLES_PER_LINE * lines_per_frame) * ((double)rand() / (double)RAND_MAX));
+  m68k.cycles = Z80.cycles = cast(u32)((MCYCLES_PER_LINE * lines_per_frame) * (cast(double)rand() / cast(double)RAND_MAX));
 
   /* 68k cycles should be a multiple of 7 */
   m68k.cycles = (m68k.cycles / 7) * 7;
@@ -368,7 +369,7 @@ void gen_tmss_w(u32 offset, u32 data)
   WRITE_WORD(tmss, offset, data);
 
   /* VDP requires "SEGA" value to be written in TMSS register */
-  if (memcmp((char *)tmss, "SEGA", 4) == 0)
+  if (memcmp(cast(char *)tmss, "SEGA", 4) == 0)
   {
     for (i=0xc0; i<0xe0; i+=8)
     {

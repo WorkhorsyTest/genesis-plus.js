@@ -13,7 +13,7 @@ alias ulong  u64;
 
 union reg16_t {
 	u16 w;
-	struct byte {
+	struct reg_16_byte_t {
 version(LSB_FIRST) {
 		u8 l;
 		u8 h;
@@ -22,6 +22,7 @@ version(LSB_FIRST) {
 		u8 l;
 }
 	}
+	reg_16_byte_t b;
 }
 
 version(LSB_FIRST) {

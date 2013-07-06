@@ -833,7 +833,7 @@ void cdd_read_audio(u32 samples)
   samples = blip_clocks_needed(blip[0], samples);
 
   /* audio track playing ? */
-  if (!scd.regs[0x36>>1].byte.h && cdd.toc.tracks[cdd.index].fd)
+  if (!scd.regs[0x36>>1].b.h && cdd.toc.tracks[cdd.index].fd)
   {
     s32 i, mul, delta;
 
@@ -974,7 +974,7 @@ version(LOG_CDD) {
       if (cdd.lba >= cdd.toc.tracks[cdd.index].start)
       {
         /* audio track playing */
-        scd.regs[0x36>>1].byte.h = 0x00;
+        scd.regs[0x36>>1].b.h = 0x00;
       }
 
       /* audio blocks are still sent to CDC as well as CD DAC/Fader */
@@ -996,7 +996,7 @@ version(LOG_CDD) {
       cdd.index++;
 
       /* PAUSE between tracks */
-      scd.regs[0x36>>1].byte.h = 0x01;
+      scd.regs[0x36>>1].b.h = 0x01;
 
       /* seek to current block */
       if (cdd.toc.tracks[cdd.index].fd)
@@ -1046,7 +1046,7 @@ version(LOG_CDD) {
     else if (cdd.index >= cdd.toc.last)
     {
       /* no AUDIO track playing */
-      scd.regs[0x36>>1].byte.h = 0x01;
+      scd.regs[0x36>>1].b.h = 0x01;
 
       /* end of disc */
       cdd.index = cdd.toc.last;
@@ -1057,14 +1057,14 @@ version(LOG_CDD) {
     if (!cdd.index)
     {
       /* no AUDIO track playing */
-      scd.regs[0x36>>1].byte.h = 0x01;
+      scd.regs[0x36>>1].b.h = 0x01;
 
       fseek(cdd.toc.tracks[0].fd, cdd.lba * cdd.sectorSize, SEEK_SET);
     }
     else if (cdd.toc.tracks[cdd.index].fd)
     {
       /* AUDIO track playing */
-      scd.regs[0x36>>1].byte.h = 0x00;
+      scd.regs[0x36>>1].b.h = 0x00;
 
       if (cdd.lba < cdd.toc.tracks[cdd.index].start)
       {
@@ -1081,12 +1081,12 @@ version(LOG_CDD) {
 void cdd_process()
 {
   /* Process CDD command */
-  switch (scd.regs[0x42>>1].byte.h & 0x0f)
+  switch (scd.regs[0x42>>1].b.h & 0x0f)
   {
     case 0x00:  /* Drive Status */
     {
       /* RS1-RS8 unchanged */
-      scd.regs[0x38>>1].byte.h = cdd.status;
+      scd.regs[0x38>>1].b.h = cdd.status;
       break;
     }
 
@@ -1096,7 +1096,7 @@ void cdd_process()
       cdd.status = cdd.loaded ? CD_STOP : NO_DISC;
 
       /* no audio track playing */
-      scd.regs[0x36>>1].byte.h = 0x01;
+      scd.regs[0x36>>1].b.h = 0x01;
 
       /* RS1-RS8 ignored, expects 0x0 ("no disc" ?) in RS0 once */
       scd.regs[0x38>>1].w = 0x0000;
@@ -1111,7 +1111,7 @@ void cdd_process()
     {
       /* Infos automatically retrieved by CDD processor from Q-Channel */
       /* commands 0x00-0x02 (current block) and 0x03-0x05 (Lead-In) */
-      switch (scd.regs[0x44>>1].byte.l)
+      switch (scd.regs[0x44>>1].b.l)
       {
         case 0x00:  /* Current Absolute Time (MM:SS:FF) */
         {
@@ -1120,7 +1120,7 @@ void cdd_process()
           scd.regs[0x3a>>1].w = lut_BCD_16[(lba/75)/60];
           scd.regs[0x3c>>1].w = lut_BCD_16[(lba/75)%60];
           scd.regs[0x3e>>1].w = lut_BCD_16[(lba%75)];
-          scd.regs[0x40>>1].byte.h = cdd.index ? 0x00 : 0x04; /* Current block flags in RS8 (bit0 = mute status, bit1: pre-emphasis status, bit2: track type) */
+          scd.regs[0x40>>1].b.h = cdd.index ? 0x00 : 0x04; /* Current block flags in RS8 (bit0 = mute status, bit1: pre-emphasis status, bit2: track type) */
           break;
         }
 
@@ -1131,7 +1131,7 @@ void cdd_process()
           scd.regs[0x3a>>1].w = lut_BCD_16[(lba/75)/60];
           scd.regs[0x3c>>1].w = lut_BCD_16[(lba/75)%60];
           scd.regs[0x3e>>1].w = lut_BCD_16[(lba%75)];
-          scd.regs[0x40>>1].byte.h = cdd.index ? 0x00 : 0x04; /* Current block flags in RS8 (bit0 = mute status, bit1: pre-emphasis status, bit2: track type) */
+          scd.regs[0x40>>1].b.h = cdd.index ? 0x00 : 0x04; /* Current block flags in RS8 (bit0 = mute status, bit1: pre-emphasis status, bit2: track type) */
           break;
         }
 
@@ -1141,7 +1141,7 @@ void cdd_process()
           scd.regs[0x3a>>1].w = (cdd.index < cdd.toc.last) ? lut_BCD_16[cdd.index + 1] : 0x0A0A;
           scd.regs[0x3c>>1].w = 0x0000;
           scd.regs[0x3e>>1].w = 0x0000; /* Disk Control Code (?) in RS6 */
-          scd.regs[0x40>>1].byte.h = 0x00;
+          scd.regs[0x40>>1].b.h = 0x00;
           break;
         }
 
@@ -1152,7 +1152,7 @@ void cdd_process()
           scd.regs[0x3a>>1].w = lut_BCD_16[(lba/75)/60];
           scd.regs[0x3c>>1].w = lut_BCD_16[(lba/75)%60];
           scd.regs[0x3e>>1].w = lut_BCD_16[(lba%75)];
-          scd.regs[0x40>>1].byte.h = 0x00;
+          scd.regs[0x40>>1].b.h = 0x00;
           break;
         }
 
@@ -1162,23 +1162,23 @@ void cdd_process()
           scd.regs[0x3a>>1].w = 0x0001;
           scd.regs[0x3c>>1].w = lut_BCD_16[cdd.toc.last];
           scd.regs[0x3e>>1].w = 0x0000; /* Drive Version (?) in RS6-RS7 */
-          scd.regs[0x40>>1].byte.h = 0x00;  /* Lead-In flags in RS8 (bit0 = mute status, bit1: pre-emphasis status, bit2: track type) */
+          scd.regs[0x40>>1].b.h = 0x00;  /* Lead-In flags in RS8 (bit0 = mute status, bit1: pre-emphasis status, bit2: track type) */
           break;
         }
 
         case 0x05:  /* Track Start Time (MM:SS:FF) */
         {
-          s32 track = scd.regs[0x46>>1].byte.h * 10 + scd.regs[0x46>>1].byte.l;
+          s32 track = scd.regs[0x46>>1].b.h * 10 + scd.regs[0x46>>1].b.l;
           s32 lba = cdd.toc.tracks[track-1].start + 150;
           scd.regs[0x38>>1].w = (cdd.status << 8) | 0x05;
           scd.regs[0x3a>>1].w = lut_BCD_16[(lba/75)/60];
           scd.regs[0x3c>>1].w = lut_BCD_16[(lba/75)%60];
           scd.regs[0x3e>>1].w = lut_BCD_16[(lba%75)];
-          scd.regs[0x40>>1].byte.h = track % 10;  /* Track Number (low digit) */
+          scd.regs[0x40>>1].b.h = track % 10;  /* Track Number (low digit) */
           if (track == 1)
           {
             /* RS6 bit 3 is set for the first (DATA) track */
-            scd.regs[0x3e>>1].byte.h |= 0x08;
+            scd.regs[0x3e>>1].b.h |= 0x08;
           }
           break;
         }
@@ -1186,7 +1186,7 @@ void cdd_process()
         default:
         {
 version(LOG_ERROR) {
-          error("Unknown CDD Command %02X (%X)\n", scd.regs[0x44>>1].byte.l, s68k.pc);
+          error("Unknown CDD Command %02X (%X)\n", scd.regs[0x44>>1].b.l, s68k.pc);
 }
           return;
         }
@@ -1200,9 +1200,9 @@ version(LOG_ERROR) {
       s32 index = 0;
 
       /* new LBA position */
-      s32 lba = ((scd.regs[0x44>>1].byte.h * 10 + scd.regs[0x44>>1].byte.l) * 60 + 
-                 (scd.regs[0x46>>1].byte.h * 10 + scd.regs[0x46>>1].byte.l)) * 75 +
-                 (scd.regs[0x48>>1].byte.h * 10 + scd.regs[0x48>>1].byte.l) - 150;
+      s32 lba = ((scd.regs[0x44>>1].b.h * 10 + scd.regs[0x44>>1].b.l) * 60 + 
+                 (scd.regs[0x46>>1].b.h * 10 + scd.regs[0x46>>1].b.l)) * 75 +
+                 (scd.regs[0x48>>1].b.h * 10 + scd.regs[0x48>>1].b.l) - 150;
 
       /* CD drive latency */
       if (!cdd.latency)
@@ -1263,7 +1263,7 @@ version(LOG_ERROR) {
       }
 
       /* no audio track playing (yet) */
-      scd.regs[0x36>>1].byte.h = 0x01;
+      scd.regs[0x36>>1].b.h = 0x01;
 
       /* update status */
       cdd.status = CD_PLAY;
@@ -1273,7 +1273,7 @@ version(LOG_ERROR) {
       scd.regs[0x3a>>1].w = (cdd.index < cdd.toc.last) ? lut_BCD_16[index + 1] : 0x0A0A;
       scd.regs[0x3c>>1].w = 0x0000;
       scd.regs[0x3e>>1].w = 0x0000;
-      scd.regs[0x40>>1].byte.h = 0x00;
+      scd.regs[0x40>>1].b.h = 0x00;
       break;
     }
 
@@ -1283,9 +1283,9 @@ version(LOG_ERROR) {
       s32 index = 0;
 
       /* new LBA position */
-      s32 lba = ((scd.regs[0x44>>1].byte.h * 10 + scd.regs[0x44>>1].byte.l) * 60 + 
-                 (scd.regs[0x46>>1].byte.h * 10 + scd.regs[0x46>>1].byte.l)) * 75 +
-                 (scd.regs[0x48>>1].byte.h * 10 + scd.regs[0x48>>1].byte.l) - 150;
+      s32 lba = ((scd.regs[0x44>>1].b.h * 10 + scd.regs[0x44>>1].b.l) * 60 + 
+                 (scd.regs[0x46>>1].b.h * 10 + scd.regs[0x46>>1].b.l)) * 75 +
+                 (scd.regs[0x48>>1].b.h * 10 + scd.regs[0x48>>1].b.l) - 150;
 
       /* CD drive seek time  */
       /* We are using similar linear model as above, although still not exactly accurate, */
@@ -1322,7 +1322,7 @@ version(LOG_ERROR) {
       }
 
       /* no audio track playing */
-      scd.regs[0x36>>1].byte.h = 0x01;
+      scd.regs[0x36>>1].b.h = 0x01;
 
       /* update status */
       cdd.status = CD_SEEK;
@@ -1339,17 +1339,17 @@ version(LOG_ERROR) {
     case 0x06:  /* Pause */
     {
       /* no audio track playing */
-      scd.regs[0x36>>1].byte.h = 0x01;
+      scd.regs[0x36>>1].b.h = 0x01;
 
       /* update status (RS1-RS8 unchanged) */
-      cdd.status = scd.regs[0x38>>1].byte.h = CD_READY;
+      cdd.status = scd.regs[0x38>>1].b.h = CD_READY;
       break;
     }
 
     case 0x07:  /* Resume */
     {
       /* update status (RS1-RS8 unchanged) */
-      cdd.status = scd.regs[0x38>>1].byte.h = CD_PLAY;
+      cdd.status = scd.regs[0x38>>1].b.h = CD_PLAY;
       break;
     }
 
@@ -1359,7 +1359,7 @@ version(LOG_ERROR) {
       cdd.scanOffset = CD_SCAN_SPEED;
 
       /* update status (RS1-RS8 unchanged) */
-      cdd.status = scd.regs[0x38>>1].byte.h = CD_SCAN;
+      cdd.status = scd.regs[0x38>>1].b.h = CD_SCAN;
       break;
     }
 
@@ -1369,7 +1369,7 @@ version(LOG_ERROR) {
       cdd.scanOffset = -CD_SCAN_SPEED;
 
       /* update status (RS1-RS8 unchanged) */
-      cdd.status = scd.regs[0x38>>1].byte.h = CD_SCAN;
+      cdd.status = scd.regs[0x38>>1].b.h = CD_SCAN;
       break;
     }
 
@@ -1382,7 +1382,7 @@ version(LOG_ERROR) {
       /* also see US Patent nr. 5222054 for a detailled description of seeking operation using Track Jump */
 
       /* no audio track playing */
-      scd.regs[0x36>>1].byte.h = 0x01;
+      scd.regs[0x36>>1].b.h = 0x01;
 
       /* update status */
       cdd.status = CD_READY;
@@ -1399,7 +1399,7 @@ version(LOG_ERROR) {
     case 0x0c:  /* Close Tray */
     {
       /* no audio track playing */
-      scd.regs[0x36>>1].byte.h = 0x01;
+      scd.regs[0x36>>1].b.h = 0x01;
 
       /* update status */
       cdd.status = cdd.loaded ? CD_STOP : NO_DISC;
@@ -1420,7 +1420,7 @@ version(CD_TRAY_CALLBACK) {
     case 0x0d:  /* Open Tray */
     {
       /* no audio track playing */
-      scd.regs[0x36>>1].byte.h = 0x01;
+      scd.regs[0x36>>1].b.h = 0x01;
 
       /* update status (RS1-RS8 ignored) */
       cdd.status = CD_OPEN;
@@ -1440,15 +1440,15 @@ version(CD_TRAY_CALLBACK) {
 version(LOG_CDD) {
       error("Unknown CDD Command !!!\n");
 }
-      scd.regs[0x38>>1].byte.h = cdd.status;
+      scd.regs[0x38>>1].b.h = cdd.status;
       break;
   }
 
   /* only compute checksum when necessary */
-  scd.regs[0x40>>1].byte.l = ~(scd.regs[0x38>>1].byte.h + scd.regs[0x38>>1].byte.l +
-                               scd.regs[0x3a>>1].byte.h + scd.regs[0x3a>>1].byte.l +
-                               scd.regs[0x3c>>1].byte.h + scd.regs[0x3c>>1].byte.l +
-                               scd.regs[0x3e>>1].byte.h + scd.regs[0x3e>>1].byte.l +
-                               scd.regs[0x40>>1].byte.h) & 0x0f;
+  scd.regs[0x40>>1].b.l = ~(scd.regs[0x38>>1].b.h + scd.regs[0x38>>1].b.l +
+                               scd.regs[0x3a>>1].b.h + scd.regs[0x3a>>1].b.l +
+                               scd.regs[0x3c>>1].b.h + scd.regs[0x3c>>1].b.l +
+                               scd.regs[0x3e>>1].b.h + scd.regs[0x3e>>1].b.l +
+                               scd.regs[0x40>>1].b.h) & 0x0f;
 }
 

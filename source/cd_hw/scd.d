@@ -131,7 +131,7 @@ void prg_ram_dma_w(u32 words)
   cdc.dac.w += (words << 1);
 
   /* check PRG-RAM write protected area */
-  if (dst_index < (scd.regs[0x02>>1].byte.h << 9))
+  if (dst_index < (scd.regs[0x02>>1].b.h << 9))
   {
     return;
   }
@@ -164,7 +164,7 @@ version(LSB_FIRST) {
 static void prg_ram_write_byte(u32 address, u32 data)
 {
   address &= 0x7ffff;
-  if (address >= (scd.regs[0x02>>1].byte.h << 9))
+  if (address >= (scd.regs[0x02>>1].b.h << 9))
   {
     WRITE_BYTE(scd.prg_ram, address, data);
     return;
@@ -177,7 +177,7 @@ version(LOGERROR) {
 static void prg_ram_write_word(u32 address, u32 data)
 {
   address &= 0x7fffe;
-  if (address >= (scd.regs[0x02>>1].byte.h << 9))
+  if (address >= (scd.regs[0x02>>1].b.h << 9))
   {
     *(u16 *)(scd.prg_ram + address) = data;
     return;
@@ -305,14 +305,14 @@ version(LOG_SCD) {
   if (address == 0xff8003)
   {
     s68k_poll_detect(0x03);
-    return scd.regs[0x03>>1].byte.l;
+    return scd.regs[0x03>>1].b.l;
   }
 
   /* MAIN-CPU communication flags */
   if (address == 0xff800e)
   {
     s68k_poll_detect(0x0e);
-    return scd.regs[0x0e>>1].byte.h;
+    return scd.regs[0x0e>>1].b.h;
   }
 
   /* CDC register data (controlled by BIOS, byte access only ?) */
@@ -320,7 +320,7 @@ version(LOG_SCD) {
   {
     u32 data = cdc_reg_r();
 version(LOG_CDC) {
-    error("CDC register %X read 0x%02X (%X)\n", scd.regs[0x04>>1].byte.l & 0x0F, data, s68k.pc);
+    error("CDC register %X read 0x%02X (%X)\n", scd.regs[0x04>>1].b.l & 0x0F, data, s68k.pc);
 }
     return data;
   }
@@ -329,7 +329,7 @@ version(LOG_CDC) {
   if (address == 0xff8000)
   {
     /* register $00 is reserved for MAIN-CPU, we use $06 instead */
-    return scd.regs[0x06>>1].byte.h;
+    return scd.regs[0x06>>1].b.h;
   }
 
   /* RESET status */
@@ -346,7 +346,7 @@ version(LOG_CDC) {
     u8 bits = (scd.regs[0x4e>>1].w >> (((address & 6) ^ 6) << 1)) << 2;
     
     /* color code */
-    u8 code = scd.regs[0x4c>>1].byte.l;
+    u8 code = scd.regs[0x4c>>1].b.l;
     
     /* 16-bit font data (4 pixels = 16 bits) */
     u16 data = (code >> (bits & 4)) & 0x0f;
@@ -373,11 +373,11 @@ version(LOG_CDC) {
   if (address & 1)
   {
     /* register LSB */
-    return scd.regs[(address >> 1) & 0xff].byte.l;
+    return scd.regs[(address >> 1) & 0xff].b.l;
   }
 
   /* register MSB */
-  return scd.regs[(address >> 1) & 0xff].byte.h;
+  return scd.regs[(address >> 1) & 0xff].b.h;
 }
 
 static u32 scd_read_word(u32 address)
@@ -427,7 +427,7 @@ version(LOG_SCD) {
     u8 bits = (scd.regs[0x4e>>1].w >> (((address & 6) ^ 6) << 1)) << 2;
     
     /* color code */
-    u8 code = scd.regs[0x4c>>1].byte.l;
+    u8 code = scd.regs[0x4c>>1].b.l;
     
     /* 16-bit font data (4 pixels = 16 bits) */
     u16 data = (code >> (bits & 4)) & 0x0f;
@@ -547,7 +547,7 @@ version(LOG_SCD) {
     case 0x00: /* LED status */
     {
       /* register $00 is reserved for MAIN-CPU, use $06 instead */
-      scd.regs[0x06 >> 1].byte.h = data;
+      scd.regs[0x06 >> 1].b.h = data;
       return;
     }
 
@@ -567,7 +567,7 @@ version(LOG_SCD) {
       s68k_poll_sync(0x02);
 
       /* detect MODE & RET bits modifications */
-      if ((data ^ scd.regs[0x03 >> 1].byte.l) & 0x05)
+      if ((data ^ scd.regs[0x03 >> 1].b.l) & 0x05)
       {
         s32 i;
         
@@ -575,7 +575,7 @@ version(LOG_SCD) {
         if (data & 0x04)
         {
           /* 2M->1M mode switch */
-          if (!(scd.regs[0x03 >> 1].byte.l & 0x04))
+          if (!(scd.regs[0x03 >> 1].b.l & 0x04))
           {
             /* re-arrange Word-RAM banks */
             word_ram_switch(0x04);
@@ -667,13 +667,13 @@ version(LOG_SCD) {
           }
 
           /* clear DMNA bit (swap completed) */
-          scd.regs[0x02 >> 1].byte.l = (scd.regs[0x02 >> 1].byte.l & ~0x1f) | (data & 0x1d);
+          scd.regs[0x02 >> 1].b.l = (scd.regs[0x02 >> 1].b.l & ~0x1f) | (data & 0x1d);
           return;
         }
         else
         {
           /* 1M->2M mode switch */
-          if (scd.regs[0x02 >> 1].byte.l & 0x04)
+          if (scd.regs[0x02 >> 1].b.l & 0x04)
           {
             /* re-arrange Word-RAM banks */
             word_ram_switch(0x00);
@@ -688,7 +688,7 @@ version(LOG_SCD) {
               data |= 0x02;
 
               /* mask BK0-1 bits (MAIN-CPU side only) */
-              scd.regs[0x02 >> 1].byte.l = (scd.regs[0x02 >> 1].byte.l & ~0x1f) | (data & 0x1f);
+              scd.regs[0x02 >> 1].b.l = (scd.regs[0x02 >> 1].b.l & ~0x1f) | (data & 0x1f);
               return;
             }
           }
@@ -700,14 +700,14 @@ version(LOG_SCD) {
             scd.dmna = 0;
 
             /* clear DMNA bit */
-            scd.regs[0x02 >> 1].byte.l = (scd.regs[0x02 >> 1].byte.l & ~0x1f) | (data & 0x1d);
+            scd.regs[0x02 >> 1].b.l = (scd.regs[0x02 >> 1].b.l & ~0x1f) | (data & 0x1d);
             return;
           }
         }
       }
 
       /* update PM0-1 & MODE bits */
-      scd.regs[0x02 >> 1].byte.l = (scd.regs[0x02 >> 1].byte.l & ~0x1c) | (data & 0x1c);
+      scd.regs[0x02 >> 1].b.l = (scd.regs[0x02 >> 1].b.l & ~0x1c) | (data & 0x1c);
       return;
     }
 
@@ -726,7 +726,7 @@ version(LOG_SCD) {
     case 0x0f:  /* SUB-CPU communication flags */
     {
       s68k_poll_sync(0x0e);
-      scd.regs[0x0f>>1].byte.l = data;
+      scd.regs[0x0f>>1].b.l = data;
       return;
     }
 
@@ -742,17 +742,17 @@ version(LOG_SCD) {
         scd.timer += (s68k.cycles - scd.cycles);
       }
 
-      scd.regs[0x30>>1].byte.l = data;
+      scd.regs[0x30>>1].b.l = data;
       return;
     }
 
     case 0x33: /* Interrupts */
     {
       /* update register value before updating interrupts */
-      scd.regs[0x32>>1].byte.l = data;
+      scd.regs[0x32>>1].b.l = data;
 
       /* update IEN2 flag */
-      scd.regs[0x00].byte.h = (scd.regs[0x00].byte.h & 0x7f) | ((data & 0x04) << 5);
+      scd.regs[0x00].b.h = (scd.regs[0x00].b.h & 0x7f) | ((data & 0x04) << 5);
       
       /* update IRQ level */
       s68k_update_irq((scd.pending & data) >> 1);
@@ -762,7 +762,7 @@ version(LOG_SCD) {
     case 0x37: /* CDD control (controlled by BIOS, byte access only ?) */
     {
       /* CDD communication started ? */
-      if ((data & 0x04) && !(scd.regs[0x37>>1].byte.l & 0x04))
+      if ((data & 0x04) && !(scd.regs[0x37>>1].b.l & 0x04))
       {
         /* reset CDD cycle counter */
         cdd.cycles = (scd.cycles - s68k.cycles) * 3;
@@ -771,13 +771,13 @@ version(LOG_SCD) {
         scd.pending |= (1 << 4);
 
         /* update IRQ level if interrupt is enabled */
-        if (scd.regs[0x32>>1].byte.l & 0x10)
+        if (scd.regs[0x32>>1].b.l & 0x10)
         {
-          s68k_update_irq((scd.pending & scd.regs[0x32>>1].byte.l) >> 1);
+          s68k_update_irq((scd.pending & scd.regs[0x32>>1].b.l) >> 1);
         }
       }
 
-      scd.regs[0x37>>1].byte.l = data;
+      scd.regs[0x37>>1].b.l = data;
       return;
     }
 
@@ -793,12 +793,12 @@ version(LOG_SCD) {
       if (address & 1)
       {
         /* register LSB */
-        scd.regs[(address >> 1) & 0xff].byte.l = data;
+        scd.regs[(address >> 1) & 0xff].b.l = data;
         return;
       }
 
       /* register MSB */
-      scd.regs[(address >> 1) & 0xff].byte.h = data;
+      scd.regs[(address >> 1) & 0xff].b.h = data;
       return;
     }
   }
@@ -824,7 +824,7 @@ version(LOG_SCD) {
     case 0x00: /* LED status & RESET */
     {
       /* only update LED status (register $00 is reserved for MAIN-CPU, use $06 instead) */
-      scd.regs[0x06>>1].byte.h = data >> 8;
+      scd.regs[0x06>>1].b.h = data >> 8;
 
       /* RESET bit cleared ? */      
       if (!(data & 0x01))
@@ -840,7 +840,7 @@ version(LOG_SCD) {
       s68k_poll_sync(0x02);
 
       /* detect MODE & RET bits modifications */
-      if ((data ^ scd.regs[0x03>>1].byte.l) & 0x05)
+      if ((data ^ scd.regs[0x03>>1].b.l) & 0x05)
       {
         s32 i;
 
@@ -848,7 +848,7 @@ version(LOG_SCD) {
         if (data & 0x04)
         {
           /* 2M->1M mode switch */
-          if (!(scd.regs[0x03 >> 1].byte.l & 0x04))
+          if (!(scd.regs[0x03 >> 1].b.l & 0x04))
           {
             /* re-arrange Word-RAM banks */
             word_ram_switch(0x04);
@@ -940,13 +940,13 @@ version(LOG_SCD) {
           }
 
           /* clear DMNA bit (swap completed) */
-          scd.regs[0x03>>1].byte.l = (scd.regs[0x03>>1].byte.l & ~0x1f) | (data & 0x1d);
+          scd.regs[0x03>>1].b.l = (scd.regs[0x03>>1].b.l & ~0x1f) | (data & 0x1d);
           return;
         }
         else
         {
           /* 1M->2M mode switch */
-          if (scd.regs[0x03>>1].byte.l & 0x04)
+          if (scd.regs[0x03>>1].b.l & 0x04)
           {
             /* re-arrange Word-RAM banks */
             word_ram_switch(0x00);
@@ -961,7 +961,7 @@ version(LOG_SCD) {
               data |= 0x02;
 
               /* mask BK0-1 bits (MAIN-CPU side only) */
-              scd.regs[0x03>>1].byte.l = (scd.regs[0x03>>1].byte.l & ~0x1f) | (data & 0x1f);
+              scd.regs[0x03>>1].b.l = (scd.regs[0x03>>1].b.l & ~0x1f) | (data & 0x1f);
               return;
             }
           }
@@ -973,14 +973,14 @@ version(LOG_SCD) {
             scd.dmna = 0;
 
             /* clear DMNA bit */
-            scd.regs[0x03>>1].byte.l = (scd.regs[0x03>>1].byte.l & ~0x1f) | (data & 0x1d);
+            scd.regs[0x03>>1].b.l = (scd.regs[0x03>>1].b.l & ~0x1f) | (data & 0x1d);
             return;
           }
         }
       }
 
       /* update PM0-1 & MODE bits */
-      scd.regs[0x03>>1].byte.l = (scd.regs[0x03>>1].byte.l & ~0x1c) | (data & 0x1c);
+      scd.regs[0x03>>1].b.l = (scd.regs[0x03>>1].b.l & ~0x1c) | (data & 0x1c);
       return;
     }
 
@@ -1006,7 +1006,7 @@ version(LOG_SCD) {
       s68k_poll_sync(0x0e);
 
       /* MSB is read-only */
-      scd.regs[0x0f>>1].byte.l = data;
+      scd.regs[0x0f>>1].b.l = data;
       return;
     }
 
@@ -1025,7 +1025,7 @@ version(LOG_SCD) {
         scd.timer += (s68k.cycles - scd.cycles);
       }
 
-      scd.regs[0x30>>1].byte.l = data;
+      scd.regs[0x30>>1].b.l = data;
       return;
     }
 
@@ -1035,10 +1035,10 @@ version(LOG_SCD) {
       data &= 0xff;
 
       /* update register value before updating interrupts */
-      scd.regs[0x32>>1].byte.l = data;
+      scd.regs[0x32>>1].b.l = data;
 
       /* update IEN2 flag */
-      scd.regs[0x00].byte.h = (scd.regs[0x00].byte.h & 0x7f) | ((data & 0x04) << 5);
+      scd.regs[0x00].b.h = (scd.regs[0x00].b.h & 0x7f) | ((data & 0x04) << 5);
       
       /* update IRQ level */
       s68k_update_irq((scd.pending & data) >> 1);
@@ -1050,8 +1050,8 @@ version(LOG_SCD) {
       scd.regs[0x4a>>1].w = 0;
       cdd_process();
 version(LOG_CDD) {
-      error("CDD command: %02x %02x %02x %02x %02x %02x %02x %02x\n",scd.regs[0x42>>1].byte.h, scd.regs[0x42>>1].byte.l, scd.regs[0x44>>1].byte.h, scd.regs[0x44>>1].byte.l, scd.regs[0x46>>1].byte.h, scd.regs[0x46>>1].byte.l, scd.regs[0x48>>1].byte.h, scd.regs[0x48>>1].byte.l);
-      error("CDD status:  %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",scd.regs[0x38>>1].byte.h, scd.regs[0x38>>1].byte.l, scd.regs[0x3a>>1].byte.h, scd.regs[0x3a>>1].byte.l, scd.regs[0x3c>>1].byte.h, scd.regs[0x3c>>1].byte.l, scd.regs[0x3e>>1].byte.h, scd.regs[0x3e>>1].byte.l, scd.regs[0x40>>1].byte.h, scd.regs[0x40>>1].byte.l);
+      error("CDD command: %02x %02x %02x %02x %02x %02x %02x %02x\n",scd.regs[0x42>>1].b.h, scd.regs[0x42>>1].b.l, scd.regs[0x44>>1].b.h, scd.regs[0x44>>1].b.l, scd.regs[0x46>>1].b.h, scd.regs[0x46>>1].b.l, scd.regs[0x48>>1].b.h, scd.regs[0x48>>1].b.l);
+      error("CDD status:  %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",scd.regs[0x38>>1].b.h, scd.regs[0x38>>1].b.l, scd.regs[0x3a>>1].b.h, scd.regs[0x3a>>1].b.l, scd.regs[0x3c>>1].b.h, scd.regs[0x3c>>1].b.l, scd.regs[0x3e>>1].b.h, scd.regs[0x3e>>1].b.l, scd.regs[0x40>>1].b.h, scd.regs[0x40>>1].b.l);
 }
       break;
     }
@@ -1250,7 +1250,7 @@ void scd_reset(s32 hard)
   scd.regs[0x4a>>1].w = 0xffff;
 
   /* RESET register always return 1 (register $06 is unused by both sides, it is used for SUB-CPU first register) */
-  scd.regs[0x06>>1].byte.l = 0x01;
+  scd.regs[0x06>>1].b.l = 0x01;
 
   /* Reset Timer & Stopwatch counters */
   scd.timer = 0;
@@ -1303,19 +1303,19 @@ void scd_update(u32 cycles)
     cdd_update();
 
     /* check if a new CDD command has been processed */
-    if (!(scd.regs[0x4a>>1].byte.l & 0xf0))
+    if (!(scd.regs[0x4a>>1].b.l & 0xf0))
     {
       /* reset CDD command wait flag */
-      scd.regs[0x4a>>1].byte.l = 0xf0;
+      scd.regs[0x4a>>1].b.l = 0xf0;
 
       /* pending level 4 interrupt */
       scd.pending |= (1 << 4);
 
       /* level 4 interrupt enabled */
-      if (scd.regs[0x32>>1].byte.l & 0x10)
+      if (scd.regs[0x32>>1].b.l & 0x10)
       {
         /* update IRQ level */
-        s68k_update_irq((scd.pending & scd.regs[0x32>>1].byte.l) >> 1);
+        s68k_update_irq((scd.pending & scd.regs[0x32>>1].b.l) >> 1);
       }
     }
   }
@@ -1328,22 +1328,22 @@ void scd_update(u32 cycles)
     if (scd.timer <= 0)
     {
       /* reload timer (one timer clock = 384 CPU cycles) */
-      scd.timer += (scd.regs[0x30>>1].byte.l * TIMERS_SCYCLES_RATIO);
+      scd.timer += (scd.regs[0x30>>1].b.l * TIMERS_SCYCLES_RATIO);
 
       /* level 3 interrupt enabled ? */
-      if (scd.regs[0x32>>1].byte.l & 0x08)
+      if (scd.regs[0x32>>1].b.l & 0x08)
       {
         /* trigger level 3 interrupt */
         scd.pending |= (1 << 3);
 
         /* update IRQ level */
-        s68k_update_irq((scd.pending & scd.regs[0x32>>1].byte.l) >> 1);
+        s68k_update_irq((scd.pending & scd.regs[0x32>>1].b.l) >> 1);
       }
     }
   }
 
   /* GFX processing */
-  if (scd.regs[0x58>>1].byte.h & 0x80)
+  if (scd.regs[0x58>>1].b.h & 0x80)
   {
     /* update graphics operation if running */
     gfx_update(scd.cycles);
@@ -1397,7 +1397,7 @@ s32 scd_context_save(u8 *state)
   save_param(&bufferptr, state, scd.prg_ram, sizeof(scd.prg_ram));
 
   /* Word-RAM */
-  if (scd.regs[0x03>>1].byte.l & 0x04)
+  if (scd.regs[0x03>>1].b.l & 0x04)
   {
     /* 1M mode */
     save_param(&bufferptr, state, scd.word_ram, sizeof(scd.word_ram));
@@ -1482,16 +1482,16 @@ s32 scd_context_load(u8 *state)
   load_param(&bufferptr, state, scd.prg_ram, sizeof(scd.prg_ram));
 
   /* PRG-RAM 128k bank mapped to $020000-$03FFFF (resp. $420000-$43FFFF) */
-  m68k.memory_map[scd.cartridge.boot + 0x02].base = scd.prg_ram + ((scd.regs[0x03>>1].byte.l & 0xc0) << 11);
+  m68k.memory_map[scd.cartridge.boot + 0x02].base = scd.prg_ram + ((scd.regs[0x03>>1].b.l & 0xc0) << 11);
   m68k.memory_map[scd.cartridge.boot + 0x03].base = m68k.memory_map[scd.cartridge.boot + 0x02].base + 0x10000;
 
   /* Word-RAM */
-  if (scd.regs[0x03>>1].byte.l & 0x04)
+  if (scd.regs[0x03>>1].b.l & 0x04)
   {
     /* 1M Mode */
     load_param(&bufferptr, state, scd.word_ram, sizeof(scd.word_ram));
   
-    if (scd.regs[0x03>>1].byte.l & 0x01)
+    if (scd.regs[0x03>>1].b.l & 0x01)
     {
       /* Word-RAM 1 assigned to MAIN-CPU */
       for (i=scd.cartridge.boot+0x20; i<scd.cartridge.boot+0x22; i++)
@@ -1665,11 +1665,11 @@ version(LOG_SCD) {
     if (level == 2)
     {
       /* clear IFL2 flag */
-      scd.regs[0x00].byte.h &= ~0x01;
+      scd.regs[0x00].b.h &= ~0x01;
     }
 
     /* update IRQ level */
-    s68k_update_irq((scd.pending & scd.regs[0x32>>1].byte.l) >> 1);
+    s68k_update_irq((scd.pending & scd.regs[0x32>>1].b.l) >> 1);
 
   return M68K_INT_ACK_AUTOVECTOR;
 }

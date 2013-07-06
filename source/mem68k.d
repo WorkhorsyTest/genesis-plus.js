@@ -58,7 +58,7 @@ version(LOGERROR) {
   error("Unused read16 %08X (%08X)\n", address, m68k_get_reg(M68K_REG_PC));
 }
   address = m68k.pc;
-  return *(u16 *)(m68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff));
+  return *cast(u16 *)(m68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff));
 }
 
 
@@ -138,7 +138,7 @@ version(LOGERROR) {
     m68k.cycles = m68k.cycle_end;
   }
   address = m68k.pc;
-  return *(u16 *)(m68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff));
+  return *cast(u16 *)(m68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff));
 }
 
 
@@ -234,7 +234,7 @@ void z80_write_word(u32 address, u32 data)
 static void m68k_poll_detect(u32 reg)
 {
   /* detect MAIN-CPU register polling */
-  if (m68k.poll.detected == (u32) (1 << reg))
+  if (m68k.poll.detected == cast(u32) (1 << reg))
   {
     if (m68k.cycles <= m68k.poll.cycle)
     {
@@ -252,7 +252,7 @@ version(LOG_SCD) {
         {
           m68k.pc -= 2;
         }
-        while (m68k.ir != *(u16 *)(m68k.memory_map[(m68k.pc>>16)&0xff].base + (m68k.pc & 0xffff)));
+        while (m68k.ir != *cast(u16 *)(m68k.memory_map[(m68k.pc>>16)&0xff].base + (m68k.pc & 0xffff)));
       }
       return;
     }
@@ -344,7 +344,7 @@ version(LOG_SCD) {
         if (index == 0x03)
         {
           m68k_poll_detect(0x03);
-          return scd.regs[0x03>>1].byte.l;
+          return scd.regs[0x03>>1].b.l;
         }
 
         /* SUB-CPU communication flags */
@@ -360,7 +360,7 @@ version(LOG_SCD) {
           }
 
           m68k_poll_detect(0x0f);
-          return scd.regs[0x0f>>1].byte.l;
+          return scd.regs[0x0f>>1].b.l;
         }
 
         /* default registers */
@@ -375,11 +375,11 @@ version(LOG_SCD) {
           /* register LSB */
           if (address & 1)
           {
-            return scd.regs[index >> 1].byte.l;
+            return scd.regs[index >> 1].b.l;
           }
               
           /* register MSB */
-          return scd.regs[index >> 1].byte.h;
+          return scd.regs[index >> 1].b.h;
         }
       }
 
@@ -454,11 +454,11 @@ u32 ctrl_io_read_word(u32 address)
       if (zstate == 3)
       {
         /* D8 is cleared */
-        return (*(u16 *)(m68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff)) & 0xFEFF);
+        return (*cast(u16 *)(m68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff)) & 0xFEFF);
       }
 
       /* D8 is set */
-      return (*(u16 *)(m68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff)) | 0x0100);
+      return (*cast(u16 *)(m68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff)) | 0x0100);
     }
 
     case 0x20:  /* MEGA-CD */
@@ -487,7 +487,7 @@ version(LOG_SCD) {
         /* H-INT vector (word access only ?) */
         if (index == 0x06)
         {
-          return *(u16 *)(m68k.memory_map[0].base + 0x72);
+          return *cast(u16 *)(m68k.memory_map[0].base + 0x72);
         }
 
         /* Stopwatch counter (word read access only ?) */
@@ -530,13 +530,13 @@ version(LOG_SCD) {
     {
       if ((address & 0xFD) == 0)
       {
-        return svp->ssp1601.gr[SSP_XST].byte.h;
+        return svp.ssp1601.gr[SSP_XST].b.h;
       }
 
       if ((address & 0xFF) == 4)
       {
-        u32 data = svp->ssp1601.gr[SSP_PM0].byte.h;
-        svp->ssp1601.gr[SSP_PM0].byte.h &= ~1;
+        u32 data = svp.ssp1601.gr[SSP_PM0].b.h;
+        svp.ssp1601.gr[SSP_PM0].b.h &= ~1;
         return data;
       }
 
@@ -614,7 +614,7 @@ version(LOG_SCD) {
             if (data & 0x01)
             {
               /* level 2 interrupt enabled ? */
-              if (scd.regs[0x32>>1].byte.l & 0x04)
+              if (scd.regs[0x32>>1].b.l & 0x04)
               {
                 /* relative SUB-CPU cycle counter */
                 u32 cycles = (m68k.cycles * SCYCLES_PER_LINE) / MCYCLES_PER_LINE;
@@ -626,13 +626,13 @@ version(LOG_SCD) {
                 }
 
                 /* set IFL2 flag */
-                scd.regs[0x00].byte.h |= 0x01;
+                scd.regs[0x00].b.h |= 0x01;
 
                 /* trigger level 2 interrupt */
                 scd.pending |= (1 << 2);
 
                 /* update IRQ level */
-                s68k_update_irq((scd.pending & scd.regs[0x32>>1].byte.l) >> 1);
+                s68k_update_irq((scd.pending & scd.regs[0x32>>1].b.l) >> 1);
               }
             }
 
@@ -646,7 +646,7 @@ version(LOG_SCD) {
             if (data & 0x01)
             {
               /* trigger reset on 0->1 transition */
-              if (!(scd.regs[0x00].byte.l & 0x01))
+              if (!(scd.regs[0x00].b.l & 0x01))
               {
                 /* reset SUB-CPU */
                 s68k_pulse_reset();
@@ -670,13 +670,13 @@ version(LOG_SCD) {
               s68k_pulse_halt();
             }
 
-            scd.regs[0x00].byte.l = data;
+            scd.regs[0x00].b.l = data;
             return;
           }
 
           case 0x02:  /* PRG-RAM Write Protection */
           {
-            scd.regs[0x02>>1].byte.h = data;
+            scd.regs[0x02>>1].b.h = data;
             return;
           }
 
@@ -689,7 +689,7 @@ version(LOG_SCD) {
             m68k.memory_map[scd.cartridge.boot + 0x03].base = m68k.memory_map[scd.cartridge.boot + 0x02].base + 0x10000;
 
             /* check current mode */
-            if (scd.regs[0x03>>1].byte.l & 0x04)
+            if (scd.regs[0x03>>1].b.l & 0x04)
             {
               /* DMNA bit */
               if (data & 0x02)
@@ -703,7 +703,7 @@ version(LOG_SCD) {
                 data |= 0x02;
 
                 /* update BK0-1 & DMNA bits */
-                scd.regs[0x03>>1].byte.l = (scd.regs[0x03>>1].byte.l & ~0xc2) | (data & 0xc2);
+                scd.regs[0x03>>1].b.l = (scd.regs[0x03>>1].b.l & ~0xc2) | (data & 0xc2);
                 return;
               }
             }
@@ -716,13 +716,13 @@ version(LOG_SCD) {
                 scd.dmna = 1;
 
                 /* clear RET bit */
-                scd.regs[0x03>>1].byte.l = (scd.regs[0x03>>1].byte.l & ~0xc3) | (data & 0xc2);
+                scd.regs[0x03>>1].b.l = (scd.regs[0x03>>1].b.l & ~0xc3) | (data & 0xc2);
                 return;
               }
             }
              
             /* update BK0-1 bits */
-            scd.regs[0x03>>1].byte.l = (scd.regs[0x02>>1].byte.l & ~0xc0) | (data & 0xc0);
+            scd.regs[0x03>>1].b.l = (scd.regs[0x02>>1].b.l & ~0xc0) | (data & 0xc0);
             return;
           }
 
@@ -735,7 +735,7 @@ version(LOG_SCD) {
           case 0x0e:  /* MAIN-CPU communication flags */
           {
             m68k_poll_sync(0x0e);
-            scd.regs[0x0e>>1].byte.h = data;
+            scd.regs[0x0e>>1].b.h = data;
             return;
           }
 
@@ -749,12 +749,12 @@ version(LOG_SCD) {
               /* register LSB */
               if (address & 1)
               {
-                scd.regs[(address >> 1) & 0xff].byte.l = data;
+                scd.regs[(address >> 1) & 0xff].b.l = data;
                 return;
               }
 
               /* register MSB */
-              scd.regs[(address >> 1) & 0xff].byte.h = data;
+              scd.regs[(address >> 1) & 0xff].b.h = data;
               return;
             }
 
@@ -847,7 +847,7 @@ version(LOG_SCD) {
             if (data & 0x01)
             {
               /* trigger reset on 0->1 transition */
-              if (!(scd.regs[0x00].byte.l & 0x01))
+              if (!(scd.regs[0x00].b.l & 0x01))
               {
                 /* reset SUB-CPU */
                 s68k_pulse_reset();
@@ -875,21 +875,21 @@ version(LOG_SCD) {
             if (data & 0x100)
             {
               /* level 2 interrupt enabled ? */
-              if (scd.regs[0x32>>1].byte.l & 0x04)
+              if (scd.regs[0x32>>1].b.l & 0x04)
               {
                 /* set IFL2 flag */
-                scd.regs[0x00].byte.h |= 0x01;
+                scd.regs[0x00].b.h |= 0x01;
 
                 /* trigger level 2 interrupt */
                 scd.pending |= (1 << 2);
 
                 /* update IRQ level */
-                s68k_update_irq((scd.pending & scd.regs[0x32>>1].byte.l) >> 1);
+                s68k_update_irq((scd.pending & scd.regs[0x32>>1].b.l) >> 1);
               }
             }
 
             /* update LSB only */
-            scd.regs[0x00].byte.l = data & 0xff;
+            scd.regs[0x00].b.l = data & 0xff;
             return;
           }
 
@@ -902,7 +902,7 @@ version(LOG_SCD) {
             m68k.memory_map[scd.cartridge.boot + 0x03].base = m68k.memory_map[scd.cartridge.boot + 0x02].base + 0x10000;
 
             /* check current mode */
-            if (scd.regs[0x03>>1].byte.l & 0x04)
+            if (scd.regs[0x03>>1].b.l & 0x04)
             {
               /* DMNA bit */
               if (data & 0x02)
@@ -941,7 +941,7 @@ version(LOG_SCD) {
 
           case 0x06:  /* H-INT vector (word access only ?) */
           {
-            *(u16 *)(m68k.memory_map[0].base + 0x72) = data;
+            *cast(u16 *)(m68k.memory_map[0].base + 0x72) = data;
             return;
           }
 
@@ -950,7 +950,7 @@ version(LOG_SCD) {
             m68k_poll_sync(0x0e);
 
             /* LSB is read-only (Mortal Kombat) */
-            scd.regs[0x0e>>1].byte.h = data;
+            scd.regs[0x0e>>1].b.h = data;
             return;
           }
 
@@ -996,9 +996,9 @@ version(LOG_SCD) {
     {
       if (!(address & 0xFD))
       {
-        svp->ssp1601.gr[SSP_XST].byte.h = data;
-        svp->ssp1601.gr[SSP_PM0].byte.h |= 2;
-        svp->ssp1601.emu_status &= ~SSP_WAIT_PM0;
+        svp.ssp1601.gr[SSP_XST].b.h = data;
+        svp.ssp1601.gr[SSP_PM0].b.h |= 2;
+        svp.ssp1601.emu_status &= ~SSP_WAIT_PM0;
         return;
       }
       m68k_unused_16_w(address, data);
@@ -1099,7 +1099,7 @@ u32 vdp_read_word(u32 address)
 
       /* Unused bits return prefetched bus data */
       address = m68k.pc;
-      data |= (*(u16 *)(m68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff)) & 0xFC00);
+      data |= (*cast(u16 *)(m68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff)) & 0xFC00);
 
       return data;
     }
