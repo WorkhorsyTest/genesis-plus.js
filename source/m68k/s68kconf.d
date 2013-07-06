@@ -1,5 +1,3 @@
-#ifndef M68KCONF__HEADER
-#define M68KCONF__HEADER
 
 /* ======================================================================== */
 /* ======================== SUB 68K CONFIGURATION ========================= */
@@ -11,16 +9,16 @@
  * or macro you specify, rather than using callback functions whose pointer
  * must be passed in using m68k_set_xxx_callback().
  */
-#define OPT_OFF             0
-#define OPT_ON              1
-#define OPT_SPECIFY_HANDLER 2
+const int OPT_OFF             = 0;
+const int OPT_ON              = 1;
+const int OPT_SPECIFY_HANDLER = 2;
 
 /* If ON, the CPU will call m68k_write_32_pd() when it executes move.l with a
  * predecrement destination EA mode instead of m68k_write_32().
  * To simulate real 68k behavior, m68k_write_32_pd() must first write the high
  * word to [address+2], and then write the low word to [address].
  */
-#define M68K_SIMULATE_PD_WRITES     OPT_OFF
+alias OPT_OFF                 M68K_SIMULATE_PD_WRITES;
 
 /* If ON, CPU will call the interrupt acknowledge callback when it services an
  * interrupt.
@@ -32,25 +30,15 @@ static s32 M68K_INT_ACK_CALLBACK(s32 A) { return scd_68k_irq_ack(A); }
 /* If ON, CPU will call the callback when it encounters a tas
  * instruction.
  */
-#define M68K_TAS_HAS_CALLBACK       OPT_SPECIFY_HANDLER
-#define M68K_TAS_CALLBACK()         1
+alias OPT_SPECIFY_HANDLER             M68K_TAS_HAS_CALLBACK;
+int M68K_TAS_CALLBACK() { return 1; }
 
 /* If ON, the CPU will generate address error exceptions if it tries to
  * access a word or longword at an odd address.
  * NOTE: This is only emulated properly for 68000 mode.
  */
-#define M68K_EMULATE_ADDRESS_ERROR  OPT_OFF
+alias OPT_OFF                M68K_EMULATE_ADDRESS_ERROR;
 
 
-/* ----------------------------- COMPATIBILITY ---------------------------- */
-
-/* The following options set optimizations that violate the current ANSI
- * standard, but will be compliant under the forthcoming C9X standard.
- */
 
 
-/* ======================================================================== */
-/* ============================== END OF FILE ============================= */
-/* ======================================================================== */
-
-#endif /* M68KCONF__HEADER */

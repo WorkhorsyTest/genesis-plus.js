@@ -2,37 +2,35 @@
 /*                            SUB 68K CORE                                  */
 /* ======================================================================== */
 
-#include "types.h"
+import types.d;
 
-extern s32 scd_68k_irq_ack(s32 level);
-
-#define m68ki_cpu s68k
-#define MUL (4)
+alias s68k                  m68ki_cpu;
+const int MUL = 4;
 
 /* ======================================================================== */
 /* ================================ INCLUDES ============================== */
 /* ======================================================================== */
 
-#ifndef BUILD_TABLES
-#include "s68ki_cycles.h"
-#endif
+version(BUILD_TABLES) {
+import s68ki_cycles.d;
+}
 
-#include "s68kconf.h"
-#include "m68kcpu.h"
-#include "m68kops.h"
+import s68kconf.d;
+import m68kcpu.d;
+import m68kops.d;
 
 /* ======================================================================== */
 /* ================================= DATA ================================= */
 /* ======================================================================== */
 
-#ifdef BUILD_TABLES
-static u8 s68ki_cycles[0x10000];
-#endif
+version(BUILD_TABLES) {
+static u8[0x10000] s68ki_cycles;
+}
 static s32 irq_latency;
 
 /* IRQ priority */
-static const u8 irq_level[0x40] = 
-{
+static const u8[0x40] irq_level = 
+[
   0, 1, 2, 2, 3, 3, 3, 3,
   4, 4, 4, 4, 4, 4, 4, 4,
   5, 5, 5, 5, 5, 5, 5, 5,
@@ -41,7 +39,7 @@ static const u8 irq_level[0x40] =
   6, 6, 6, 6, 6, 6, 6, 6,
   6, 6, 6, 6, 6, 6, 6, 6,
   6, 6, 6, 6, 6, 6, 6, 6
-};
+];
 
 m68ki_cpu_core s68k;
 
@@ -137,8 +135,8 @@ void s68k_set_reg(m68k_register_t regnum, u32 value)
 }
 
 /* Set the callbacks */
-extern void error(char *format, ...);
-extern u16 v_counter;
+//extern void error(char *format, ...);
+//extern u16 v_counter;
 
 /* update IRQ level according to triggered interrupts */
 void s68k_update_irq(u32 mask)
@@ -149,9 +147,9 @@ void s68k_update_irq(u32 mask)
   /* Set IRQ level */
   CPU_INT_LEVEL = mask << 8;
   
-#ifdef LOG_SCD
+version(LOG_SCD) {
   error("[%d][%d] IRQ Level = %d(0x%02x) (%x)\n", v_counter, s68k.cycles, CPU_INT_LEVEL>>8,FLAG_INT_MASK,s68k.pc);
-#endif
+}
 }
 
 void s68k_run(u32 cycles) 
@@ -178,9 +176,9 @@ void s68k_run(u32 cycles)
   /* Return point for when we have an address error (TODO: use goto) */
   m68ki_set_address_error_trap() /* auto-disable (see m68kcpu.h) */
 
-#ifdef LOG_SCD
+version(LOG_SCD) {
   error("[%d][%d] s68k run to %d cycles (%x), irq mask = %x (%x)\n", v_counter, s68k.cycles, cycles, s68k.pc,FLAG_INT_MASK, CPU_INT_LEVEL);
-#endif
+}
  
   while (s68k.cycles < cycles)
   {
@@ -195,7 +193,7 @@ void s68k_run(u32 cycles)
 
 void s68k_init()
 {
-#ifdef BUILD_TABLES
+version(BUILD_TABLES) {
   static uint emulation_initialized = 0;
 
   /* The first call to this function initializes the opcode handler jump table */
@@ -204,7 +202,7 @@ void s68k_init()
     m68ki_build_opcode_table();
     emulation_initialized = 1;
   }
-#endif
+}
 }
 
 /* Pulse the RESET line on the CPU */
@@ -212,9 +210,9 @@ void s68k_pulse_reset()
 {
   /* Clear all stop levels */
   CPU_STOPPED = 0;
-#if M68K_EMULATE_ADDRESS_ERROR
+static if(M68K_EMULATE_ADDRESS_ERROR) {
   CPU_RUN_MODE = RUN_MODE_BERR_AERR_RESET;
-#endif
+}
 
   /* Turn off tracing */
   FLAG_T1 = 0;
@@ -233,9 +231,9 @@ void s68k_pulse_reset()
   REG_PC = m68ki_read_imm_32();
   m68ki_jump(REG_PC);
 
-#if M68K_EMULATE_ADDRESS_ERROR
+static if(M68K_EMULATE_ADDRESS_ERROR) {
   CPU_RUN_MODE = RUN_MODE_NORMAL;
-#endif
+}
 
   USE_CYCLES(CYC_EXCEPTION[EXCEPTION_RESET]);
 }

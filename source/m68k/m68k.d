@@ -1,5 +1,3 @@
-#ifndef M68K__HEADER
-#define M68K__HEADER
 
 /* ======================================================================== */
 /* ========================= LICENSING & COPYRIGHT ======================== */
@@ -39,20 +37,15 @@
 /* ================================ INCLUDES ============================== */
 /* ======================================================================== */
 
-#include <setjmp.h>
-#include "types.h"
-#include "macros.h"
+import types.d;
+import macros.d;
 
 /* ======================================================================== */
 /* ==================== ARCHITECTURE-DEPENDANT DEFINES ==================== */
 /* ======================================================================== */
 
 /* Check for > 32bit sizes */
-#if UINT_MAX > 0xffffffff
-  #define M68K_INT_GT_32_BIT  1
-#else
-  #define M68K_INT_GT_32_BIT  0
-#endif
+const int M68K_INT_GT_32_BIT = 0;
 
 
 /* ======================================================================== */
@@ -63,14 +56,14 @@
 /* There are 7 levels of interrupt to the 68K.
  * A transition from < 7 to 7 will cause a non-maskable interrupt (NMI).
  */
-#define M68K_IRQ_NONE 0
-#define M68K_IRQ_1    1
-#define M68K_IRQ_2    2
-#define M68K_IRQ_3    3
-#define M68K_IRQ_4    4
-#define M68K_IRQ_5    5
-#define M68K_IRQ_6    6
-#define M68K_IRQ_7    7
+const int M68K_IRQ_NONE = 0;
+const int M68K_IRQ_1    = 1;
+const int M68K_IRQ_2    = 2;
+const int M68K_IRQ_3    = 3;
+const int M68K_IRQ_4    = 4;
+const int M68K_IRQ_5    = 5;
+const int M68K_IRQ_6    = 6;
+const int M68K_IRQ_7    = 7;
 
 
 /* Special interrupt acknowledge values.
@@ -82,17 +75,17 @@
  * This happens in a real 68K if VPA or AVEC is asserted during an interrupt
  * acknowledge cycle instead of DTACK.
  */
-#define M68K_INT_ACK_AUTOVECTOR   0xffffffff
+const int M68K_INT_ACK_AUTOVECTOR   = 0xffffffff;
 
 /* Causes the spurious interrupt vector (0x18) to be taken
  * This happens in a real 68K if BERR is asserted during the interrupt
  * acknowledge cycle (i.e. no devices responded to the acknowledge).
  */
-#define M68K_INT_ACK_SPURIOUS     0xfffffffe
+const int M68K_INT_ACK_SPURIOUS     = 0xfffffffe;
 
 
 /* Registers used by m68k_get_reg() and m68k_set_reg() */
-typedef enum
+enum m68k_register_t
 {
   /* Real registers */
   M68K_REG_D0,    /* Data registers */
@@ -119,39 +112,39 @@ typedef enum
 
   /* Convenience registers */
   M68K_REG_IR    /* Instruction register */
-} m68k_register_t;
+}
 
 
 /* 68k memory map structure */
-typedef struct 
+struct cpu_memory_map
 {
   u8 *base;                             /* memory-based access (ROM, RAM) */
   u32 (*read8)(u32 address);               /* I/O byte read access */
   u32 (*read16)(u32 address);              /* I/O word read access */
   void (*write8)(u32 address, u32 data);  /* I/O byte write access */
   void (*write16)(u32 address, u32 data); /* I/O word write access */
-} cpu_memory_map;
+}
 
 /* 68k idle loop detection */
-typedef struct
+struct cpu_idle_t
 {
   u32 pc;
   u32 cycle;
   u32 detected;
-} cpu_idle_t;
+}
 
-typedef struct
+struct m68ki_cpu_core
 {
-  cpu_memory_map memory_map[256]; /* memory mapping */
+  cpu_memory_map[256] memory_map; /* memory mapping */
 
   cpu_idle_t poll;      /* polling detection */
 
   u32 cycles;          /* current master cycle count */ 
   u32 cycle_end;       /* aimed master cycle count for current execution frame */
 
-  u32 dar[16];         /* Data and Address Registers */
+  u32[16] dar;         /* Data and Address Registers */
   u32 pc;              /* Program Counter */
-  u32 sp[5];           /* User and Interrupt Stack Pointers */
+  u32[5] sp;           /* User and Interrupt Stack Pointers */
   u32 ir;              /* Instruction Register */
   u32 t1_flag;         /* Trace 1 */
   u32 s_flag;          /* Supervisor */
@@ -184,77 +177,9 @@ typedef struct
   void (*reset_instr_callback)();               /* Called when a RESET instruction is encountered */
   s32  (*tas_instr_callback)();                 /* Called when a TAS instruction is encountered, allows / disallows writeback */
   void (*set_fc_callback)(u32 new_fc);     /* Called when the CPU function code changes */
-} m68ki_cpu_core;
-
-/* CPU cores */
-extern m68ki_cpu_core m68k;
-extern m68ki_cpu_core s68k;
-
-
-/* ======================================================================== */
-/* ============================== CALLBACKS =============================== */
-/* ======================================================================== */
-
-/* These functions allow you to set callbacks to the host when specific events
- * occur.  Note that you must enable the corresponding value in m68kconf.h
- * in order for these to do anything useful.
- * Note: I have defined default callbacks which are used if you have enabled
- * the corresponding #define in m68kconf.h but either haven't assigned a
- * callback or have assigned a callback of NULL.
- */
+}
 
 
 
-/* ======================================================================== */
-/* ====================== FUNCTIONS TO ACCESS THE CPU ===================== */
-/* ======================================================================== */
-
-/* Do whatever initialisations the core requires.  Should be called
- * at least once at init time.
- */
-extern void m68k_init();
-extern void s68k_init();
-
-/* Pulse the RESET pin on the CPU.
- * You *MUST* reset the CPU at least once to initialize the emulation
- */
-extern void m68k_pulse_reset();
-extern void s68k_pulse_reset();
-
-/* Run until given cycle count is reached */
-extern void m68k_run(u32 cycles);
-extern void s68k_run(u32 cycles);
-
-/* Set the IPL0-IPL2 pins on the CPU (IRQ).
- * A transition from < 7 to 7 will cause a non-maskable interrupt (NMI).
- * Setting IRQ to 0 will clear an interrupt request.
- */
-extern void m68k_set_irq(u32 int_level);
-extern void m68k_set_irq_delay(u32 int_level);
-extern void m68k_update_irq(u32 mask);
-extern void s68k_update_irq(u32 mask);
-
-/* Halt the CPU as if you pulsed the HALT pin. */
-extern void m68k_pulse_halt();
-extern void m68k_clear_halt();
-extern void s68k_pulse_halt();
-extern void s68k_clear_halt();
 
 
-/* Peek at the internals of a CPU context.  This can either be a context
- * retrieved using m68k_get_context() or the currently running context.
- * If context is NULL, the currently running CPU context will be used.
- */
-extern u32 m68k_get_reg(m68k_register_t reg);
-extern u32 s68k_get_reg(m68k_register_t reg);
-
-/* Poke values into the internals of the currently running CPU context */
-extern void m68k_set_reg(m68k_register_t reg, u32 value);
-extern void s68k_set_reg(m68k_register_t reg, u32 value);
-
-
-/* ======================================================================== */
-/* ============================== END OF FILE ============================= */
-/* ======================================================================== */
-
-#endif /* M68K__HEADER */
