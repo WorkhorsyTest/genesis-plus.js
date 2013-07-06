@@ -94,43 +94,43 @@ OBJECTS	+=	$(OBJDIR)/main.o	\
 all: $(NAME)
 
 $(NAME): $(OBJDIR) $(OBJECTS)
-		$(CC) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $@
+		$(CC) $(LDFLAGS) $(OBJECTS) $(LIBS) -of$@
 
 $(OBJDIR) :
 		@[ -d $@ ] || mkdir -p $@
 		
 $(OBJDIR)/%.o : 	source/%.d
-		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
+		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -of$@
 	        	        
 $(OBJDIR)/%.o :	source/sound/%.d
-		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
+		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -of$@
 
 $(OBJDIR)/%.o :	source/input_hw/%.d
-		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
+		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -of$@
 
 $(OBJDIR)/%.o :	source/cart_hw/%.d
-		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
+		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -of$@
 
 $(OBJDIR)/%.o :	source/cart_hw/svp/%.d
-		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
+		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -of$@
 
 $(OBJDIR)/%.o :	source/cart_hw/svp/%.d
-		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
+		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -of$@
 
 $(OBJDIR)/%.o :	source/cd_hw/%.d
-		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
+		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -of$@
 
 $(OBJDIR)/%.o :	source/z80/%.d
-		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
+		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -of$@
 
 $(OBJDIR)/%.o :	source/m68k/%.d
-		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
+		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -of$@
 
 $(OBJDIR)/%.o :	source/ntsc/%.d
-		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
+		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -of$@
 
 $(OBJDIR)/%.o :	source/win/%.d
-		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -o $@
+		$(CC) -c $(CFLAGS) $(INCLUDES) $(DEFINES) $< -of$@
 
 #$(OBJDIR)/icon.o :	
 #		windres source/win/icon.rc $@
