@@ -128,48 +128,48 @@
 /*    YM2610B : PSG:3ch FM:6ch ADPCM(18.5KHz):6ch DeltaT ADPCM:1ch      */
 /************************************************************************/
 
-#include "shared.h"
+import shared.d;
 
 /* envelope generator */
-#define ENV_BITS    10
-#define ENV_LEN      (1<<ENV_BITS)
-#define ENV_STEP    (128.0/ENV_LEN)
+const int ENV_BITS    = 10;
+const int ENV_LEN     = 1 << ENV_BITS;
+const float ENV_STEP  = 128.0 / ENV_LEN;
 
-#define MAX_ATT_INDEX  (ENV_LEN-1) /* 1023 */
-#define MIN_ATT_INDEX  (0)      /* 0 */
+const int MAX_ATT_INDEX  = ENV_LEN - 1; /* 1023 */
+const int MIN_ATT_INDEX  = 0;      /* 0 */
 
-#define EG_ATT      4
-#define EG_DEC      3
-#define EG_SUS      2
-#define EG_REL      1
-#define EG_OFF      0
+const int EG_ATT      = 4;
+const int EG_DEC      = 3;
+const int EG_SUS      = 2;
+const int EG_REL      = 1;
+const int EG_OFF      = 0;
 
 /* phase generator (detune mask) */
-#define DT_BITS     17
-#define DT_LEN      (1 << DT_BITS)
-#define DT_MASK     (DT_LEN - 1)
+const int DT_BITS     = 17;
+const int DT_LEN      = 1 << DT_BITS;
+const int DT_MASK     = DT_LEN - 1;
 
 /* operator unit */
-#define SIN_BITS    10
-#define SIN_LEN      (1<<SIN_BITS)
-#define SIN_MASK    (SIN_LEN-1)
+const int SIN_BITS    = 10;
+const int SIN_LEN     = 1 << SIN_BITS;
+const int SIN_MASK    = SIN_LEN - 1;
 
-#define TL_RES_LEN    (256) /* 8 bits addressing (real chip) */
+const int TL_RES_LEN  = 256; /* 8 bits addressing (real chip) */
 
-#define TL_BITS    14 /* channel output */
+const int TL_BITS    = 14; /* channel output */
 
 /*  TL_TAB_LEN is calculated as:
 *   13 - sinus amplitude bits     (Y axis)
 *   2  - sinus sign bit           (Y axis)
 *   TL_RES_LEN - sinus resolution (X axis)
 */
-#define TL_TAB_LEN (13*2*TL_RES_LEN)
-static s32 tl_tab[TL_TAB_LEN];
+const int TL_TAB_LEN = 13 * 2 * TL_RES_LEN;
+static s32[TL_TAB_LEN] tl_tab;
 
-#define ENV_QUIET    (TL_TAB_LEN>>3)
+const int ENV_QUIET    = TL_TAB_LEN >> 3;
 
 /* sin waveform table in 'decibel' scale */
-static u32 sin_tab[SIN_LEN];
+static u32[SIN_LEN] sin_tab;
 
 /* sustain level table (3dB per step) */
 /* bit0, bit1, bit2, bit3, bit4, bit5, bit6 */
@@ -178,16 +178,15 @@ static u32 sin_tab[SIN_LEN];
 
 /* 0 - 15: 0, 3, 6, 9,12,15,18,21,24,27,30,33,36,39,42,93 (dB)*/
 /* attenuation value (10 bits) = (SL << 2) << 3 */
-#define SC(db) (u32) ( db * (4.0/ENV_STEP) )
-static const u32 sl_table[16]={
+u32 SC(int db) { return cast(u32) ( db * (4.0/ENV_STEP) ); }
+static const u32[16] sl_table = [
  SC( 0),SC( 1),SC( 2),SC(3 ),SC(4 ),SC(5 ),SC(6 ),SC( 7),
  SC( 8),SC( 9),SC(10),SC(11),SC(12),SC(13),SC(14),SC(31)
-};
-#undef SC
+];
 
 
-#define RATE_STEPS (8)
-static const u8 eg_inc[19*RATE_STEPS]={
+const int RATE_STEPS = 8;
+static const u8[19*RATE_STEPS] eg_inc = [
 
 /*cycle:0 1  2 3  4 5  6 7*/
 
@@ -214,13 +213,13 @@ static const u8 eg_inc[19*RATE_STEPS]={
 /*16 */ 8,8, 8,8, 8,8, 8,8, /* rates 15 0, 15 1, 15 2, 15 3 (increment by 8) */
 /*17 */ 16,16,16,16,16,16,16,16, /* rates 15 2, 15 3 for attack */
 /*18 */ 0,0, 0,0, 0,0, 0,0, /* infinity rates for attack and decay(s) */
-};
+];
 
 
-#define O(a) (a*RATE_STEPS)
+int O(int a) { return a * RATE_STEPS; }
 
 /*note that there is no O(17) in this table - it's directly in the code */
-static const u8 eg_rate_select[32+64+32]={  /* Envelope Generator rates (32 + 64 rates + 32 RKS) */
+static const u8[32+64+32] eg_rate_select = [  /* Envelope Generator rates (32 + 64 rates + 32 RKS) */
 /* 32 infinite time rates (same as Rate 0) */
 O(18),O(18),O(18),O(18),O(18),O(18),O(18),O(18),
 O(18),O(18),O(18),O(18),O(18),O(18),O(18),O(18),
@@ -264,15 +263,14 @@ O(16),O(16),O(16),O(16),O(16),O(16),O(16),O(16),
 O(16),O(16),O(16),O(16),O(16),O(16),O(16),O(16),
 O(16),O(16),O(16),O(16),O(16),O(16),O(16),O(16)
 
-};
-#undef O
+];
 
 /*rate  0,    1,    2,   3,   4,   5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15*/
 /*shift 11,   10,   9,   8,   7,   6,  5,  4,  3,  2, 1,  0,  0,  0,  0,  0 */
 /*mask  2047, 1023, 511, 255, 127, 63, 31, 15, 7,  3, 1,  0,  0,  0,  0,  0 */
 
-#define O(a) (a*1)
-static const u8 eg_rate_shift[32+64+32]={  /* Envelope Generator counter shifts (32 + 64 rates + 32 RKS) */
+int O(inta) { return a * 1; }
+static const u8[32+64+32] eg_rate_shift = [  /* Envelope Generator counter shifts (32 + 64 rates + 32 RKS) */
 /* 32 infinite time rates */
 /* O(0),O(0),O(0),O(0),O(0),O(0),O(0),O(0),
 O(0),O(0),O(0),O(0),O(0),O(0),O(0),O(0),
@@ -317,10 +315,9 @@ O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),
 O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),
 O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0)
 
-};
-#undef O
+];
 
-static const u8 dt_tab[4 * 32]={
+static const u8[4 * 32] dt_tab = [
 /* this is YM2151 and YM2612 phase increment data (in 10.10 fixed point format)*/
 /* FD=0 */
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -334,17 +331,17 @@ static const u8 dt_tab[4 * 32]={
 /* FD=3 */
   2, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7,
   8 , 8, 9,10,11,12,13,14,16,17,19,20,22,22,22,22
-};
+];
 
 
 /* OPN key frequency number -> key code follow table */
 /* fnum higher 4bit -> keycode lower 2bit */
-static const u8 opn_fktable[16] = {0,0,0,0,0,0,0,1,2,3,3,3,3,3,3,3};
+static const u8[16] opn_fktable = [0,0,0,0,0,0,0,1,2,3,3,3,3,3,3,3];
 
 
 /* 8 LFO speed parameters */
 /* each value represents number of samples that one LFO level will last for */
-static const u32 lfo_samples_per_step[8] = {108, 77, 71, 67, 62, 44, 8, 5};
+static const u32[8] lfo_samples_per_step = [108, 77, 71, 67, 62, 44, 8, 5];
 
 
 /*There are 4 different LFO AM depths available, they are:
@@ -364,7 +361,7 @@ static const u32 lfo_samples_per_step[8] = {108, 77, 71, 67, 62, 44, 8, 5};
     1 for 5.9 dB
     0 for 11.8 dB
 */
-static const u8 lfo_ams_depth_shift[4] = {8, 3, 1, 0};
+static const u8[4] lfo_ams_depth_shift = [8, 3, 1, 0];
 
 
 
@@ -388,95 +385,95 @@ static const u8 lfo_ams_depth_shift[4] = {8, 3, 1, 0};
    samples (32*432=13824; 32 because we store only a quarter of whole
             waveform in the table below)
 */
-static const u8 lfo_pm_output[7*8][8]={
+static const u8[7*8][8] lfo_pm_output = [
 /* 7 bits meaningful (of F-NUMBER), 8 LFO output levels per one depth (out of 32), 8 LFO depths */
 /* FNUM BIT 4: 000 0001xxxx */
-/* DEPTH 0 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 1 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 2 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 3 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 4 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 5 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 6 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 7 */ {0,   0,   0,   0,   1,   1,   1,   1},
+/* DEPTH 0 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 1 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 2 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 3 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 4 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 5 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 6 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 7 */ [0,   0,   0,   0,   1,   1,   1,   1],
 
 /* FNUM BIT 5: 000 0010xxxx */
-/* DEPTH 0 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 1 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 2 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 3 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 4 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 5 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 6 */ {0,   0,   0,   0,   1,   1,   1,   1},
-/* DEPTH 7 */ {0,   0,   1,   1,   2,   2,   2,   3},
+/* DEPTH 0 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 1 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 2 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 3 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 4 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 5 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 6 */ [0,   0,   0,   0,   1,   1,   1,   1],
+/* DEPTH 7 */ [0,   0,   1,   1,   2,   2,   2,   3],
 
 /* FNUM BIT 6: 000 0100xxxx */
-/* DEPTH 0 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 1 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 2 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 3 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 4 */ {0,   0,   0,   0,   0,   0,   0,   1},
-/* DEPTH 5 */ {0,   0,   0,   0,   1,   1,   1,   1},
-/* DEPTH 6 */ {0,   0,   1,   1,   2,   2,   2,   3},
-/* DEPTH 7 */ {0,   0,   2,   3,   4,   4,   5,   6},
+/* DEPTH 0 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 1 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 2 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 3 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 4 */ [0,   0,   0,   0,   0,   0,   0,   1],
+/* DEPTH 5 */ [0,   0,   0,   0,   1,   1,   1,   1],
+/* DEPTH 6 */ [0,   0,   1,   1,   2,   2,   2,   3],
+/* DEPTH 7 */ [0,   0,   2,   3,   4,   4,   5,   6],
 
 /* FNUM BIT 7: 000 1000xxxx */
-/* DEPTH 0 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 1 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 2 */ {0,   0,   0,   0,   0,   0,   1,   1},
-/* DEPTH 3 */ {0,   0,   0,   0,   1,   1,   1,   1},
-/* DEPTH 4 */ {0,   0,   0,   1,   1,   1,   1,   2},
-/* DEPTH 5 */ {0,   0,   1,   1,   2,   2,   2,   3},
-/* DEPTH 6 */ {0,   0,   2,   3,   4,   4,   5,   6},
-/* DEPTH 7 */ {0,   0,   4,   6,   8,   8, 0xa, 0xc},
+/* DEPTH 0 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 1 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 2 */ [0,   0,   0,   0,   0,   0,   1,   1],
+/* DEPTH 3 */ [0,   0,   0,   0,   1,   1,   1,   1],
+/* DEPTH 4 */ [0,   0,   0,   1,   1,   1,   1,   2],
+/* DEPTH 5 */ [0,   0,   1,   1,   2,   2,   2,   3],
+/* DEPTH 6 */ [0,   0,   2,   3,   4,   4,   5,   6],
+/* DEPTH 7 */ [0,   0,   4,   6,   8,   8, 0xa, 0xc],
 
 /* FNUM BIT 8: 001 0000xxxx */
-/* DEPTH 0 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 1 */ {0,   0,   0,   0,   1,   1,   1,   1},
-/* DEPTH 2 */ {0,   0,   0,   1,   1,   1,   2,   2},
-/* DEPTH 3 */ {0,   0,   1,   1,   2,   2,   3,   3},
-/* DEPTH 4 */ {0,   0,   1,   2,   2,   2,   3,   4},
-/* DEPTH 5 */ {0,   0,   2,   3,   4,   4,   5,   6},
-/* DEPTH 6 */ {0,   0,   4,   6,   8,   8, 0xa, 0xc},
-/* DEPTH 7 */ {0,   0,   8, 0xc,0x10,0x10,0x14,0x18},
+/* DEPTH 0 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 1 */ [0,   0,   0,   0,   1,   1,   1,   1],
+/* DEPTH 2 */ [0,   0,   0,   1,   1,   1,   2,   2],
+/* DEPTH 3 */ [0,   0,   1,   1,   2,   2,   3,   3],
+/* DEPTH 4 */ [0,   0,   1,   2,   2,   2,   3,   4],
+/* DEPTH 5 */ [0,   0,   2,   3,   4,   4,   5,   6],
+/* DEPTH 6 */ [0,   0,   4,   6,   8,   8, 0xa, 0xc],
+/* DEPTH 7 */ [0,   0,   8, 0xc,0x10,0x10,0x14,0x18],
 
 /* FNUM BIT 9: 010 0000xxxx */
-/* DEPTH 0 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 1 */ {0,   0,   0,   0,   2,   2,   2,   2},
-/* DEPTH 2 */ {0,   0,   0,   2,   2,   2,   4,   4},
-/* DEPTH 3 */ {0,   0,   2,   2,   4,   4,   6,   6},
-/* DEPTH 4 */ {0,   0,   2,   4,   4,   4,   6,   8},
-/* DEPTH 5 */ {0,   0,   4,   6,   8,   8, 0xa, 0xc},
-/* DEPTH 6 */ {0,   0,   8, 0xc,0x10,0x10,0x14,0x18},
-/* DEPTH 7 */ {0,   0,0x10,0x18,0x20,0x20,0x28,0x30},
+/* DEPTH 0 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 1 */ [0,   0,   0,   0,   2,   2,   2,   2],
+/* DEPTH 2 */ [0,   0,   0,   2,   2,   2,   4,   4],
+/* DEPTH 3 */ [0,   0,   2,   2,   4,   4,   6,   6],
+/* DEPTH 4 */ [0,   0,   2,   4,   4,   4,   6,   8],
+/* DEPTH 5 */ [0,   0,   4,   6,   8,   8, 0xa, 0xc],
+/* DEPTH 6 */ [0,   0,   8, 0xc,0x10,0x10,0x14,0x18],
+/* DEPTH 7 */ [0,   0,0x10,0x18,0x20,0x20,0x28,0x30],
 
 /* FNUM BIT10: 100 0000xxxx */
-/* DEPTH 0 */ {0,   0,   0,   0,   0,   0,   0,   0},
-/* DEPTH 1 */ {0,   0,   0,   0,   4,   4,   4,   4},
-/* DEPTH 2 */ {0,   0,   0,   4,   4,   4,   8,   8},
-/* DEPTH 3 */ {0,   0,   4,   4,   8,   8, 0xc, 0xc},
-/* DEPTH 4 */ {0,   0,   4,   8,   8,   8, 0xc,0x10},
-/* DEPTH 5 */ {0,   0,   8, 0xc,0x10,0x10,0x14,0x18},
-/* DEPTH 6 */ {0,   0,0x10,0x18,0x20,0x20,0x28,0x30},
-/* DEPTH 7 */ {0,   0,0x20,0x30,0x40,0x40,0x50,0x60},
+/* DEPTH 0 */ [0,   0,   0,   0,   0,   0,   0,   0],
+/* DEPTH 1 */ [0,   0,   0,   0,   4,   4,   4,   4],
+/* DEPTH 2 */ [0,   0,   0,   4,   4,   4,   8,   8],
+/* DEPTH 3 */ [0,   0,   4,   4,   8,   8, 0xc, 0xc],
+/* DEPTH 4 */ [0,   0,   4,   8,   8,   8, 0xc,0x10],
+/* DEPTH 5 */ [0,   0,   8, 0xc,0x10,0x10,0x14,0x18],
+/* DEPTH 6 */ [0,   0,0x10,0x18,0x20,0x20,0x28,0x30],
+/* DEPTH 7 */ [0,   0,0x20,0x30,0x40,0x40,0x50,0x60],
 
-};
+];
 
 /* all 128 LFO PM waveforms */
-static s32 lfo_pm_table[128*8*32]; /* 128 combinations of 7 bits meaningful (of F-NUMBER), 8 LFO depths, 32 LFO output levels per one depth */
+static s32[128*8*32] lfo_pm_table; /* 128 combinations of 7 bits meaningful (of F-NUMBER), 8 LFO depths, 32 LFO output levels per one depth */
 
 /* register number to channel number , slot offset */
 s32 OPN_CHAN(s32 N) { return N & 3; }
 s32 OPN_SLOT(s32 N) { return (N >> 2) & 3; }
 
 /* slot number */
-#define SLOT1 0
-#define SLOT2 2
-#define SLOT3 1
-#define SLOT4 3
+const int SLOT1 = 0;
+const int SLOT2 = 2;
+const int SLOT3 = 1;
+const int SLOT4 = 3;
 
 /* struct describing a single operator (SLOT) */
-typedef struct
+struct FM_SLOT
 {
   s32   *DT;        /* detune          :dt_tab[DT]      */
   u8   KSR;        /* key scale rate  :3-KSR           */
@@ -515,15 +512,15 @@ typedef struct
   /* LFO */
   u32  AMmask;     /* AM enable flag */
 
-} FM_SLOT;
+}
 
-typedef struct
+struct FM_CH
 {
-  FM_SLOT  SLOT[4];     /* four SLOTs (operators) */
+  FM_SLOT[4]  SLOT;     /* four SLOTs (operators) */
 
   u8   ALGO;         /* algorithm */
   u8   FB;           /* feedback shift */
-  s32   op1_out[2];   /* op1 output for feedback */
+  s32[2]   op1_out;   /* op1 output for feedback */
 
   s32   *connect1;    /* SLOT1 output pointer */
   s32   *connect3;    /* SLOT3 output pointer */
@@ -539,10 +536,10 @@ typedef struct
   u32  fc;           /* fnum,blk */
   u8   kcode;        /* key code */
   u32  block_fnum;   /* blk/fnum value (for LFO PM calculations) */
-} FM_CH;
+}
 
 
-typedef struct
+struct FM_ST
 {
   u16  address;        /* address register     */
   u8   status;         /* status flag          */
@@ -554,9 +551,9 @@ typedef struct
   s32   TB;             /* timer b value        */
   s32   TBL;            /* timer b base         */
   s32   TBC;            /* timer b counter      */
-  s32   dt_tab[8][32];  /* DeTune table         */
+  s32[8][32]   dt_tab;  /* DeTune table         */
 
-} FM_ST;
+}
 
 
 /***********************************************************/
@@ -564,22 +561,21 @@ typedef struct
 /***********************************************************/
 
 /* OPN 3slot struct */
-typedef struct
+struct FM_3SLOT
 {
-  u32  fc[3];          /* fnum3,blk3: calculated */
+  u32[3]  fc;          /* fnum3,blk3: calculated */
   u8   fn_h;           /* freq3 latch */
-  u8   kcode[3];       /* key code */
-  u32  block_fnum[3];  /* current fnum value for this slot (can be different betweeen slots of one channel in 3slot mode) */
+  u8[3]   kcode;       /* key code */
+  u32[3]  block_fnum;  /* current fnum value for this slot (can be different betweeen slots of one channel in 3slot mode) */
   u8   key_csm;        /* CSM mode Key-ON flag */
-
-} FM_3SLOT;
+}
 
 /* OPN/A/B common state */
-typedef struct
+struct FM_OPN
 {
   FM_ST  ST;                  /* general state */
   FM_3SLOT SL3;               /* 3 slot mode state */
-  u32 pan[6*2];      /* fm channels output masks (0xffffffff = enable) */
+  u32[6*2] pan;      /* fm channels output masks (0xffffffff = enable) */
 
   /* EG */
   u32  eg_cnt;             /* global envelope generator counter */
@@ -592,19 +588,19 @@ typedef struct
   u32  LFO_AM;             /* current LFO AM step */
   u32  LFO_PM;             /* current LFO PM step */
 
-} FM_OPN;
+}
 
 /***********************************************************/
 /* YM2612 chip                                                */
 /***********************************************************/
-typedef struct
+struct YM2612
 {
-  FM_CH   CH[6];  /* channel state */
+  FM_CH[6]   CH;  /* channel state */
   u8   dacen;  /* DAC mode  */
   s32   dacout; /* DAC output */
   FM_OPN  OPN;    /* OPN state */
 
-} YM2612;
+}
 
 /* emulated chip */
 static YM2612 ym2612;
@@ -612,134 +608,134 @@ static YM2612 ym2612;
 /* current chip state */
 static s32  m2,c1,c2;   /* Phase Modulation input for operators 2,3,4 */
 static s32  mem;        /* one sample delay memory */
-static s32  out_fm[8];  /* outputs of working channels */
+static s32[8]  out_fm;  /* outputs of working channels */
 
 void FM_KEYON(FM_CH *CH , s32 s )
 {
-  FM_SLOT *SLOT = &CH->SLOT[s];
+  FM_SLOT *SLOT = &CH.SLOT[s];
 
-  if (!SLOT->key && !ym2612.OPN.SL3.key_csm)
+  if (!SLOT.key && !ym2612.OPN.SL3.key_csm)
   {
     /* restart Phase Generator */
-    SLOT->phase = 0;
+    SLOT.phase = 0;
 
     /* reset SSG-EG inversion flag */
-    SLOT->ssgn = 0;
+    SLOT.ssgn = 0;
 
-    if ((SLOT->ar + SLOT->ksr) < 94 /*32+62*/)
+    if ((SLOT.ar + SLOT.ksr) < 94 /*32+62*/)
     {
-      SLOT->state = (SLOT->volume <= MIN_ATT_INDEX) ? ((SLOT->sl == MIN_ATT_INDEX) ? EG_SUS : EG_DEC) : EG_ATT;
+      SLOT.state = (SLOT.volume <= MIN_ATT_INDEX) ? ((SLOT.sl == MIN_ATT_INDEX) ? EG_SUS : EG_DEC) : EG_ATT;
     }
     else
     {
       /* force attenuation level to 0 */
-      SLOT->volume = MIN_ATT_INDEX;
+      SLOT.volume = MIN_ATT_INDEX;
 
       /* directly switch to Decay (or Sustain) */
-      SLOT->state = (SLOT->sl == MIN_ATT_INDEX) ? EG_SUS : EG_DEC;
+      SLOT.state = (SLOT.sl == MIN_ATT_INDEX) ? EG_SUS : EG_DEC;
     }
 
     /* recalculate EG output */
-    if ((SLOT->ssg&0x08) && (SLOT->ssgn ^ (SLOT->ssg&0x04)))
-      SLOT->vol_out = ((u32)(0x200 - SLOT->volume) & MAX_ATT_INDEX) + SLOT->tl;
+    if ((SLOT.ssg&0x08) && (SLOT.ssgn ^ (SLOT.ssg&0x04)))
+      SLOT.vol_out = ((u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
     else
-      SLOT->vol_out = (u32)SLOT->volume + SLOT->tl;
+      SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
   }
 
-  SLOT->key = 1;
+  SLOT.key = 1;
 }
 
 void FM_KEYOFF(FM_CH *CH , s32 s )
 {
-  FM_SLOT *SLOT = &CH->SLOT[s];
+  FM_SLOT *SLOT = &CH.SLOT[s];
 
-  if (SLOT->key && !ym2612.OPN.SL3.key_csm)
+  if (SLOT.key && !ym2612.OPN.SL3.key_csm)
   {
-    if (SLOT->state>EG_REL)
+    if (SLOT.state>EG_REL)
     {
-      SLOT->state = EG_REL; /* phase -> Release */
+      SLOT.state = EG_REL; /* phase -> Release */
 
       /* SSG-EG specific update */
-      if (SLOT->ssg&0x08)
+      if (SLOT.ssg&0x08)
       {
         /* convert EG attenuation level */
-        if (SLOT->ssgn ^ (SLOT->ssg&0x04))
-          SLOT->volume = (0x200 - SLOT->volume);
+        if (SLOT.ssgn ^ (SLOT.ssg&0x04))
+          SLOT.volume = (0x200 - SLOT.volume);
 
         /* force EG attenuation level */
-        if (SLOT->volume >= 0x200)
+        if (SLOT.volume >= 0x200)
         {
-          SLOT->volume = MAX_ATT_INDEX;
-          SLOT->state  = EG_OFF;
+          SLOT.volume = MAX_ATT_INDEX;
+          SLOT.state  = EG_OFF;
         }
 
         /* recalculate EG output */
-        SLOT->vol_out = (u32)SLOT->volume + SLOT->tl;
+        SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
       }
     }
   }
 
-  SLOT->key = 0;
+  SLOT.key = 0;
 }
 
 void FM_KEYON_CSM(FM_CH *CH , s32 s )
 {
-  FM_SLOT *SLOT = &CH->SLOT[s];
+  FM_SLOT *SLOT = &CH.SLOT[s];
 
-  if (!SLOT->key && !ym2612.OPN.SL3.key_csm)
+  if (!SLOT.key && !ym2612.OPN.SL3.key_csm)
   {
     /* restart Phase Generator */
-    SLOT->phase = 0;
+    SLOT.phase = 0;
 
     /* reset SSG-EG inversion flag */
-    SLOT->ssgn = 0;
+    SLOT.ssgn = 0;
 
-    if ((SLOT->ar + SLOT->ksr) < 94 /*32+62*/)
+    if ((SLOT.ar + SLOT.ksr) < 94 /*32+62*/)
     {
-      SLOT->state = (SLOT->volume <= MIN_ATT_INDEX) ? ((SLOT->sl == MIN_ATT_INDEX) ? EG_SUS : EG_DEC) : EG_ATT;
+      SLOT.state = (SLOT.volume <= MIN_ATT_INDEX) ? ((SLOT.sl == MIN_ATT_INDEX) ? EG_SUS : EG_DEC) : EG_ATT;
     }
     else
     {
       /* force attenuation level to 0 */
-      SLOT->volume = MIN_ATT_INDEX;
+      SLOT.volume = MIN_ATT_INDEX;
 
       /* directly switch to Decay (or Sustain) */
-      SLOT->state = (SLOT->sl == MIN_ATT_INDEX) ? EG_SUS : EG_DEC;
+      SLOT.state = (SLOT.sl == MIN_ATT_INDEX) ? EG_SUS : EG_DEC;
     }
 
     /* recalculate EG output */
-    if ((SLOT->ssg&0x08) && (SLOT->ssgn ^ (SLOT->ssg&0x04)))
-      SLOT->vol_out = ((u32)(0x200 - SLOT->volume) & MAX_ATT_INDEX) + SLOT->tl;
+    if ((SLOT.ssg&0x08) && (SLOT.ssgn ^ (SLOT.ssg&0x04)))
+      SLOT.vol_out = ((u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
     else
-      SLOT->vol_out = (u32)SLOT->volume + SLOT->tl;
+      SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
   }
 }
 
 void FM_KEYOFF_CSM(FM_CH *CH , s32 s )
 {
-  FM_SLOT *SLOT = &CH->SLOT[s];
-  if (!SLOT->key)
+  FM_SLOT *SLOT = &CH.SLOT[s];
+  if (!SLOT.key)
   {
-    if (SLOT->state>EG_REL)
+    if (SLOT.state>EG_REL)
     {
-      SLOT->state = EG_REL; /* phase -> Release */
+      SLOT.state = EG_REL; /* phase -> Release */
 
       /* SSG-EG specific update */
-      if (SLOT->ssg&0x08)
+      if (SLOT.ssg&0x08)
       {
         /* convert EG attenuation level */
-        if (SLOT->ssgn ^ (SLOT->ssg&0x04))
-          SLOT->volume = (0x200 - SLOT->volume);
+        if (SLOT.ssgn ^ (SLOT.ssg&0x04))
+          SLOT.volume = (0x200 - SLOT.volume);
 
         /* force EG attenuation level */
-        if (SLOT->volume >= 0x200)
+        if (SLOT.volume >= 0x200)
         {
-          SLOT->volume = MAX_ATT_INDEX;
-          SLOT->state  = EG_OFF;
+          SLOT.volume = MAX_ATT_INDEX;
+          SLOT.state  = EG_OFF;
         }
 
         /* recalculate EG output */
-        SLOT->vol_out = (u32)SLOT->volume + SLOT->tl;
+        SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
       }
     }
   }
@@ -843,13 +839,13 @@ void setup_connection( FM_CH *CH, s32 ch )
 {
   s32 *carrier = &out_fm[ch];
 
-  s32 **om1 = &CH->connect1;
-  s32 **om2 = &CH->connect3;
-  s32 **oc1 = &CH->connect2;
+  s32 **om1 = &CH.connect1;
+  s32 **om2 = &CH.connect3;
+  s32 **oc1 = &CH.connect2;
 
-  s32 **memc = &CH->mem_connect;
+  s32 **memc = &CH.mem_connect;
 
-  switch( CH->ALGO ){
+  switch( CH.ALGO ){
     case 0:
       /* M1---C1---MEM---M2---C2---OUT */
       *om1 = &c1;
@@ -922,91 +918,91 @@ void setup_connection( FM_CH *CH, s32 ch )
       break;
   }
 
-  CH->connect4 = carrier;
+  CH.connect4 = carrier;
 }
 
 /* set detune & multiple */
 void set_det_mul(FM_CH *CH,FM_SLOT *SLOT,s32 v)
 {
-  SLOT->mul = (v&0x0f)? (v&0x0f)*2 : 1;
-  SLOT->DT  = ym2612.OPN.ST.dt_tab[(v>>4)&7];
-  CH->SLOT[SLOT1].Incr=-1;
+  SLOT.mul = (v&0x0f)? (v&0x0f)*2 : 1;
+  SLOT.DT  = ym2612.OPN.ST.dt_tab[(v>>4)&7];
+  CH.SLOT[SLOT1].Incr=-1;
 }
 
 /* set total level */
 void set_tl(FM_SLOT *SLOT , s32 v)
 {
-  SLOT->tl = (v&0x7f)<<(ENV_BITS-7); /* 7bit TL */
+  SLOT.tl = (v&0x7f)<<(ENV_BITS-7); /* 7bit TL */
 
   /* recalculate EG output */
-  if ((SLOT->ssg&0x08) && (SLOT->ssgn ^ (SLOT->ssg&0x04)) && (SLOT->state > EG_REL))
-    SLOT->vol_out = ((u32)(0x200 - SLOT->volume) & MAX_ATT_INDEX) + SLOT->tl;
+  if ((SLOT.ssg&0x08) && (SLOT.ssgn ^ (SLOT.ssg&0x04)) && (SLOT.state > EG_REL))
+    SLOT.vol_out = ((u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
   else
-    SLOT->vol_out = (u32)SLOT->volume + SLOT->tl;
+    SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
 }
 
 /* set attack rate & key scale  */
 void set_ar_ksr(FM_CH *CH,FM_SLOT *SLOT,s32 v)
 {
-  u8 old_KSR = SLOT->KSR;
+  u8 old_KSR = SLOT.KSR;
 
-  SLOT->ar = (v&0x1f) ? 32 + ((v&0x1f)<<1) : 0;
+  SLOT.ar = (v&0x1f) ? 32 + ((v&0x1f)<<1) : 0;
 
-  SLOT->KSR = 3-(v>>6);
-  if (SLOT->KSR != old_KSR)
+  SLOT.KSR = 3-(v>>6);
+  if (SLOT.KSR != old_KSR)
   {
-    CH->SLOT[SLOT1].Incr=-1;
+    CH.SLOT[SLOT1].Incr=-1;
   }
 
   /* Even if it seems unnecessary to do it here, it could happen that KSR and KC  */
   /* are modified but the resulted SLOT->ksr value (kc >> SLOT->KSR) remains unchanged. */
   /* In such case, Attack Rate would not be recalculated by "refresh_fc_eg_slot". */
   /* This actually fixes the intro of "The Adventures of Batman & Robin" (Eke-Eke)         */
-  if ((SLOT->ar + SLOT->ksr) < (32+62))
+  if ((SLOT.ar + SLOT.ksr) < (32+62))
   {
-    SLOT->eg_sh_ar  = eg_rate_shift [SLOT->ar  + SLOT->ksr ];
-    SLOT->eg_sel_ar = eg_rate_select[SLOT->ar  + SLOT->ksr ];
+    SLOT.eg_sh_ar  = eg_rate_shift [SLOT.ar  + SLOT.ksr ];
+    SLOT.eg_sel_ar = eg_rate_select[SLOT.ar  + SLOT.ksr ];
   }
   else
   {
     /* verified by Nemesis on real hardware (Attack phase is blocked) */
-    SLOT->eg_sh_ar  = 0;
-    SLOT->eg_sel_ar = 18*RATE_STEPS;
+    SLOT.eg_sh_ar  = 0;
+    SLOT.eg_sel_ar = 18*RATE_STEPS;
   }
  }
 
 /* set decay rate */
 void set_dr(FM_SLOT *SLOT,s32 v)
 {
-  SLOT->d1r = (v&0x1f) ? 32 + ((v&0x1f)<<1) : 0;
+  SLOT.d1r = (v&0x1f) ? 32 + ((v&0x1f)<<1) : 0;
 
-  SLOT->eg_sh_d1r = eg_rate_shift [SLOT->d1r + SLOT->ksr];
-  SLOT->eg_sel_d1r= eg_rate_select[SLOT->d1r + SLOT->ksr];
+  SLOT.eg_sh_d1r = eg_rate_shift [SLOT.d1r + SLOT.ksr];
+  SLOT.eg_sel_d1r= eg_rate_select[SLOT.d1r + SLOT.ksr];
 
 }
 
 /* set sustain rate */
 void set_sr(FM_SLOT *SLOT,s32 v)
 {
-  SLOT->d2r = (v&0x1f) ? 32 + ((v&0x1f)<<1) : 0;
+  SLOT.d2r = (v&0x1f) ? 32 + ((v&0x1f)<<1) : 0;
 
-  SLOT->eg_sh_d2r = eg_rate_shift [SLOT->d2r + SLOT->ksr];
-  SLOT->eg_sel_d2r= eg_rate_select[SLOT->d2r + SLOT->ksr];
+  SLOT.eg_sh_d2r = eg_rate_shift [SLOT.d2r + SLOT.ksr];
+  SLOT.eg_sel_d2r= eg_rate_select[SLOT.d2r + SLOT.ksr];
 }
 
 /* set release rate */
 void set_sl_rr(FM_SLOT *SLOT,s32 v)
 {
-  SLOT->sl = sl_table[ v>>4 ];
+  SLOT.sl = sl_table[ v>>4 ];
   
   /* check EG state changes */
-  if ((SLOT->state == EG_DEC) && (SLOT->volume >= (s32)(SLOT->sl)))
-    SLOT->state = EG_SUS;
+  if ((SLOT.state == EG_DEC) && (SLOT.volume >= (s32)(SLOT.sl)))
+    SLOT.state = EG_SUS;
 
-  SLOT->rr  = 34 + ((v&0x0f)<<2);
+  SLOT.rr  = 34 + ((v&0x0f)<<2);
 
-  SLOT->eg_sh_rr  = eg_rate_shift [SLOT->rr  + SLOT->ksr];
-  SLOT->eg_sel_rr = eg_rate_select[SLOT->rr  + SLOT->ksr];
+  SLOT.eg_sh_rr  = eg_rate_shift [SLOT.rr  + SLOT.ksr];
+  SLOT.eg_sel_rr = eg_rate_select[SLOT.rr  + SLOT.ksr];
 }
 
 /* advance LFO to next sample */
@@ -1047,101 +1043,101 @@ void advance_eg_channels(FM_CH *CH, u32 eg_cnt)
 
   do
   {
-    SLOT = &CH->SLOT[SLOT1];
+    SLOT = &CH.SLOT[SLOT1];
     j = 4; /* four operators per channel */
     do
     {
-      switch(SLOT->state)
+      switch(SLOT.state)
       {
         case EG_ATT:    /* attack phase */
         {
-          if (!(eg_cnt & ((1<<SLOT->eg_sh_ar)-1)))
+          if (!(eg_cnt & ((1<<SLOT.eg_sh_ar)-1)))
           {
             /* update attenuation level */
-            SLOT->volume += (~SLOT->volume * (eg_inc[SLOT->eg_sel_ar + ((eg_cnt>>SLOT->eg_sh_ar)&7)]))>>4;
+            SLOT.volume += (~SLOT.volume * (eg_inc[SLOT.eg_sel_ar + ((eg_cnt>>SLOT.eg_sh_ar)&7)]))>>4;
 
             /* check phase transition*/
-            if (SLOT->volume <= MIN_ATT_INDEX)
+            if (SLOT.volume <= MIN_ATT_INDEX)
             {
-              SLOT->volume = MIN_ATT_INDEX;
-              SLOT->state = (SLOT->sl == MIN_ATT_INDEX) ? EG_SUS : EG_DEC; /* special case where SL=0 */
+              SLOT.volume = MIN_ATT_INDEX;
+              SLOT.state = (SLOT.sl == MIN_ATT_INDEX) ? EG_SUS : EG_DEC; /* special case where SL=0 */
             }
 
             /* recalculate EG output */
-            if ((SLOT->ssg&0x08) && (SLOT->ssgn ^ (SLOT->ssg&0x04)))  /* SSG-EG Output Inversion */
-              SLOT->vol_out = ((u32)(0x200 - SLOT->volume) & MAX_ATT_INDEX) + SLOT->tl;
+            if ((SLOT.ssg&0x08) && (SLOT.ssgn ^ (SLOT.ssg&0x04)))  /* SSG-EG Output Inversion */
+              SLOT.vol_out = ((u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
             else
-              SLOT->vol_out = (u32)SLOT->volume + SLOT->tl;
+              SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
           }
           break;
         }
 
         case EG_DEC:  /* decay phase */
         {
-          if (!(eg_cnt & ((1<<SLOT->eg_sh_d1r)-1)))
+          if (!(eg_cnt & ((1<<SLOT.eg_sh_d1r)-1)))
           {
             /* SSG EG type */
-            if (SLOT->ssg&0x08)
+            if (SLOT.ssg&0x08)
             {
               /* update attenuation level */
-              if (SLOT->volume < 0x200)
+              if (SLOT.volume < 0x200)
               {
-                SLOT->volume += 4 * eg_inc[SLOT->eg_sel_d1r + ((eg_cnt>>SLOT->eg_sh_d1r)&7)];
+                SLOT.volume += 4 * eg_inc[SLOT.eg_sel_d1r + ((eg_cnt>>SLOT.eg_sh_d1r)&7)];
 
                 /* recalculate EG output */
-                if (SLOT->ssgn ^ (SLOT->ssg&0x04))   /* SSG-EG Output Inversion */
-                  SLOT->vol_out = ((u32)(0x200 - SLOT->volume) & MAX_ATT_INDEX) + SLOT->tl;
+                if (SLOT.ssgn ^ (SLOT.ssg&0x04))   /* SSG-EG Output Inversion */
+                  SLOT.vol_out = ((u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
                 else
-                  SLOT->vol_out = (u32)SLOT->volume + SLOT->tl;
+                  SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
               }
             }
             else
             {
               /* update attenuation level */
-              SLOT->volume += eg_inc[SLOT->eg_sel_d1r + ((eg_cnt>>SLOT->eg_sh_d1r)&7)];
+              SLOT.volume += eg_inc[SLOT.eg_sel_d1r + ((eg_cnt>>SLOT.eg_sh_d1r)&7)];
 
               /* recalculate EG output */
-              SLOT->vol_out = (u32)SLOT->volume + SLOT->tl;
+              SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
             }
 
             /* check phase transition*/
-            if (SLOT->volume >= (s32)(SLOT->sl))
-              SLOT->state = EG_SUS;
+            if (SLOT.volume >= (s32)(SLOT.sl))
+              SLOT.state = EG_SUS;
           }
           break;
         }
 
         case EG_SUS:  /* sustain phase */
         {
-          if (!(eg_cnt & ((1<<SLOT->eg_sh_d2r)-1)))
+          if (!(eg_cnt & ((1<<SLOT.eg_sh_d2r)-1)))
           {
             /* SSG EG type */
-            if (SLOT->ssg&0x08)
+            if (SLOT.ssg&0x08)
             {
               /* update attenuation level */
-              if (SLOT->volume < 0x200)
+              if (SLOT.volume < 0x200)
               {
-                SLOT->volume += 4 * eg_inc[SLOT->eg_sel_d2r + ((eg_cnt>>SLOT->eg_sh_d2r)&7)];
+                SLOT.volume += 4 * eg_inc[SLOT.eg_sel_d2r + ((eg_cnt>>SLOT.eg_sh_d2r)&7)];
 
                 /* recalculate EG output */
-                if (SLOT->ssgn ^ (SLOT->ssg&0x04))   /* SSG-EG Output Inversion */
-                  SLOT->vol_out = ((u32)(0x200 - SLOT->volume) & MAX_ATT_INDEX) + SLOT->tl;
+                if (SLOT.ssgn ^ (SLOT.ssg&0x04))   /* SSG-EG Output Inversion */
+                  SLOT.vol_out = ((u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
                 else
-                  SLOT->vol_out = (u32)SLOT->volume + SLOT->tl;
+                  SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
               }
             }
             else
             {
               /* update attenuation level */
-              SLOT->volume += eg_inc[SLOT->eg_sel_d2r + ((eg_cnt>>SLOT->eg_sh_d2r)&7)];
+              SLOT.volume += eg_inc[SLOT.eg_sel_d2r + ((eg_cnt>>SLOT.eg_sh_d2r)&7)];
 
               /* check phase transition*/
-              if ( SLOT->volume >= MAX_ATT_INDEX )
-                SLOT->volume = MAX_ATT_INDEX;
+              if ( SLOT.volume >= MAX_ATT_INDEX )
+                SLOT.volume = MAX_ATT_INDEX;
                 /* do not change SLOT->state (verified on real chip) */
 
               /* recalculate EG output */
-              SLOT->vol_out = (u32)SLOT->volume + SLOT->tl;
+              SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
             }
           }
           break;
@@ -1149,37 +1145,37 @@ void advance_eg_channels(FM_CH *CH, u32 eg_cnt)
 
         case EG_REL:  /* release phase */
         {
-         if (!(eg_cnt & ((1<<SLOT->eg_sh_rr)-1)))
+         if (!(eg_cnt & ((1<<SLOT.eg_sh_rr)-1)))
           {
              /* SSG EG type */
-            if (SLOT->ssg&0x08)
+            if (SLOT.ssg&0x08)
             {
               /* update attenuation level */
-              if (SLOT->volume < 0x200)
-                SLOT->volume += 4 * eg_inc[SLOT->eg_sel_rr + ((eg_cnt>>SLOT->eg_sh_rr)&7)];
+              if (SLOT.volume < 0x200)
+                SLOT.volume += 4 * eg_inc[SLOT.eg_sel_rr + ((eg_cnt>>SLOT.eg_sh_rr)&7)];
 
               /* check phase transition */
-              if (SLOT->volume >= 0x200)
+              if (SLOT.volume >= 0x200)
               {
-                SLOT->volume = MAX_ATT_INDEX;
-                SLOT->state = EG_OFF;
+                SLOT.volume = MAX_ATT_INDEX;
+                SLOT.state = EG_OFF;
               }
             }
             else
             {
               /* update attenuation level */
-              SLOT->volume += eg_inc[SLOT->eg_sel_rr + ((eg_cnt>>SLOT->eg_sh_rr)&7)];
+              SLOT.volume += eg_inc[SLOT.eg_sel_rr + ((eg_cnt>>SLOT.eg_sh_rr)&7)];
 
               /* check phase transition*/
-              if (SLOT->volume >= MAX_ATT_INDEX)
+              if (SLOT.volume >= MAX_ATT_INDEX)
               {
-                SLOT->volume = MAX_ATT_INDEX;
-                SLOT->state = EG_OFF;
+                SLOT.volume = MAX_ATT_INDEX;
+                SLOT.state = EG_OFF;
               }
             }
 
             /* recalculate EG output */
-            SLOT->vol_out = (u32)SLOT->volume + SLOT->tl;
+            SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
 
           }
           break;
@@ -1207,54 +1203,54 @@ void update_ssg_eg_channels(FM_CH *CH)
   do
   {
     j = 4; /* four operators per channel */
-    SLOT = &CH->SLOT[SLOT1];
+    SLOT = &CH.SLOT[SLOT1];
 
     do
     {
       /* detect SSG-EG transition */
       /* this is not required during release phase as the attenuation has been forced to MAX and output invert flag is not used */
       /* if an Attack Phase is programmed, inversion can occur on each sample */
-      if ((SLOT->ssg & 0x08) && (SLOT->volume >= 0x200) && (SLOT->state > EG_REL))
+      if ((SLOT.ssg & 0x08) && (SLOT.volume >= 0x200) && (SLOT.state > EG_REL))
       {
-        if (SLOT->ssg & 0x01)  /* bit 0 = hold SSG-EG */
+        if (SLOT.ssg & 0x01)  /* bit 0 = hold SSG-EG */
         {
           /* set inversion flag */
-          if (SLOT->ssg & 0x02)
-            SLOT->ssgn = 4;
+          if (SLOT.ssg & 0x02)
+            SLOT.ssgn = 4;
 
           /* force attenuation level during decay phases */
-          if ((SLOT->state != EG_ATT) && !(SLOT->ssgn ^ (SLOT->ssg & 0x04)))
-            SLOT->volume  = MAX_ATT_INDEX;
+          if ((SLOT.state != EG_ATT) && !(SLOT.ssgn ^ (SLOT.ssg & 0x04)))
+            SLOT.volume  = MAX_ATT_INDEX;
         }
         else  /* loop SSG-EG */
         {
           /* toggle output inversion flag or reset Phase Generator */
-          if (SLOT->ssg & 0x02)
-            SLOT->ssgn ^= 4;
+          if (SLOT.ssg & 0x02)
+            SLOT.ssgn ^= 4;
           else
-            SLOT->phase = 0;
+            SLOT.phase = 0;
 
           /* same as Key ON */
-          if (SLOT->state != EG_ATT)
+          if (SLOT.state != EG_ATT)
           {
-            if ((SLOT->ar + SLOT->ksr) < 94 /*32+62*/)
+            if ((SLOT.ar + SLOT.ksr) < 94 /*32+62*/)
             {
-              SLOT->state = (SLOT->volume <= MIN_ATT_INDEX) ? ((SLOT->sl == MIN_ATT_INDEX) ? EG_SUS : EG_DEC) : EG_ATT;
+              SLOT.state = (SLOT.volume <= MIN_ATT_INDEX) ? ((SLOT.sl == MIN_ATT_INDEX) ? EG_SUS : EG_DEC) : EG_ATT;
             }
             else
             {
               /* Attack Rate is maximal: directly switch to Decay or Substain */
-              SLOT->volume = MIN_ATT_INDEX;
-              SLOT->state = (SLOT->sl == MIN_ATT_INDEX) ? EG_SUS : EG_DEC;
+              SLOT.volume = MIN_ATT_INDEX;
+              SLOT.state = (SLOT.sl == MIN_ATT_INDEX) ? EG_SUS : EG_DEC;
             }
           }
         }
 
         /* recalculate EG output */
-        if (SLOT->ssgn ^ (SLOT->ssg&0x04))
-          SLOT->vol_out = ((u32)(0x200 - SLOT->volume) & MAX_ATT_INDEX) + SLOT->tl;
+        if (SLOT.ssgn ^ (SLOT.ssg&0x04))
+          SLOT.vol_out = ((u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
         else
-          SLOT->vol_out = (u32)SLOT->volume + SLOT->tl;
+          SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
       }
 
       /* next slot */
@@ -1285,22 +1281,22 @@ void update_phase_lfo_slot(FM_SLOT *SLOT, s32 pms, u32 block_fnum)
     kc = (blk<<2) | opn_fktable[block_fnum >> 8];
 
     /* (frequency) phase increment counter */
-    fc = (((block_fnum << 5) >> (7 - blk)) + SLOT->DT[kc]) & DT_MASK;
+    fc = (((block_fnum << 5) >> (7 - blk)) + SLOT.DT[kc]) & DT_MASK;
 
     /* update phase */
-    SLOT->phase += (fc * SLOT->mul) >> 1;
+    SLOT.phase += (fc * SLOT.mul) >> 1;
   }
   else  /* LFO phase modulation  = zero */
   {
-    SLOT->phase += SLOT->Incr;
+    SLOT.phase += SLOT.Incr;
   }
 }
 
 void update_phase_lfo_channel(FM_CH *CH)
 {
-  u32 block_fnum = CH->block_fnum;
+  u32 block_fnum = CH.block_fnum;
   
-  s32 lfo_fn_table_index_offset = lfo_pm_table[(((block_fnum & 0x7f0) >> 4) << 8) + CH->pms + ym2612.OPN.LFO_PM];
+  s32 lfo_fn_table_index_offset = lfo_pm_table[(((block_fnum & 0x7f0) >> 4) << 8) + CH.pms + ym2612.OPN.LFO_PM];
 
   if (lfo_fn_table_index_offset)  /* LFO phase modulation active */
   {
@@ -1320,24 +1316,24 @@ void update_phase_lfo_channel(FM_CH *CH)
     fc = (block_fnum << 5) >> (7 - blk);
 
     /* apply DETUNE & MUL operator specific values */
-    finc = (fc + CH->SLOT[SLOT1].DT[kc]) & DT_MASK;
-    CH->SLOT[SLOT1].phase += (finc*CH->SLOT[SLOT1].mul) >> 1;
+    finc = (fc + CH.SLOT[SLOT1].DT[kc]) & DT_MASK;
+    CH.SLOT[SLOT1].phase += (finc*CH.SLOT[SLOT1].mul) >> 1;
 
-    finc = (fc + CH->SLOT[SLOT2].DT[kc]) & DT_MASK;
-    CH->SLOT[SLOT2].phase += (finc*CH->SLOT[SLOT2].mul) >> 1;
+    finc = (fc + CH.SLOT[SLOT2].DT[kc]) & DT_MASK;
+    CH.SLOT[SLOT2].phase += (finc*CH.SLOT[SLOT2].mul) >> 1;
 
-    finc = (fc + CH->SLOT[SLOT3].DT[kc]) & DT_MASK;
-    CH->SLOT[SLOT3].phase += (finc*CH->SLOT[SLOT3].mul) >> 1;
+    finc = (fc + CH.SLOT[SLOT3].DT[kc]) & DT_MASK;
+    CH.SLOT[SLOT3].phase += (finc*CH.SLOT[SLOT3].mul) >> 1;
 
-    finc = (fc + CH->SLOT[SLOT4].DT[kc]) & DT_MASK;
-    CH->SLOT[SLOT4].phase += (finc*CH->SLOT[SLOT4].mul) >> 1;
+    finc = (fc + CH.SLOT[SLOT4].DT[kc]) & DT_MASK;
+    CH.SLOT[SLOT4].phase += (finc*CH.SLOT[SLOT4].mul) >> 1;
   }
   else  /* LFO phase modulation  = zero */
   {
-    CH->SLOT[SLOT1].phase += CH->SLOT[SLOT1].Incr;
-    CH->SLOT[SLOT2].phase += CH->SLOT[SLOT2].Incr;
-    CH->SLOT[SLOT3].phase += CH->SLOT[SLOT3].Incr;
-    CH->SLOT[SLOT4].phase += CH->SLOT[SLOT4].Incr;
+    CH.SLOT[SLOT1].phase += CH.SLOT[SLOT1].Incr;
+    CH.SLOT[SLOT2].phase += CH.SLOT[SLOT2].Incr;
+    CH.SLOT[SLOT3].phase += CH.SLOT[SLOT3].Incr;
+    CH.SLOT[SLOT4].phase += CH.SLOT[SLOT4].Incr;
   }
 }
 
@@ -1345,61 +1341,61 @@ void update_phase_lfo_channel(FM_CH *CH)
 void refresh_fc_eg_slot(FM_SLOT *SLOT , u32 fc , u32 kc )
 {
   /* add detune value */
-  fc += SLOT->DT[kc];
+  fc += SLOT.DT[kc];
 
   /* (frequency) phase overflow (credits to Nemesis) */
   fc &= DT_MASK;
 
   /* (frequency) phase increment counter */
-  SLOT->Incr = (fc * SLOT->mul) >> 1;
+  SLOT.Incr = (fc * SLOT.mul) >> 1;
 
   /* ksr */
-  kc = kc >> SLOT->KSR;
+  kc = kc >> SLOT.KSR;
 
-  if( SLOT->ksr != kc )
+  if( SLOT.ksr != kc )
   {
-    SLOT->ksr = kc;
+    SLOT.ksr = kc;
 
     /* recalculate envelope generator rates */
-    if ((SLOT->ar + kc) < (32+62))
+    if ((SLOT.ar + kc) < (32+62))
     {
-      SLOT->eg_sh_ar  = eg_rate_shift [SLOT->ar  + kc ];
-      SLOT->eg_sel_ar = eg_rate_select[SLOT->ar  + kc ];
+      SLOT.eg_sh_ar  = eg_rate_shift [SLOT.ar  + kc ];
+      SLOT.eg_sel_ar = eg_rate_select[SLOT.ar  + kc ];
     }
     else
     {
       /* verified by Nemesis on real hardware (Attack phase is blocked) */
-      SLOT->eg_sh_ar  = 0;
-      SLOT->eg_sel_ar = 18*RATE_STEPS;
+      SLOT.eg_sh_ar  = 0;
+      SLOT.eg_sel_ar = 18*RATE_STEPS;
     }
 
-    SLOT->eg_sh_d1r = eg_rate_shift [SLOT->d1r + kc];
-    SLOT->eg_sel_d1r= eg_rate_select[SLOT->d1r + kc];
+    SLOT.eg_sh_d1r = eg_rate_shift [SLOT.d1r + kc];
+    SLOT.eg_sel_d1r= eg_rate_select[SLOT.d1r + kc];
 
-    SLOT->eg_sh_d2r = eg_rate_shift [SLOT->d2r + kc];
-    SLOT->eg_sel_d2r= eg_rate_select[SLOT->d2r + kc];
+    SLOT.eg_sh_d2r = eg_rate_shift [SLOT.d2r + kc];
+    SLOT.eg_sel_d2r= eg_rate_select[SLOT.d2r + kc];
 
-    SLOT->eg_sh_rr  = eg_rate_shift [SLOT->rr  + kc];
-    SLOT->eg_sel_rr = eg_rate_select[SLOT->rr  + kc];
+    SLOT.eg_sh_rr  = eg_rate_shift [SLOT.rr  + kc];
+    SLOT.eg_sel_rr = eg_rate_select[SLOT.rr  + kc];
   }
 }
 
 /* update phase increment counters */
 void refresh_fc_eg_chan(FM_CH *CH )
 {
-  if( CH->SLOT[SLOT1].Incr==-1)
+  if( CH.SLOT[SLOT1].Incr==-1)
   {
-    s32 fc = CH->fc;
-    s32 kc = CH->kcode;
-    refresh_fc_eg_slot(&CH->SLOT[SLOT1] , fc , kc );
-    refresh_fc_eg_slot(&CH->SLOT[SLOT2] , fc , kc );
-    refresh_fc_eg_slot(&CH->SLOT[SLOT3] , fc , kc );
-    refresh_fc_eg_slot(&CH->SLOT[SLOT4] , fc , kc );
+    s32 fc = CH.fc;
+    s32 kc = CH.kcode;
+    refresh_fc_eg_slot(&CH.SLOT[SLOT1] , fc , kc );
+    refresh_fc_eg_slot(&CH.SLOT[SLOT2] , fc , kc );
+    refresh_fc_eg_slot(&CH.SLOT[SLOT3] , fc , kc );
+    refresh_fc_eg_slot(&CH.SLOT[SLOT4] , fc , kc );
   }
 }
 
 u32 volume_calc_2612(u32 AM, FM_SLOT* OP) {
-    return OP->vol_out + (AM & OP->AMmask);
+    return OP.vol_out + (AM & OP.AMmask);
 }
 
 s32 op_calc(u32 phase, u32 env, u32 pm)
@@ -1424,60 +1420,60 @@ void chan_calc(FM_CH *CH, s32 num)
 {
   do
   {
-    u32 AM = ym2612.OPN.LFO_AM >> CH->ams;
-    u32 eg_out = volume_calc_2612(AM, &CH->SLOT[SLOT1]);
+    u32 AM = ym2612.OPN.LFO_AM >> CH.ams;
+    u32 eg_out = volume_calc_2612(AM, &CH.SLOT[SLOT1]);
 
     m2 = c1 = c2 = mem = 0;
 
-    *CH->mem_connect = CH->mem_value;  /* restore delayed sample (MEM) value to m2 or c2 */
+    *CH.mem_connect = CH.mem_value;  /* restore delayed sample (MEM) value to m2 or c2 */
     {
-      s32 out = CH->op1_out[0] + CH->op1_out[1];
-      CH->op1_out[0] = CH->op1_out[1];
+      s32 out_var = CH.op1_out[0] + CH.op1_out[1];
+      CH.op1_out[0] = CH.op1_out[1];
 
-      if( !CH->connect1 ){
+      if( !CH.connect1 ){
         /* algorithm 5  */
-        mem = c1 = c2 = CH->op1_out[0];
+        mem = c1 = c2 = CH.op1_out[0];
       }else{
         /* other algorithms */
-        *CH->connect1 += CH->op1_out[0];
+        *CH.connect1 += CH.op1_out[0];
       }
 
-      CH->op1_out[1] = 0;
+      CH.op1_out[1] = 0;
       if( eg_out < ENV_QUIET )  /* SLOT 1 */
       {
-        if (!CH->FB)
-          out=0;
+        if (!CH.FB)
+          out_var=0;
 
-        CH->op1_out[1] = op_calc1(CH->SLOT[SLOT1].phase, eg_out, (out<<CH->FB) );
+        CH.op1_out[1] = op_calc1(CH.SLOT[SLOT1].phase, eg_out, (out_var<<CH.FB) );
       }
     }
 
-    eg_out = volume_calc_2612(AM, &CH->SLOT[SLOT3]);
+    eg_out = volume_calc_2612(AM, &CH.SLOT[SLOT3]);
     if( eg_out < ENV_QUIET )    /* SLOT 3 */
-      *CH->connect3 += op_calc(CH->SLOT[SLOT3].phase, eg_out, m2);
+      *CH.connect3 += op_calc(CH.SLOT[SLOT3].phase, eg_out, m2);
 
-    eg_out = volume_calc_2612(AM, &CH->SLOT[SLOT2]);
+    eg_out = volume_calc_2612(AM, &CH.SLOT[SLOT2]);
     if( eg_out < ENV_QUIET )    /* SLOT 2 */
-    *CH->connect2 += op_calc(CH->SLOT[SLOT2].phase, eg_out, c1);
+    *CH.connect2 += op_calc(CH.SLOT[SLOT2].phase, eg_out, c1);
 
-    eg_out = volume_calc_2612(AM, &CH->SLOT[SLOT4]);
+    eg_out = volume_calc_2612(AM, &CH.SLOT[SLOT4]);
     if( eg_out < ENV_QUIET )    /* SLOT 4 */
-      *CH->connect4 += op_calc(CH->SLOT[SLOT4].phase, eg_out, c2);
+      *CH.connect4 += op_calc(CH.SLOT[SLOT4].phase, eg_out, c2);
 
 
     /* store current MEM */
-    CH->mem_value = mem;
+    CH.mem_value = mem;
 
     /* update phase counters AFTER output calculations */
-    if(CH->pms)
+    if(CH.pms)
     {
       /* add support for 3 slot mode */
       if ((ym2612.OPN.ST.mode & 0xC0) && (CH == &ym2612.CH[2]))
       {
-        update_phase_lfo_slot(&CH->SLOT[SLOT1], CH->pms, ym2612.OPN.SL3.block_fnum[1]);
-        update_phase_lfo_slot(&CH->SLOT[SLOT2], CH->pms, ym2612.OPN.SL3.block_fnum[2]);
-        update_phase_lfo_slot(&CH->SLOT[SLOT3], CH->pms, ym2612.OPN.SL3.block_fnum[0]);
-        update_phase_lfo_slot(&CH->SLOT[SLOT4], CH->pms, CH->block_fnum);
+        update_phase_lfo_slot(&CH.SLOT[SLOT1], CH.pms, ym2612.OPN.SL3.block_fnum[1]);
+        update_phase_lfo_slot(&CH.SLOT[SLOT2], CH.pms, ym2612.OPN.SL3.block_fnum[2]);
+        update_phase_lfo_slot(&CH.SLOT[SLOT3], CH.pms, ym2612.OPN.SL3.block_fnum[0]);
+        update_phase_lfo_slot(&CH.SLOT[SLOT4], CH.pms, CH.block_fnum);
       }
       else
       {
@@ -1486,10 +1482,10 @@ void chan_calc(FM_CH *CH, s32 num)
     }
     else  /* no LFO phase modulation */
     {
-      CH->SLOT[SLOT1].phase += CH->SLOT[SLOT1].Incr;
-      CH->SLOT[SLOT2].phase += CH->SLOT[SLOT2].Incr;
-      CH->SLOT[SLOT3].phase += CH->SLOT[SLOT3].Incr;
-      CH->SLOT[SLOT4].phase += CH->SLOT[SLOT4].Incr;
+      CH.SLOT[SLOT1].phase += CH.SLOT[SLOT1].Incr;
+      CH.SLOT[SLOT2].phase += CH.SLOT[SLOT2].Incr;
+      CH.SLOT[SLOT3].phase += CH.SLOT[SLOT3].Incr;
+      CH.SLOT[SLOT4].phase += CH.SLOT[SLOT4].Incr;
     }
 
     /* next channel */
@@ -1565,7 +1561,7 @@ void OPNWriteReg(s32 r, s32 v)
 
   CH = &ym2612.CH[c];
 
-  SLOT = &(CH->SLOT[OPN_SLOT(r)]);
+  SLOT = &(CH.SLOT[OPN_SLOT(r)]);
 
   switch( r & 0xf0 ) {
     case 0x30:  /* DET , MUL */
@@ -1582,7 +1578,7 @@ void OPNWriteReg(s32 r, s32 v)
 
     case 0x60:  /* bit7 = AM ENABLE, DR */
       set_dr(SLOT,v);
-      SLOT->AMmask = (v&0x80) ? ~0 : 0;
+      SLOT.AMmask = (v&0x80) ? ~0 : 0;
       break;
 
     case 0x70:  /*     SR */
@@ -1594,15 +1590,15 @@ void OPNWriteReg(s32 r, s32 v)
       break;
 
     case 0x90:  /* SSG-EG */
-      SLOT->ssg  = v&0x0f;
+      SLOT.ssg  = v&0x0f;
 
       /* recalculate EG output */
-      if (SLOT->state > EG_REL)
+      if (SLOT.state > EG_REL)
       {
-        if ((SLOT->ssg&0x08) && (SLOT->ssgn ^ (SLOT->ssg&0x04)))
-          SLOT->vol_out = ((u32)(0x200 - SLOT->volume) & MAX_ATT_INDEX) + SLOT->tl;
+        if ((SLOT.ssg&0x08) && (SLOT.ssgn ^ (SLOT.ssg&0x04)))
+          SLOT.vol_out = ((u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
         else
-          SLOT->vol_out = (u32)SLOT->volume + SLOT->tl;
+          SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
       }
 
       /* SSG-EG envelope shapes :
@@ -1689,14 +1685,14 @@ void OPNWriteReg(s32 r, s32 v)
           u32 fn = (((u32)((ym2612.OPN.ST.fn_h)&7))<<8) + v;
           u8 blk = ym2612.OPN.ST.fn_h>>3;
           /* keyscale code */
-          CH->kcode = (blk<<2) | opn_fktable[fn >> 7];
+          CH.kcode = (blk<<2) | opn_fktable[fn >> 7];
           /* phase increment counter */
-          CH->fc = (fn << 6) >> (7 - blk);
+          CH.fc = (fn << 6) >> (7 - blk);
 
           /* store fnum in clear form for LFO PM calculations */
-          CH->block_fnum = (blk<<11) | fn;
+          CH.block_fnum = (blk<<11) | fn;
 
-          CH->SLOT[SLOT1].Incr=-1;
+          CH.SLOT[SLOT1].Incr=-1;
           break;
         }
         case 1:    /* 0xa4-0xa6 : FNUM2,BLK */
@@ -1726,17 +1722,17 @@ void OPNWriteReg(s32 r, s32 v)
       switch( OPN_SLOT(r) ){
         case 0:    /* 0xb0-0xb2 : FB,ALGO */
         {
-          CH->ALGO = v&7;
-          CH->FB   = (v>>3)&7;
+          CH.ALGO = v&7;
+          CH.FB   = (v>>3)&7;
           setup_connection( CH, c );
           break;        
         }
         case 1:    /* 0xb4-0xb6 : L , R , AMS , PMS (ym2612/YM2610B/YM2610/YM2608) */
           /* b0-2 PMS */
-          CH->pms = (v & 7) * 32; /* CH->pms = PM depth * 32 (index in lfo_pm_table) */
+          CH.pms = (v & 7) * 32; /* CH->pms = PM depth * 32 (index in lfo_pm_table) */
 
           /* b4-5 AMS */
-          CH->ams = lfo_ams_depth_shift[(v>>4) & 0x03];
+          CH.ams = lfo_ams_depth_shift[(v>>4) & 0x03];
 
           /* PAN :  b7 = L, b6 = R */
           ym2612.OPN.pan[ c*2   ] = (v & 0x80) ? ~0 : 0;

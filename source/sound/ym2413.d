@@ -33,14 +33,14 @@ const int FREQ_SH = 16;  /* 16.16 fixed point (frequency calculations) */
 const int EG_SH   = 16;  /* 16.16 fixed point (EG timing)              */
 const int LFO_SH  = 24  /*  8.24 fixed point (LFO calculations)       */
 
-const int FREQ_MASK    = ((1<<FREQ_SH)-1);
+const int FREQ_MASK    = (1 << FREQ_SH) - 1;
 
 /* envelope output entries */
 const int ENV_BITS    = 10;
 const int ENV_LEN     = 1 << ENV_BITS;
 const int ENV_STEP    = 128.0 / ENV_LEN;
 
-const int MAX_ATT_INDEX  = (1<<(ENV_BITS-2))-1; /*255*/
+const int MAX_ATT_INDEX  = (1 << (ENV_BITS - 2)) -1; /*255*/
 const int MIN_ATT_INDEX  = 0;
 
 /* sinwave entries */
@@ -164,7 +164,7 @@ struct YM2413 {
 /* table is 3dB/octave, DV converts this into 6dB/octave */
 /* 0.1875 is bit 0 weight of the envelope counter (volume) expressed in the 'decibel' scale */
 const float DV = 0.1875 / 1.0;
-static const u32[8*16] ksl_tab = {
+static const u32[8*16] ksl_tab = [
   /* OCT 0 */
    0.000/DV, 0.000/DV, 0.000/DV, 0.000/DV,
    0.000/DV, 0.000/DV, 0.000/DV, 0.000/DV,
@@ -205,19 +205,19 @@ static const u32[8*16] ksl_tab = {
   15.000/DV,16.125/DV,16.875/DV,17.625/DV,
   18.000/DV,18.750/DV,19.125/DV,19.500/DV,
   19.875/DV,20.250/DV,20.625/DV,21.000/DV
-};
+];
 
 /* sustain level table (3dB per step) */
 /* 0 - 15: 0, 3, 6, 9,12,15,18,21,24,27,30,33,36,39,42,45 (dB)*/
 float SC(int db) { return (u32) ( db * (1.0/ENV_STEP) ); }
-static const u32[16] sl_tab = {
+static const u32[16] sl_tab = [
  SC( 0),SC( 1),SC( 2),SC(3 ),SC(4 ),SC(5 ),SC(6 ),SC( 7),
  SC( 8),SC( 9),SC(10),SC(11),SC(12),SC(13),SC(14),SC(15)
-};
+];
 
 
 const int RATE_STEPS = 8;
-static const u8[15*RATE_STEPS] eg_inc = {
+static const u8[15*RATE_STEPS] eg_inc = [
 
 /*cycle:0 1  2 3  4 5  6 7*/
 
@@ -239,13 +239,13 @@ static const u8[15*RATE_STEPS] eg_inc = {
 /*12 */ 4,4, 4,4, 4,4, 4,4, /* rates 15 0, 15 1, 15 2, 15 3 (increment by 4) */
 /*13 */ 8,8, 8,8, 8,8, 8,8, /* rates 15 2, 15 3 for attack */
 /*14 */ 0,0, 0,0, 0,0, 0,0, /* infinity rates for attack and decay(s) */
-};
+];
 
 
 float O(int a) { return a * RATE_STEPS; }
 
 /*note that there is no O(13) in this table - it's directly in the code */
-static const u8[16+64+16] eg_rate_select = {  /* Envelope Generator rates (16 + 64 rates + 16 RKS) */
+static const u8[16+64+16] eg_rate_select = [  /* Envelope Generator rates (16 + 64 rates + 16 RKS) */
 /* 16 infinite time rates */
 O(14),O(14),O(14),O(14),O(14),O(14),O(14),O(14),
 O(14),O(14),O(14),O(14),O(14),O(14),O(14),O(14),
@@ -278,14 +278,14 @@ O(12),O(12),O(12),O(12),
 O(12),O(12),O(12),O(12),O(12),O(12),O(12),O(12),
 O(12),O(12),O(12),O(12),O(12),O(12),O(12),O(12),
 
-};
+];
 
 /*rate  0,    1,    2,    3,    4,   5,   6,   7,  8,  9, 10, 11, 12, 13, 14, 15 */
 /*shift 13,   12,   11,   10,   9,   8,   7,   6,  5,  4,  3,  2,  1,  0,  0,  0 */
 /*mask  8191, 4095, 2047, 1023, 511, 255, 127, 63, 31, 15, 7,  3,  1,  0,  0,  0 */
 
 float O(int a) { return a * 1; }
-static const u8[16+64+16] eg_rate_shift = {  /* Envelope Generator counter shifts (16 + 64 rates + 16 RKS) */
+static const u8[16+64+16] eg_rate_shift = [  /* Envelope Generator counter shifts (16 + 64 rates + 16 RKS) */
 /* 16 infinite time rates */
 O(0),O(0),O(0),O(0),O(0),O(0),O(0),O(0),
 O(0),O(0),O(0),O(0),O(0),O(0),O(0),O(0),
@@ -318,16 +318,16 @@ O( 0),O( 0),O( 0),O( 0),
 O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),
 O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),
 
-};
+];
 
 
 /* multiple table */
 const int ML = 2;
-static const u8[16] mul_tab = {
+static const u8[16] mul_tab = [
 /* 1/2, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,10,12,12,15,15 */
    0.50*ML, 1.00*ML, 2.00*ML, 3.00*ML, 4.00*ML, 5.00*ML, 6.00*ML, 7.00*ML,
    8.00*ML, 9.00*ML,10.00*ML,10.00*ML,12.00*ML,12.00*ML,15.00*ML,15.00*ML
-};
+];
 
 /*  TL_TAB_LEN is calculated as:
 *  11 - sinus amplitude bits     (Y axis)
@@ -359,7 +359,7 @@ We use data>>1, until we find what it really is on real chip...
 
 const int LFO_AM_TAB_ELEMENTS = 210;
 
-static const u8[LFO_AM_TAB_ELEMENTS] lfo_am_table = {
+static const u8[LFO_AM_TAB_ELEMENTS] lfo_am_table = [
 0,0,0,0,0,0,0,
 1,1,1,1,
 2,2,2,2,
@@ -412,10 +412,10 @@ static const u8[LFO_AM_TAB_ELEMENTS] lfo_am_table = {
 3,3,3,3,
 2,2,2,2,
 1,1,1,1
-};
+];
 
 /* LFO Phase Modulation table (verified on real YM2413) */
-static const s8[8*8] lfo_pm_table = {
+static const s8[8*8] lfo_pm_table = [
 
 /* FNUM2/FNUM = 0 00xxxxxx (0x0000) */
 0, 0, 0, 0, 0, 0, 0, 0,
@@ -440,7 +440,7 @@ static const s8[8*8] lfo_pm_table = {
 
 /* FNUM2/FNUM = 1 11xxxxxx (0x01C0) */
 7, 3, 0,-3,-7,-3, 0, 3,
-};
+];
 
 
 /* This is not 100% perfect yet but very close */
@@ -450,7 +450,7 @@ static const s8[8*8] lfo_pm_table = {
  - waveform DC and DM select are 100% correct
 */
 
-static u8[19][8] table = {
+static u8[19][8] table = [
 /* MULT  MULT modTL DcDmFb AR/DR AR/DR SL/RR SL/RR */
 /*   0     1     2     3     4     5     6    7    */
   {0x49, 0x4c, 0x4c, 0x12, 0x00, 0x00, 0x00, 0x00 },  /* 0 */
@@ -488,7 +488,7 @@ static u8[19][8] table = {
   {0x01, 0x01, 0x16, 0x00, 0xfd, 0xf8, 0x2f, 0x6d },/* BD(multi verified, modTL verified, mod env - verified(close), carr. env verifed) */
   {0x01, 0x01, 0x00, 0x00, 0xd8, 0xd8, 0xf9, 0xf8 },/* HH(multi verified), SD(multi not used) */
   {0x05, 0x01, 0x00, 0x00, 0xf8, 0xba, 0x49, 0x55 },/* TOM(multi,env verified), TOP CYM(multi verified, env verified) */
-};
+];
 
 static s32[2] output;
 

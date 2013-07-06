@@ -88,13 +88,13 @@ struct SN76489_Context
 }
 
 static const u16[16] PSGVolumeValues =
-{
+[
   /* These values are taken from a real SMS2's output */
   /*{892,892,892,760,623,497,404,323,257,198,159,123,96,75,60,0}, */
   /* I can't remember why 892... :P some scaling I did at some point */
   /* these values are true volumes for 2dB drops at each step (multiply previous by 10^-0.1) */
   1516,1205,957,760,603,479,381,303,240,191,152,120,96,76,60,0
-};
+];
 
 static SN76489_Context SN76489;
 
