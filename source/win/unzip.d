@@ -38,12 +38,12 @@
       ftp://ftp.pkware.com/probdesc.zip */
 
 
-import stdio.d;
-import stdlib.d;
-import zlib.d;
-import types.d;
-import unzip.d;
-import errno.d;
+import stdio;
+import stdlib;
+import zlib;
+import types;
+import unzip;
+import errno;
 
 version(STRICTUNZIP) || version(STRICTZIPUNZIP) {
 /* like the STRICT of WIN32, we define a pointer that cannot be converted

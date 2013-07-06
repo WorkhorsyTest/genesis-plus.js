@@ -37,8 +37,8 @@
  *
  ****************************************************************************************/
 
-import shared.d;
-import gamepad.d;
+import shared;
+import gamepad;
 
 struct gamepad_t
 {

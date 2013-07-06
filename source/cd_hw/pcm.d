@@ -35,9 +35,8 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *
  ****************************************************************************************/
-import shared.d;
-
-import blip_buf.d;
+import shared;
+import blip_buf;
 
 /* PCM channel */
 struct chan_t

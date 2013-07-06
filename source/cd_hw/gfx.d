@@ -35,7 +35,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *
  ****************************************************************************************/
-import shared.d;
+import shared;
 
 alias scd.gfx_hw gfx;
 

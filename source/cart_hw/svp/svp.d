@@ -10,8 +10,8 @@
    Modified for Genesis Plus GX (Eke-Eke): added BIG ENDIAN support, fixed addr/code inversion
 */
 
-import shared.d;
-import ssp16.d;
+import shared;
+import ssp16;
 
 struct svp_t {
   u8[0x20000] iram_rom; /* IRAM (0-0x7ff) and program ROM (0x800-0x1ffff) */

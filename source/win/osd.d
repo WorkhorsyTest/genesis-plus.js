@@ -1,18 +1,18 @@
 
 
 import std.stdio;
-import string.d;
-import time.d;
+import string;
+import time;
 
-import sdl.d;
-import stdlib.d;
+import sdl;
+import stdlib;
 
-import shared.d;
-import main.d;
-import config.d;
-import error.d;
-import unzip.d;
-import fileio.d;
+import shared;
+import main;
+import config;
+import error;
+import unzip;
+import fileio;
 
 alias osd_input_update sdl_input_update;
 

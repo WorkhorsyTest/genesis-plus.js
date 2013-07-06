@@ -36,8 +36,8 @@
  *
  ****************************************************************************************/
 
-import shared.d;
-import eeprom_93c.d;
+import shared;
+import eeprom_93c;
 
 enum T_STATE_93C
 {

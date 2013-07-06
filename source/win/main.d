@@ -1,8 +1,8 @@
 
-import sdl.d
-import shared.d
-import sms_ntsc.d
-import md_ntsc.d
+import sdl;
+import shared;
+import sms_ntsc;
+import md_ntsc;
 
 const int MAX_INPUTS = 8;
 const int SOUND_FREQUENCY = 48000;

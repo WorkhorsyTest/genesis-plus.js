@@ -189,8 +189,8 @@
  *   'ld d, (a)' loads from program ROM
  */
 
-import shared.d;
-import ssp16.d;
+import shared;
+import ssp16;
 
 
 /* emulation event logging (from Picodrive) */

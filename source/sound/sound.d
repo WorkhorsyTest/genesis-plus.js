@@ -37,8 +37,8 @@
  *
  ****************************************************************************************/
 
-import shared.d;
-import blip_buf.d;
+import shared;
+import blip_buf;
 
 /* FM output buffer (large enough to hold a whole frame at original chips rate) */
 static int[1080 * 2] fm_buffer;

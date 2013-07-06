@@ -39,7 +39,7 @@
  *
  ****************************************************************************************/
 
-import shared.h;
+import shared;
 
 external_t ext;           /* External Hardware (Cartridge, CD unit, ...) */
 u8[0x800] boot_rom;    /* Genesis BOOT ROM   */

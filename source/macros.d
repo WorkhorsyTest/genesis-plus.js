@@ -1,6 +1,6 @@
 
 
-import types.d;
+import types;
 
 version(LSB_FIRST) {
 

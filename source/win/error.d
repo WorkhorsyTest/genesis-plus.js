@@ -3,7 +3,7 @@
     Error logging 
 */
 
-import osd.d;
+import osd;
 
 static FILE* error_log;
 

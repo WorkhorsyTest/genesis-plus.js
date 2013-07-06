@@ -36,7 +36,7 @@
  *
  ****************************************************************************************/
 
-import shared.d;
+import shared;
 
  /* CD compatible ROM/RAM cartridge */
 struct cd_cart_t

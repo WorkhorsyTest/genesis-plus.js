@@ -31,7 +31,7 @@
 //| Includes |
 // ----------*/
 import std.math;
-import macros.d;
+import macros;
 
 
 /* ------------

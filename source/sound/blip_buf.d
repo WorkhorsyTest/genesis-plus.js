@@ -6,8 +6,8 @@
 /*    - modified blip_read_samples to always output to stereo streams */
 /*    - added blip_mix_samples function (see blip_buf.h)              */
 
-import blip_buf.d;
-import types.d;
+import blip_buf;
+import types;
 
 
 /* Library Copyright (C) 2003-2009 Shay Green. This library is free software;

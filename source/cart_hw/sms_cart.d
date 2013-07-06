@@ -36,9 +36,9 @@
  *
  ****************************************************************************************/
 
-import shared.d;
-import eeprom_93c.d;
-import terebi_oekaki.d;
+import shared;
+import eeprom_93c;
+import terebi_oekaki;
 
 /* Special hardware */
 const int HW_3D_GLASSES     = 0x01;

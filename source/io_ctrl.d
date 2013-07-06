@@ -39,15 +39,15 @@
  *
  ****************************************************************************************/
 
-import shared.d;
-import gamepad.d;
-import lightgun.d;
-import mouse.d;
-import activator.d;
-import xe_a1p.d;
-import teamplayer.d;
-import paddle.d;
-import sportspad.d;
+import shared;
+import gamepad;
+import lightgun;
+import mouse;
+import activator;
+import xe_a1p;
+import teamplayer;
+import paddle;
+import sportspad;
 
 const int IO_RESET_HI = 0x10;
 const int IO_CONT1_HI = 0x20;

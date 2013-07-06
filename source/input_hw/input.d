@@ -37,16 +37,16 @@
  *
  ****************************************************************************************/
 
-import shared.d;
-import gamepad.d;
-import lightgun.d;
-import mouse.d;
-import activator.d;
-import xe_a1p.d;
-import teamplayer.d;
-import paddle.d;
-import sportspad.d;
-import terebi_oekaki.d;
+import shared;
+import gamepad;
+import lightgun;
+import mouse;
+import activator;
+import xe_a1p;
+import teamplayer;
+import paddle;
+import sportspad;
+import terebi_oekaki;
 
 /* Max. number of devices */
 const int MAX_DEVICES = 8;

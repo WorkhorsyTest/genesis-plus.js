@@ -128,7 +128,7 @@
 /*    YM2610B : PSG:3ch FM:6ch ADPCM(18.5KHz):6ch DeltaT ADPCM:1ch      */
 /************************************************************************/
 
-import shared.d;
+import shared;
 
 /* envelope generator */
 const int ENV_BITS    = 10;

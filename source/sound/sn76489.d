@@ -40,8 +40,8 @@
     - Rewrote core with various optimizations
 */
 
-import shared.d;
-import blip_buf.d;
+import shared;
+import blip_buf;
 
 const int SN_DISCRETE    = 0;
 const int SN_INTEGRATED  = 1;

@@ -2,7 +2,7 @@
 /*                            SUB 68K CORE                                  */
 /* ======================================================================== */
 
-import types.d;
+import types;
 
 alias s68k                  m68ki_cpu;
 const int MUL = 4;
@@ -15,9 +15,9 @@ version(BUILD_TABLES) {
 import s68ki_cycles.d;
 }
 
-import s68kconf.d;
-import m68kcpu.d;
-import m68kops.d;
+import s68kconf;
+import m68kcpu;
+import m68kops;
 
 /* ======================================================================== */
 /* ================================= DATA ================================= */

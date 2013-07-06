@@ -123,9 +123,8 @@
  *    to a detailed description by Sean Young which can be found at:
  *      http://www.msxnet.org/tech/z80-documented.pdf
  *****************************************************************************/
-import shared.d;
-import z80.d;
-import types.d;
+import shared;
+import types;
 
 /* line states */
 const int CLEAR_LINE = 0; /* clear (a fired, held or pulsed) line */
@@ -167,7 +166,7 @@ struct Z80_Regs
   u8  irq_state;      /* irq line state */
   u8  after_ei;       /* are we in the EI shadow? */
   u32 cycles;         /* master clock cycles global counter */
-  const struct z80_irq_daisy_chain *daisy;
+  const z80_irq_daisy_chain* daisy;
   s32    (*irq_callback)();
 }
 

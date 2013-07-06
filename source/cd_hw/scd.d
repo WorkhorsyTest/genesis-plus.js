@@ -36,12 +36,12 @@
  *
  ****************************************************************************************/
 
-import shared.d;
-import cdd.d;
-import cdc.d;
-import gfx.d;
-import pcm.d;
-import cd_cart.d;
+import shared;
+import cdd;
+import cdc;
+import gfx;
+import pcm;
+import cd_cart;
 
 alias ext.cd_hw scd;
 

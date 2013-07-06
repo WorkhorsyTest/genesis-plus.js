@@ -41,10 +41,10 @@
  *
  ****************************************************************************************/
 
-import shared.d;
-import eeprom_i2c.d;
-import eeprom_spi.d;
-import gamepad.d;
+import shared;
+import eeprom_i2c;
+import eeprom_spi;
+import gamepad;
 
 alias cart ext.md_cart;
 

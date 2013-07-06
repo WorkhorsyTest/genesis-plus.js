@@ -13,10 +13,10 @@ details. You should have received a copy of the GNU Lesser General Public
 License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
-import shared.d;
-import sms_ntsc.d;
-import sms_ntsc_config.d;
-import sms_ntsc_impl.d;
+import shared;
+import sms_ntsc;
+import sms_ntsc_config;
+import sms_ntsc_impl;
 
 
 alias u32 sms_ntsc_rgb_t;
