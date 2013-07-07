@@ -125,8 +125,8 @@ static void sdl_sound_close()
 }
 
 /* video */
-md_ntsc_t *md_ntsc;
-sms_ntsc_t *sms_ntsc;
+//md_ntsc_t* md_ntsc;
+//sms_ntsc_t* sms_ntsc;
 
 struct sdl_video {
   SDL_Surface* surf_screen;

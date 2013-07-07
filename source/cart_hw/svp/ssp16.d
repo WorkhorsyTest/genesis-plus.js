@@ -267,30 +267,30 @@ static int last_iram = 0;
 /*#define USE_DEBUGGER*/
 
 /* 0 */
-alias ssp.gr[SSP_X].b.h          rX;
-alias ssp.gr[SSP_Y].b.h          rY;
-alias ssp.gr[SSP_A].b.h          rA;
-alias ssp.gr[SSP_ST].b.h         rST; /* 4 */
-alias ssp.gr[SSP_STACK].b.h      rSTACK;
-alias ssp.gr[SSP_PC].b.h         rPC;
-alias ssp.gr[SSP_P]              rP;
-alias ssp.gr[SSP_PM0].b.h        rPM0;/* 8 */
-alias ssp.gr[SSP_PM1].b.h        rPM1;
-alias ssp.gr[SSP_PM2].b.h        rPM2;
-alias ssp.gr[SSP_XST].b.h        rXST;
-alias ssp.gr[SSP_PM4].b.h        rPM4; /* 12 */
+auto rX() { return ssp.gr[SSP_X].b.h; }
+auto rY() { return ssp.gr[SSP_Y].b.h; }
+auto rA() { return ssp.gr[SSP_A].b.h; }
+auto rST() { return ssp.gr[SSP_ST].b.h; } /* 4 */
+auto rSTACK() { return ssp.gr[SSP_STACK].b.h; }
+auto rPC() { return ssp.gr[SSP_PC].b.h; }
+auto rP() { return ssp.gr[SSP_P]; }
+auto rPM0() { return ssp.gr[SSP_PM0].b.h; }/* 8 */
+auto rPM1() { return ssp.gr[SSP_PM1].b.h; }
+auto rPM2() { return ssp.gr[SSP_PM2].b.h; }
+auto rXST() { return ssp.gr[SSP_XST].b.h; }
+auto rPM4() { return ssp.gr[SSP_PM4].b.h; } /* 12 */
 /* 13 */
-alias ssp.gr[SSP_PMC]            rPMC;   /* will keep addr in .h, mode in .l */
-alias ssp.gr[SSP_A].b.l          rAL;
+auto rPMC() { return ssp.gr[SSP_PMC]; }   /* will keep addr in .h, mode in .l */
+auto rAL() { return ssp.gr[SSP_A].b.l; }
 
-alias ssp.gr[SSP_A].v            rA32;
-alias ssp.ptr.r                  rIJ;
+auto rA32() { return ssp.gr[SSP_A].v; }
+auto rIJ() { return ssp.ptr.r; }
 
 int IJind(int op) { return (((op>>6)&4)|(op&3)); }
 
-u16 GET_PC() { return (PC - (u16 *)svp.iram_rom); }
-u32 GET_PPC_OFFS() { return ((u32)PC - (u32)svp.iram_rom - 2); }
-void SET_PC(u16 d) { PC = (u16 *)svp.iram_rom + d; }
+u16* GET_PC() { return (PC - cast(u16 *)svp.iram_rom); }
+u32 GET_PPC_OFFS() { return (cast(u32)PC - cast(u32)svp.iram_rom - 2); }
+void SET_PC(u16 d) { PC = cast(u16 *)svp.iram_rom + d; }
 
 /* flags */
 int SSP_FLAG_L() { return (1<<0xc); }
@@ -399,7 +399,7 @@ void OP_EORA32(u32 x) {
   UPD_ACC_ZN();
 }
 
-bool OP_CHECK32(int op, void (*OP)(u32 x)) {
+bool OP_CHECK32(int op, void function(u32 x) OP) {
   if ((op & 0x0f) == SSP_P) { /* A <- P */
     read_P(); /* update P */
     OP(rP.v);
@@ -448,7 +448,7 @@ version(LOG_SVP) {
 static u32 read_STACK()
 {
   --rSTACK;
-  if ((s16)rSTACK < 0) {
+  if (cast(s16)rSTACK < 0) {
     rSTACK = 5;
 version(LOG_SVP) {
     elprintf(EL_ANOMALY|EL_SVP, "ssp FIXME: stack underflow! (%i) @ %04x", rSTACK, GET_PPC_OFFS());
@@ -484,8 +484,8 @@ static void write_PC(u32 d)
 /* 7 */
 static u32 read_P()
 {
-  int m1 = (s16)rX;
-  int m2 = (s16)rY;
+  int m1 = cast(s16)rX;
+  int m2 = cast(s16)rY;
   rP.v = (m1 * m2 * 2);
   return rP.b.h;
 }
@@ -552,9 +552,9 @@ version(LOG_SVP) {
   if (reg == 4 || (rST & 0x60))
   {
 version(LOG_SVP) {
-    #define CADDR ((((mode<<16)&0x7f0000)|addr)<<1)
+    const int CADDR = ((((mode<<16)&0x7f0000)|addr)<<1);
 }
-    u16 *dram = (u16 *)svp.dram;
+    u16 *dram = cast(u16 *)svp.dram;
     if (write)
     {
       /*int mode = ssp.pmac_write[reg]&0xffff;
@@ -597,16 +597,16 @@ version(LOG_SVP) {
           elprintf(EL_SVP|EL_ANOMALY, "ssp FIXME: invalid IRAM addr: %04x", addr<<1);
         elprintf(EL_SVP, "ssp IRAM w [%06x] %04x (inc %i)", (addr<<1)&0x7ff, d, inc >> 16);
 }
-        ((u16 *)svp.iram_rom)[addr&0x3ff] = d;
+        (cast(u16 *)svp.iram_rom)[addr&0x3ff] = d;
         ssp.pmac[1][reg] += inc;
       }
-version(LOG_SVP) {
       else
       {
+version(LOG_SVP) {
         elprintf(EL_SVP|EL_ANOMALY, "ssp FIXME: PM%i unhandled write mode %04x, [%06x] %04x @ %04x",
             reg, mode, CADDR, d, GET_PPC_OFFS());
-      }
 }
+      }
     }
     else
     {
@@ -619,14 +619,14 @@ version(LOG_SVP) {
       {
 version(LOG_SVP) {
         elprintf(EL_SVP, "ssp ROM  r [%06x] %04x", CADDR,
-          ((u16 *)cart.rom)[addr|((mode&0xf)<<16)]);
+          (cast(u16 *)cart.rom)[addr|((mode&0xf)<<16)]);
 }
         /*if ((s32)ssp.pmac_read[reg] >> 16 == -1) ssp.pmac_read[reg]++;
         ssp.pmac_read[reg] += 1<<16;*/
-        if ((s32)(ssp.pmac[0][reg] & 0xffff) == -1) ssp.pmac[0][reg] += 1<<16;
+        if (cast(s32)(ssp.pmac[0][reg] & 0xffff) == -1) ssp.pmac[0][reg] += 1<<16;
         ssp.pmac[0][reg] ++;
         
-        d = ((u16 *)cart.rom)[addr|((mode&0xf)<<16)];
+        d = (cast(u16 *)cart.rom)[addr|((mode&0xf)<<16)];
       }
       else if ((mode & 0x47ff) == 0x0018) /* DRAM */
       {
@@ -653,7 +653,7 @@ version(LOG_SVP) {
     return d;
   }
 
-  return (u32)-1;
+  return cast(u32)-1;
 }
 
 /* 8 */
@@ -854,11 +854,7 @@ static void write_AL(u32 d)
   rAL = d;
 }
 
-
-typedef u32 (*read_func_t)();
-typedef void (*write_func_t)(u32 d);
-
-static read_func_t[16] read_handlers =
+static u32 function()[16] read_handlers =
 {
   read_unknown, read_unknown, read_unknown, read_unknown, /* -, X, Y, A */
   read_unknown,  /* 4 ST */
@@ -875,7 +871,7 @@ static read_func_t[16] read_handlers =
   read_AL
 };
 
-static write_func_t[16] write_handlers =
+static void function(u32 d)[16] write_handlers =
 {
   write_unknown, write_unknown, write_unknown, write_unknown, /* -, X, Y, A */
 /*  write_unknown, */ /* 4 ST */
@@ -1035,7 +1031,7 @@ version(LOG_SVP) {
       return 0;
   }
 
-  return ((u16 *)svp.iram_rom)[mv];
+  return (cast(u16 *)svp.iram_rom)[mv];
 }
 
 
@@ -1099,7 +1095,7 @@ static void debug_dump2file(const char *fname, void *mem, int len)
 
 static int[10] bpts = { 0, };
 
-static void debug(u32 pc, u32 op)
+static void debug_function(u32 pc, u32 op)
 {
   static char[64] buffo = {0,};
   char[64] buff = {0,};
@@ -1165,7 +1161,7 @@ void ssp1601_run(int cycles)
 
     op = *PC++;
 version(USE_DEBUGGER) {
-    debug(GET_PC()-1, op);
+    debug_function(GET_PC()-1, op);
 }
     switch (op >> 9)
     {
@@ -1224,7 +1220,7 @@ version(USE_DEBUGGER) {
       }
 
       /* ld d, (a) */
-      case 0x25: tmpv = ((u16 *)svp.iram_rom)[rA]; REG_WRITE((op & 0xf0) >> 4, tmpv); break;
+      case 0x25: tmpv = (cast(u16 *)svp.iram_rom)[rA]; REG_WRITE((op & 0xf0) >> 4, tmpv); break;
 
       /* bra cond, addr */
       case 0x26: {
@@ -1241,10 +1237,10 @@ version(USE_DEBUGGER) {
         COND_CHECK(op, cond);
         if (cond) {
           switch (op & 7) {
-            case 2: rA32 = (s32)rA32 >> 1; break; /* shr (arithmetic) */
+            case 2: rA32 = cast(s32)rA32 >> 1; break; /* shr (arithmetic) */
             case 3: rA32 <<= 1; break; /* shl */
-            case 6: rA32 = -(s32)rA32; break; /* neg */
-            case 7: if ((int)rA32 < 0) rA32 = -(s32)rA32; break; /* abs */
+            case 6: rA32 = -cast(s32)rA32; break; /* neg */
+            case 7: if (cast(int)rA32 < 0) rA32 = -cast(s32)rA32; break; /* abs */
             default:
 version(LOG_SVP) {
               elprintf(EL_SVP|EL_ANOMALY, "ssp FIXME: unhandled mod %i @ %04x",

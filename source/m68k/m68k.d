@@ -118,11 +118,11 @@ enum m68k_register_t
 /* 68k memory map structure */
 struct cpu_memory_map
 {
-  u8 *base;                             /* memory-based access (ROM, RAM) */
-  u32 (*read8)(u32 address);               /* I/O byte read access */
-  u32 (*read16)(u32 address);              /* I/O word read access */
-  void (*write8)(u32 address, u32 data);  /* I/O byte write access */
-  void (*write16)(u32 address, u32 data); /* I/O word write access */
+  u8* base;                             /* memory-based access (ROM, RAM) */
+  u32 function(u32 address) read8;               /* I/O byte read access */
+  u32 function(u32 address) read16;              /* I/O word read access */
+  void function(u32 address, u32 data) write8;  /* I/O byte write access */
+  void function(u32 address, u32 data) write16; /* I/O word write access */
 }
 
 /* 68k idle loop detection */
@@ -173,10 +173,10 @@ struct m68ki_cpu_core
   u32 address_space;   /* Current FC code */
 
   /* Callbacks to host */
-  s32  (*int_ack_callback)(s32 int_line);           /* Interrupt Acknowledge */
-  void (*reset_instr_callback)();               /* Called when a RESET instruction is encountered */
-  s32  (*tas_instr_callback)();                 /* Called when a TAS instruction is encountered, allows / disallows writeback */
-  void (*set_fc_callback)(u32 new_fc);     /* Called when the CPU function code changes */
+  s32  function(s32 int_line) int_ack_callback;           /* Interrupt Acknowledge */
+  void function() reset_instr_callback;               /* Called when a RESET instruction is encountered */
+  s32  function() tas_instr_callback;                 /* Called when a TAS instruction is encountered, allows / disallows writeback */
+  void function(u32 new_fc) set_fc_callback;     /* Called when the CPU function code changes */
 }
 
 
