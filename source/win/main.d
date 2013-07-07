@@ -86,7 +86,7 @@ static int sdl_sound_init()
 
   sdl_sound.current_emulated_samples = 0;
   n = SOUND_SAMPLES_SIZE * 2 * sizeof(s16) * 20;
-  sdl_sound.buffer = (char*)malloc(n);
+  sdl_sound.buffer = cast(char*)malloc(n);
   if(!sdl_sound.buffer) {
     fatal("Can't allocate audio buffer", __FILE__, __LINE__);
   }
@@ -102,15 +102,15 @@ static void sdl_sound_update(int enabled)
   if (enabled)
   {
     int i;
-    s16 *out;
+    s16* out_var;
 
     SDL_LockAudio();
-    out = (s16*)sdl_sound.current_pos;
+    out_var = cast(s16*)sdl_sound.current_pos;
     for(i = 0; i < size; i++)
     {
-      *out++ = soundframe[i];
+      *out_var++ = soundframe[i];
     }
-    sdl_sound.current_pos = (char*)out;
+    sdl_sound.current_pos = cast(char*)out_var;
     sdl_sound.current_emulated_samples += size * sizeof(s16);
     SDL_UnlockAudio();
   }
@@ -445,8 +445,8 @@ int sdl_input_update()
       int state = SDL_GetRelativeMouseState(&x,&y);
 
       /* Range is [0;256] */
-      input.analog[joynum][0] = (u8)(-x & 0xFF);
-      input.analog[joynum][1] = (u8)(-y & 0xFF);
+      input.analog[joynum][0] = cast(u8)(-x & 0xFF);
+      input.analog[joynum][1] = cast(u8)(-y & 0xFF);
 
       /* Buttons I & II -> 0 0 0 0 0 0 II I*/
       if(state & SDL_BUTTON_LMASK) input.pad[joynum] |= INPUT_B;
@@ -614,7 +614,7 @@ int main(string[] args) {
     fclose(fp);
 
     /* check BOOT ROM */
-    if (!memcmp((char *)(boot_rom + 0x120),"GENESIS OS", 10))
+    if (!memcmp(cast(char *)(boot_rom + 0x120),"GENESIS OS", 10))
     {
       /* mark Genesis BIOS as loaded */
       system_bios = SYSTEM_MD;
@@ -643,7 +643,7 @@ int main(string[] args) {
   bitmap.width        = 720;
   bitmap.height       = 576;
   bitmap.pitch        = (bitmap.width * 2);
-  bitmap.data         = sdl_video.surf_bitmap->pixels;
+  bitmap.data         = sdl_video.surf_bitmap.pixels;
   SDL_UnlockSurface(sdl_video.surf_bitmap);
   bitmap.viewport.changed = 3;
 
@@ -726,8 +726,8 @@ int main(string[] args) {
 
   if(use_sound) SDL_PauseAudio(0);
 
-  struct timeval frame_start;
-  struct timeval frame_end;
+  timeval frame_start;
+  timeval frame_end;
   frame_start.tv_usec = 0;
   frame_start.tv_sec = 0;
   frame_end.tv_usec = 0;

@@ -94,7 +94,7 @@ version(LOGERROR) {
   error("[SUB 68k] Unused read16 %08X (%08X)\n", address, s68k.pc);
 }
   address = s68k.pc;
-  return *(u16 *)(s68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff));
+  return *cast(u16 *)(s68k.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff));
 }
 
 static void s68k_unused_8_w(u32 address, u32 data)
@@ -140,7 +140,7 @@ void prg_ram_dma_w(u32 words)
   while (words--)
   {
     /* read 16-bit word from CDC buffer */
-    data = *(u16 *)(cdc.ram + src_index);
+    data = *cast(u16 *)(cdc.ram + src_index);
 
 version(LSB_FIRST) {
     /* source data is stored in big endian format */
@@ -148,7 +148,7 @@ version(LSB_FIRST) {
 }
 
     /* write 16-bit word to PRG-RAM */
-    *(u16 *)(scd.prg_ram + dst_index) = data ;
+    *cast(u16 *)(scd.prg_ram + dst_index) = data ;
 
     /* increment CDC buffer source address */
     src_index = (src_index + 2) & 0x3ffe;
@@ -179,7 +179,7 @@ static void prg_ram_write_word(u32 address, u32 data)
   address &= 0x7fffe;
   if (address >= (scd.regs[0x02>>1].b.h << 9))
   {
-    *(u16 *)(scd.prg_ram + address) = data;
+    *cast(u16 *)(scd.prg_ram + address) = data;
     return;
   }
 version(LOGERROR) {
@@ -466,9 +466,9 @@ version(LOG_SCD) {
 void word_ram_switch(u8 mode)
 {
   s32 i;
-  u16 *ptr1 = (u16 *)(scd.word_ram_2M);
-  u16 *ptr2 = (u16 *)(scd.word_ram[0]);
-  u16 *ptr3 = (u16 *)(scd.word_ram[1]);
+  u16 *ptr1 = cast(u16 *)(scd.word_ram_2M);
+  u16 *ptr2 = cast(u16 *)(scd.word_ram[0]);
+  u16 *ptr3 = cast(u16 *)(scd.word_ram[1]);
 
   if (mode & 0x04)
   {
@@ -1214,8 +1214,8 @@ void scd_reset(s32 hard)
     scd.dmna = 0;
 
     /* H-INT default vector */
-    *(u16 *)(m68k.memory_map[0].base + 0x70) = 0x00FF;
-    *(u16 *)(m68k.memory_map[0].base + 0x72) = 0xFFFF;
+    *cast(u16 *)(m68k.memory_map[0].base + 0x70) = 0x00FF;
+    *cast(u16 *)(m68k.memory_map[0].base + 0x72) = 0xFFFF;
 
     /* Power ON initial values (MAIN-CPU side) */
     scd.regs[0x00>>1].w = 0x0002;
@@ -1413,7 +1413,7 @@ s32 scd_context_save(u8 *state)
   save_param(&bufferptr, state, &s68k.poll, sizeof(s68k.poll));
 
   /* H-INT default vector */
-  tmp16 = *(u16 *)(m68k.memory_map[0].base + 0x72);
+  tmp16 = *cast(u16 *)(m68k.memory_map[0].base + 0x72);
   save_param(&bufferptr, state, &tmp16, 2);
 
   /* SUB-CPU internal state */
@@ -1614,7 +1614,7 @@ s32 scd_context_load(u8 *state)
 
   /* H-INT default vector */
   load_param(&bufferptr, state, &tmp16, 2);
-  *(u16 *)(m68k.memory_map[0].base + 0x72) = tmp16;
+  *cast(u16 *)(m68k.memory_map[0].base + 0x72) = tmp16;
 
   /* SUB-CPU internal state */
   load_param(&bufferptr, state, &s68k.cycles, sizeof(s68k.cycles));

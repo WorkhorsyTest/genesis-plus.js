@@ -552,7 +552,7 @@ static u32 eeprom_i2c_read_word(u32 address)
     return eeprom_i2c_out();
   }
 
-  return *(u16 *)(cart.rom + address);
+  return *cast(u16 *)(cart.rom + address);
 }
 
 static void eeprom_i2c_write_byte(u32 address, u32 data)

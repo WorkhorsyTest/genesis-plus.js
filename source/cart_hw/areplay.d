@@ -224,10 +224,10 @@ void areplay_set_status(int status)
         if (action_replay.status == AR_SWITCH_ON)
         {
           /* restore original data */
-          *(u16 *)(cart.rom + action_replay.addr[0]) = action_replay.old[0];
-          *(u16 *)(cart.rom + action_replay.addr[1]) = action_replay.old[1];
-          *(u16 *)(cart.rom + action_replay.addr[2]) = action_replay.old[2];
-          *(u16 *)(cart.rom + action_replay.addr[3]) = action_replay.old[3];
+          *cast(u16 *)(cart.rom + action_replay.addr[0]) = action_replay.old[0];
+          *cast(u16 *)(cart.rom + action_replay.addr[1]) = action_replay.old[1];
+          *cast(u16 *)(cart.rom + action_replay.addr[2]) = action_replay.old[2];
+          *cast(u16 *)(cart.rom + action_replay.addr[3]) = action_replay.old[3];
         }
         break;
       }
@@ -250,16 +250,16 @@ void areplay_set_status(int status)
           action_replay.addr[3] = (action_replay.regs[11] | ((action_replay.regs[12]  & 0x3f00) << 8)) << 1;
 
           /* save original data */
-          action_replay.old[0] = *(u16 *)(cart.rom + action_replay.addr[0]);
-          action_replay.old[1] = *(u16 *)(cart.rom + action_replay.addr[1]);
-          action_replay.old[2] = *(u16 *)(cart.rom + action_replay.addr[2]);
-          action_replay.old[3] = *(u16 *)(cart.rom + action_replay.addr[3]);
+          action_replay.old[0] = *cast(u16 *)(cart.rom + action_replay.addr[0]);
+          action_replay.old[1] = *cast(u16 *)(cart.rom + action_replay.addr[1]);
+          action_replay.old[2] = *cast(u16 *)(cart.rom + action_replay.addr[2]);
+          action_replay.old[3] = *cast(u16 *)(cart.rom + action_replay.addr[3]);
 
           /* patch new data */
-          *(u16 *)(cart.rom + action_replay.addr[0]) = action_replay.data[0];
-          *(u16 *)(cart.rom + action_replay.addr[1]) = action_replay.data[1];
-          *(u16 *)(cart.rom + action_replay.addr[2]) = action_replay.data[2];
-          *(u16 *)(cart.rom + action_replay.addr[3]) = action_replay.data[3];
+          *cast(u16 *)(cart.rom + action_replay.addr[0]) = action_replay.data[0];
+          *cast(u16 *)(cart.rom + action_replay.addr[1]) = action_replay.data[1];
+          *cast(u16 *)(cart.rom + action_replay.addr[2]) = action_replay.data[2];
+          *cast(u16 *)(cart.rom + action_replay.addr[3]) = action_replay.data[3];
         }
         break;
       }
@@ -316,6 +316,6 @@ static void ar_write_regs_2(u32 address, u32 data)
 static void ar_write_ram_8(u32 address, u32 data)
 {
   /* byte writes are handled as word writes, with LSB duplicated in MSB (/LWR is not used) */
-  *(u16 *)(action_replay.ram + (address & 0xfffe)) = (data | (data << 8));
+  *cast(u16 *)(action_replay.ram + (address & 0xfffe)) = (data | (data << 8));
 }
 

@@ -163,7 +163,7 @@ void SN76489_Reset()
 
 void *SN76489_GetContextPtr()
 {
-  return (u8 *)&SN76489;
+  return cast(u8 *)&SN76489;
 }
 
 int SN76489_GetContextSize()

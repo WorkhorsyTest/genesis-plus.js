@@ -36,7 +36,7 @@ struct md_ntsc_setup_t {
   double artifacts;  /* artifacts caused by color changes */
   double fringing;   /* color artifacts caused by brightness changes */
   double bleed;      /* color bleed (color resolution reduction) */
-  float const* decoder_matrix; /* optional RGB decoder matrix, 6 elements */
+  const float* decoder_matrix; /* optional RGB decoder matrix, 6 elements */
 
   u8* palette_out;  /* optional RGB palette out, 3 bytes per color */
 }
@@ -45,16 +45,16 @@ const int md_ntsc_palette_size = 512;
 
 /* Initializes and adjusts parameters. Can be called multiple times on the same
 md_ntsc_t object. Can pass NULL for either parameter. */
-typedef struct md_ntsc_t md_ntsc_t;
-void md_ntsc_init( md_ntsc_t* ntsc, md_ntsc_setup_t const* setup );
+//typedef struct md_ntsc_t md_ntsc_t;
+void md_ntsc_init( md_ntsc_t* ntsc, const md_ntsc_setup_t* setup );
 
 /* Filters one row of pixels. Input pixel format is set by MD_NTSC_IN_FORMAT
 and output RGB depth is set by MD_NTSC_OUT_DEPTH. Both default to 16-bit RGB.
 In_row_width is the number of pixels to get to the next input row. */
-void md_ntsc_blit( md_ntsc_t const* ntsc, MD_NTSC_IN_T const* table, u8* input,
+void md_ntsc_blit( const md_ntsc_t* ntsc, const MD_NTSC_IN_T* table, u8* input,
     int in_width, int vline);
 
-static md_ntsc_rgb_t* MD_NTSC_RGB16(md_ntsc_t const* ntsc, MD_NTSC_IN_T n);
+static md_ntsc_rgb_t* MD_NTSC_RGB16(const md_ntsc_t* ntsc, MD_NTSC_IN_T n);
 static void MD_NTSC_CLAMP_(md_ntsc_rgb_t io, s32 shift);
 
 /* Interface for user-defined custom blitters */
@@ -81,7 +81,7 @@ struct MDBlitData {
 }
 
 /* Begin input pixel */
-static void MD_NTSC_COLOR_IN_(MDBlitData* data, s32 index, MD_NTSC_IN_T color, md_ntsc_t const* table) {
+static void MD_NTSC_COLOR_IN_(MDBlitData* data, s32 index, MD_NTSC_IN_T color, const md_ntsc_t* table) {
   u32 color_;
   switch(index) {
     case 0:
@@ -103,7 +103,7 @@ static void MD_NTSC_COLOR_IN_(MDBlitData* data, s32 index, MD_NTSC_IN_T color, m
   }
 }
 
-static void MD_NTSC_COLOR_IN(MDBlitData* data, s32 index, md_ntsc_t const* ntsc, MD_NTSC_IN_T color) {
+static void MD_NTSC_COLOR_IN(MDBlitData* data, s32 index, const md_ntsc_t* ntsc, MD_NTSC_IN_T color) {
   MD_NTSC_COLOR_IN_(data, index, color, ntsc);
 }
 
@@ -129,18 +129,18 @@ struct md_ntsc_t {
   md_ntsc_rgb_t[md_ntsc_palette_size][md_ntsc_entry_size] table;
 }
 
-static md_ntsc_rgb_t* MD_NTSC_BGR9(md_ntsc_t const* ntsc, MD_NTSC_IN_T n) {
+static md_ntsc_rgb_t* MD_NTSC_BGR9(const md_ntsc_t* ntsc, MD_NTSC_IN_T n) {
   return ntsc.table [n & 0x1FF];
 }
 
-static md_ntsc_rgb_t* MD_NTSC_RGB16(md_ntsc_t const* ntsc, MD_NTSC_IN_T n) {
-  return (md_ntsc_rgb_t*) ((char*) (ntsc).table +
+static md_ntsc_rgb_t* MD_NTSC_RGB16(const md_ntsc_t* ntsc, MD_NTSC_IN_T n) {
+  return cast(md_ntsc_rgb_t*) (cast(char*) (ntsc).table +
   ((n << 9 & 0x3800) | (n & 0x0700) | (n >> 8 & 0x00E0)) *
   (md_ntsc_entry_size * sizeof (md_ntsc_rgb_t) / 32));
 }
 
-static md_ntsc_rgb_t* MD_NTSC_RGB15(md_ntsc_t const* ntsc, MD_NTSC_IN_T n) {
-  return (md_ntsc_rgb_t*) ((char*) (ntsc).table +
+static md_ntsc_rgb_t* MD_NTSC_RGB15(const md_ntsc_t* ntsc, MD_NTSC_IN_T n) {
+  return cast(md_ntsc_rgb_t*) (cast(char*) (ntsc).table +
   ((n << 8 & 0x1C00) | (n & 0x0380) | (n >> 8 & 0x0070)) *
   (md_ntsc_entry_size * sizeof (md_ntsc_rgb_t) / 16));
 }
@@ -183,20 +183,20 @@ const pixel_info_t[alignment_count] md_ntsc_pixels = {
   { PIXEL_OFFSET( -2, -7 ), { 0.1f, 0.9f, 0.9f, 0.1f } },
 };
 
-static void correct_errors( md_ntsc_rgb_t color, md_ntsc_rgb_t* out )
+static void correct_errors( md_ntsc_rgb_t color, md_ntsc_rgb_t* out_var )
 {
   u32 i;
   for ( i = 0; i < rgb_kernel_size / 4; i++ )
   {
     md_ntsc_rgb_t error = color -
-        out [i    ] - out [i + 2    +16] - out [i + 4    ] - out [i + 6    +16] -
-        out [i + 8] - out [(i+10)%16+16] - out [(i+12)%16] - out [(i+14)%16+16];
-    CORRECT_ERROR(out, i, i + 6 + 16 );
+        out_var [i    ] - out_var [i + 2    +16] - out_var [i + 4    ] - out_var [i + 6    +16] -
+        out_var [i + 8] - out_var [(i+10)%16+16] - out_var [(i+12)%16] - out_var [(i+14)%16+16];
+    CORRECT_ERROR(out_var, i, i + 6 + 16 );
     /*DISTRIBUTE_ERROR( 2+16, 4, 6+16 );*/
   }
 }
 
-void md_ntsc_init( md_ntsc_t* ntsc, md_ntsc_setup_t const* setup )
+void md_ntsc_init( md_ntsc_t* ntsc, const md_ntsc_setup_t* setup )
 {
   int entry;
   init_t impl;
@@ -228,10 +228,10 @@ void md_ntsc_init( md_ntsc_t* ntsc, md_ntsc_setup_t const* setup )
 }
 
 version(CUSTOM_BLITTER) {
-void md_ntsc_blit( md_ntsc_t const* ntsc, MD_NTSC_IN_T const* table, u8* input,
+void md_ntsc_blit(const md_ntsc_t* ntsc, const MD_NTSC_IN_T* table, u8* input,
                    int in_width, int vline)
 {
-  int const chunk_count = in_width / md_ntsc_in_chunk - 1;
+  const int chunk_count = in_width / md_ntsc_in_chunk - 1;
 
   /* use palette entry 0 for unused pixels */
   MD_NTSC_IN_T border = table[0];
@@ -250,7 +250,7 @@ void md_ntsc_blit( md_ntsc_t const* ntsc, MD_NTSC_IN_T const* table, u8* input,
   blit_data.kernelx3 = blit_data.kernel0;
 
 
-  blit_data.line_out  = (md_ntsc_out_t*)(&bitmap.data[(vline * bitmap.pitch)]);
+  blit_data.line_out  = cast(md_ntsc_out_t*)(&bitmap.data[(vline * bitmap.pitch)]);
 
   int n;
 

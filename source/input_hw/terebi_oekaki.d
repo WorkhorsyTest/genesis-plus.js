@@ -38,7 +38,7 @@
 
 import shared;
 
-struct tablet_t;
+struct tablet_t
 {
   u8 axis;
   u8 busy;

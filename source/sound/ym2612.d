@@ -637,9 +637,9 @@ void FM_KEYON(FM_CH *CH , s32 s )
 
     /* recalculate EG output */
     if ((SLOT.ssg&0x08) && (SLOT.ssgn ^ (SLOT.ssg&0x04)))
-      SLOT.vol_out = ((u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
+      SLOT.vol_out = (cast(u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
     else
-      SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
+      SLOT.vol_out = cast(u32)SLOT.volume + SLOT.tl;
   }
 
   SLOT.key = 1;
@@ -670,7 +670,7 @@ void FM_KEYOFF(FM_CH *CH , s32 s )
         }
 
         /* recalculate EG output */
-        SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
+        SLOT.vol_out = cast(u32)SLOT.volume + SLOT.tl;
       }
     }
   }
@@ -705,9 +705,9 @@ void FM_KEYON_CSM(FM_CH *CH , s32 s )
 
     /* recalculate EG output */
     if ((SLOT.ssg&0x08) && (SLOT.ssgn ^ (SLOT.ssg&0x04)))
-      SLOT.vol_out = ((u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
+      SLOT.vol_out = (cast(u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
     else
-      SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
+      SLOT.vol_out = cast(u32)SLOT.volume + SLOT.tl;
   }
 }
 
@@ -735,7 +735,7 @@ void FM_KEYOFF_CSM(FM_CH *CH , s32 s )
         }
 
         /* recalculate EG output */
-        SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
+        SLOT.vol_out = cast(u32)SLOT.volume + SLOT.tl;
       }
     }
   }
@@ -936,9 +936,9 @@ void set_tl(FM_SLOT *SLOT , s32 v)
 
   /* recalculate EG output */
   if ((SLOT.ssg&0x08) && (SLOT.ssgn ^ (SLOT.ssg&0x04)) && (SLOT.state > EG_REL))
-    SLOT.vol_out = ((u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
+    SLOT.vol_out = (cast(u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
   else
-    SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
+    SLOT.vol_out = cast(u32)SLOT.volume + SLOT.tl;
 }
 
 /* set attack rate & key scale  */
@@ -996,7 +996,7 @@ void set_sl_rr(FM_SLOT *SLOT,s32 v)
   SLOT.sl = sl_table[ v>>4 ];
   
   /* check EG state changes */
-  if ((SLOT.state == EG_DEC) && (SLOT.volume >= (s32)(SLOT.sl)))
+  if ((SLOT.state == EG_DEC) && (SLOT.volume >= cast(s32)(SLOT.sl)))
     SLOT.state = EG_SUS;
 
   SLOT.rr  = 34 + ((v&0x0f)<<2);
@@ -1065,9 +1065,9 @@ void advance_eg_channels(FM_CH *CH, u32 eg_cnt)
 
             /* recalculate EG output */
             if ((SLOT.ssg&0x08) && (SLOT.ssgn ^ (SLOT.ssg&0x04)))  /* SSG-EG Output Inversion */
-              SLOT.vol_out = ((u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
+              SLOT.vol_out = (cast(u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
             else
-              SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
+              SLOT.vol_out = cast(u32)SLOT.volume + SLOT.tl;
           }
           break;
         }
@@ -1086,9 +1086,9 @@ void advance_eg_channels(FM_CH *CH, u32 eg_cnt)
 
                 /* recalculate EG output */
                 if (SLOT.ssgn ^ (SLOT.ssg&0x04))   /* SSG-EG Output Inversion */
-                  SLOT.vol_out = ((u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
+                  SLOT.vol_out = (cast(u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
                 else
-                  SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
+                  SLOT.vol_out = cast(u32)SLOT.volume + SLOT.tl;
               }
             }
             else
@@ -1097,11 +1097,11 @@ void advance_eg_channels(FM_CH *CH, u32 eg_cnt)
               SLOT.volume += eg_inc[SLOT.eg_sel_d1r + ((eg_cnt>>SLOT.eg_sh_d1r)&7)];
 
               /* recalculate EG output */
-              SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
+              SLOT.vol_out = cast(u32)SLOT.volume + SLOT.tl;
             }
 
             /* check phase transition*/
-            if (SLOT.volume >= (s32)(SLOT.sl))
+            if (SLOT.volume >= cast(s32)(SLOT.sl))
               SLOT.state = EG_SUS;
           }
           break;
@@ -1121,9 +1121,9 @@ void advance_eg_channels(FM_CH *CH, u32 eg_cnt)
 
                 /* recalculate EG output */
                 if (SLOT.ssgn ^ (SLOT.ssg&0x04))   /* SSG-EG Output Inversion */
-                  SLOT.vol_out = ((u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
+                  SLOT.vol_out = (cast(u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
                 else
-                  SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
+                  SLOT.vol_out = cast(u32)SLOT.volume + SLOT.tl;
               }
             }
             else
@@ -1137,7 +1137,7 @@ void advance_eg_channels(FM_CH *CH, u32 eg_cnt)
                 /* do not change SLOT->state (verified on real chip) */
 
               /* recalculate EG output */
-              SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
+              SLOT.vol_out = cast(u32)SLOT.volume + SLOT.tl;
             }
           }
           break;
@@ -1175,7 +1175,7 @@ void advance_eg_channels(FM_CH *CH, u32 eg_cnt)
             }
 
             /* recalculate EG output */
-            SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
+            SLOT.vol_out = cast(u32)SLOT.volume + SLOT.tl;
 
           }
           break;
@@ -1248,9 +1248,9 @@ void update_ssg_eg_channels(FM_CH *CH)
 
         /* recalculate EG output */
         if (SLOT.ssgn ^ (SLOT.ssg&0x04))
-          SLOT.vol_out = ((u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
+          SLOT.vol_out = (cast(u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
         else
-          SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
+          SLOT.vol_out = cast(u32)SLOT.volume + SLOT.tl;
       }
 
       /* next slot */
@@ -1519,7 +1519,7 @@ void OPNWriteMode(s32 r, s32 v)
       }
       break;
     case 0x24:  /* timer A High 8*/
-      ym2612.OPN.ST.TA = (ym2612.OPN.ST.TA & 0x03)|(((s32)v)<<2);
+      ym2612.OPN.ST.TA = (ym2612.OPN.ST.TA & 0x03)|((cast(s32)v)<<2);
       ym2612.OPN.ST.TAL = 1024 - ym2612.OPN.ST.TA;
       break;
     case 0x25:  /* timer A Low 2*/
@@ -1596,9 +1596,9 @@ void OPNWriteReg(s32 r, s32 v)
       if (SLOT.state > EG_REL)
       {
         if ((SLOT.ssg&0x08) && (SLOT.ssgn ^ (SLOT.ssg&0x04)))
-          SLOT.vol_out = ((u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
+          SLOT.vol_out = (cast(u32)(0x200 - SLOT.volume) & MAX_ATT_INDEX) + SLOT.tl;
         else
-          SLOT.vol_out = (u32)SLOT.volume + SLOT.tl;
+          SLOT.vol_out = cast(u32)SLOT.volume + SLOT.tl;
       }
 
       /* SSG-EG envelope shapes :
@@ -1682,7 +1682,7 @@ void OPNWriteReg(s32 r, s32 v)
       switch( OPN_SLOT(r) ){
         case 0:    /* 0xa0-0xa2 : FNUM1 */
         {
-          u32 fn = (((u32)((ym2612.OPN.ST.fn_h)&7))<<8) + v;
+          u32 fn = ((cast(u32)((ym2612.OPN.ST.fn_h)&7))<<8) + v;
           u8 blk = ym2612.OPN.ST.fn_h>>3;
           /* keyscale code */
           CH.kcode = (blk<<2) | opn_fktable[fn >> 7];
@@ -1701,7 +1701,7 @@ void OPNWriteReg(s32 r, s32 v)
         case 2:    /* 0xa8-0xaa : 3CH FNUM1 */
           if(r < 0x100)
           {
-            u32 fn = (((u32)(ym2612.OPN.SL3.fn_h&7))<<8) + v;
+            u32 fn = ((cast(u32)(ym2612.OPN.SL3.fn_h&7))<<8) + v;
             u8 blk = ym2612.OPN.SL3.fn_h>>3;
             /* keyscale code */
             ym2612.OPN.SL3.kcode[c]= (blk<<2) | opn_fktable[fn >> 7];
@@ -1784,7 +1784,7 @@ static void init_tables(u8 dac_bits)
     /* we never reach (1<<16) here due to the (x+1) */
     /* result fits within 16 bits at maximum */
 
-    n = (s32)m; /* 16 bits here */
+    n = cast(s32)m; /* 16 bits here */
     n >>= 4;    /* 12 bits here */
     if (n&1)    /* round to nearest */
       n = (n>>1)+1;
@@ -1823,7 +1823,7 @@ static void init_tables(u8 dac_bits)
 
     o = o / (ENV_STEP/4);
 
-    n = (s32)(2.0*o);
+    n = cast(s32)(2.0*o);
     if (n&1)            /* round to nearest */
       n = (n>>1)+1;
     else
@@ -1870,7 +1870,7 @@ static void init_tables(u8 dac_bits)
   {
     for (i = 0;i <= 31;i++)
     {
-      ym2612.OPN.ST.dt_tab[d][i]   = (s32) dt_tab[d*32 + i];
+      ym2612.OPN.ST.dt_tab[d][i]   = cast(s32) dt_tab[d*32 + i];
       ym2612.OPN.ST.dt_tab[d+4][i] = -ym2612.OPN.ST.dt_tab[d][i];
     }
   }
@@ -1955,7 +1955,7 @@ void YM2612Write(u32 a, u32 v)
           switch( addr )
           {
             case 0x2a:  /* DAC data (ym2612) */
-              ym2612.dacout = ((s32)v - 0x80) << 6; /* level unknown (5 is too low, 8 is too loud) */
+              ym2612.dacout = (cast(s32)v - 0x80) << 6; /* level unknown (5 is too low, 8 is too loud) */
               break;
             case 0x2b:  /* DAC Sel  (ym2612) */
               /* b7 = dac enable */

@@ -41,7 +41,7 @@ struct t_config
   u8 gg_extra;
   u8 ntsc;
   u8 render;
-  t_input_config input[MAX_INPUTS];
+  t_input_config[MAX_INPUTS] input;
 }
 
 t_config config;

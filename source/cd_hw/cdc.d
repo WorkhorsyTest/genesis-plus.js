@@ -53,7 +53,7 @@ struct cdc_t
   u8[2][4] head;
   u8[4] stat;
   s32 cycles;
-  void (*dma_w)(u32 words);  /* DMA transfer callback */
+  void function(u32 words) dma_w;  /* DMA transfer callback */
   u8[0x4000 + 2352] ram; /* 16K external RAM (with one block overhead to handle buffer overrun) */
 }
 
@@ -255,7 +255,7 @@ s32 cdc_decoder_update(u32 header)
   if (cdc.ctrl[0] & BIT_DECEN)
   {
     /* update HEAD registers */
-    *(u32 *)(cdc.head[0]) = header;
+    *cast(u32 *)(cdc.head[0]) = header;
 
     /* set !VALST */
     cdc.stat[3] = 0x00;
@@ -292,7 +292,7 @@ s32 cdc_decoder_update(u32 header)
       offset = cdc.pt.w & 0x3fff;
 
       /* write CDD block header (4 bytes) */
-      *(u32 *)(cdc.ram + offset) = header;
+      *cast(u32 *)(cdc.ram + offset) = header;
 
       /* write CDD block data (2048 bytes) */
       cdd_read_data(cdc.ram + 4 + offset);
@@ -631,7 +631,7 @@ u16 cdc_host_r()
   if (!(cdc.ifstat & BIT_DTEN))
   {
     /* read data word from CDC RAM buffer */
-    u16 data = *(u16 *)(cdc.ram + (cdc.dac.w & 0x3ffe));
+    u16 data = *cast(u16 *)(cdc.ram + (cdc.dac.w & 0x3ffe));
 
 version(LSB_FIRST) {
     /* source data is stored in big endian format */
@@ -649,7 +649,7 @@ version(LOG_CDC) {
     cdc.dbc.w -= 2;
 
     /* end of transfer ? */
-    if ((s16)cdc.dbc.w <= 0)
+    if (cast(s16)cdc.dbc.w <= 0)
     {
       /* reset data byte counter (DBCH bits 4-7 should be set to 1) */
       cdc.dbc.w = 0xf000;

@@ -143,8 +143,8 @@ void ggenie_switch(int enable)
       if (ggenie.regs[0] & (1 << i))
       {
         /* save old value and patch ROM if enabled */
-        ggenie.old[i] = *(u16 *)(cart.rom + ggenie.addr[i]);
-        *(u16 *)(cart.rom + ggenie.addr[i]) = ggenie.data[i];
+        ggenie.old[i] = *cast(u16 *)(cart.rom + ggenie.addr[i]);
+        *cast(u16 *)(cart.rom + ggenie.addr[i]) = ggenie.data[i];
       }
     }
   }
@@ -157,7 +157,7 @@ void ggenie_switch(int enable)
       if (ggenie.regs[0] & (1 << i))
       {
         /* restore original ROM value */
-        *(u16 *)(cart.rom + ggenie.addr[i]) = ggenie.old[i];
+        *cast(u16 *)(cart.rom + ggenie.addr[i]) = ggenie.old[i];
       }
     }
   }

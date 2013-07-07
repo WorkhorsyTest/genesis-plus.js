@@ -452,10 +452,10 @@ void pcm_ram_dma_w(u32 words)
   while (words--)
   {
     /* read 16-bit word from CDC buffer */
-    data = *(u16 *)(cdc.ram + src_index);
+    data = *cast(u16 *)(cdc.ram + src_index);
 
     /* write 16-bit word to PCM RAM (endianness does not matter since PCM RAM is always accessed as byte)*/
-    *(u16 *)(pcm.bank + dst_index) = data ;
+    *cast(u16 *)(pcm.bank + dst_index) = data ;
 
     /* increment CDC buffer source address */
     src_index = (src_index + 2) & 0x3ffe;

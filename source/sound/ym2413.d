@@ -31,7 +31,7 @@ import shared;
 
 const int FREQ_SH = 16;  /* 16.16 fixed point (frequency calculations) */
 const int EG_SH   = 16;  /* 16.16 fixed point (EG timing)              */
-const int LFO_SH  = 24  /*  8.24 fixed point (LFO calculations)       */
+const int LFO_SH  = 24;  /*  8.24 fixed point (LFO calculations)       */
 
 const int FREQ_MASK    = (1 << FREQ_SH) - 1;
 
@@ -209,7 +209,7 @@ static const u32[8*16] ksl_tab = [
 
 /* sustain level table (3dB per step) */
 /* 0 - 15: 0, 3, 6, 9,12,15,18,21,24,27,30,33,36,39,42,45 (dB)*/
-float SC(int db) { return (u32) ( db * (1.0/ENV_STEP) ); }
+float SC(int db) { return cast(u32) ( db * (1.0/ENV_STEP) ); }
 static const u32[16] sl_tab = [
  SC( 0),SC( 1),SC( 2),SC(3 ),SC(4 ),SC(5 ),SC(6 ),SC( 7),
  SC( 8),SC( 9),SC(10),SC(11),SC(12),SC(13),SC(14),SC(15)
@@ -503,7 +503,7 @@ static void advance_lfo()
 {
   /* LFO */
   ym2413.lfo_am_cnt += ym2413.lfo_am_inc;
-  if (ym2413.lfo_am_cnt >= (u32) (LFO_AM_TAB_ELEMENTS<<LFO_SH) )  /* lfo_am_table is 210 elements long */
+  if (ym2413.lfo_am_cnt >= cast(u32) (LFO_AM_TAB_ELEMENTS<<LFO_SH) )  /* lfo_am_table is 210 elements long */
     ym2413.lfo_am_cnt -= (LFO_AM_TAB_ELEMENTS<<LFO_SH);
 
   LFO_AM = lfo_am_table[ ym2413.lfo_am_cnt >> LFO_SH ] >> 1;
@@ -575,7 +575,7 @@ void advance()
           {
             op.volume += eg_inc[op.eg_sel_dr + ((ym2413.eg_cnt>>op.eg_sh_dr)&7)];
 
-            if ( op.volume >= (s32) op.sl )
+            if ( op.volume >= cast(s32) op.sl )
               op.state = EG_SUS;
           }
           break;
@@ -744,7 +744,7 @@ void advance()
 
 static s32 op_calc(u32 phase, u32 env, s32 pm, u32 wave_tab)
 {
-  u32 p = (env<<5) + sin_tab[wave_tab + ((((s32)((phase & ~FREQ_MASK) + (pm<<17))) >> FREQ_SH ) & SIN_MASK) ];
+  u32 p = (env<<5) + sin_tab[wave_tab + (((cast(s32)((phase & ~FREQ_MASK) + (pm<<17))) >> FREQ_SH ) & SIN_MASK) ];
 
   if (p >= TL_TAB_LEN)
     return 0;
@@ -753,7 +753,7 @@ static s32 op_calc(u32 phase, u32 env, s32 pm, u32 wave_tab)
 
 static s32 op_calc1(u32 phase, u32 env, s32 pm, u32 wave_tab)
 {
-  u32 p = (env<<5) + sin_tab[wave_tab + ((((s32)((phase & ~FREQ_MASK) + pm)) >> FREQ_SH ) & SIN_MASK) ];
+  u32 p = (env<<5) + sin_tab[wave_tab + (((cast(s32)((phase & ~FREQ_MASK) + pm)) >> FREQ_SH ) & SIN_MASK) ];
 
   if (p >= TL_TAB_LEN)
     return 0;
@@ -761,7 +761,7 @@ static s32 op_calc1(u32 phase, u32 env, s32 pm, u32 wave_tab)
 }
 
 u32 volume_calc_2413(YM2413_OPLL_SLOT* OP) {
-    return OP.TLL + ((u32)OP.volume) + (LFO_AM & OP.AMmask);
+    return OP.TLL + (cast(u32)OP.volume) + (LFO_AM & OP.AMmask);
 }
 
 /* calculate output */
@@ -1015,7 +1015,7 @@ static s32 init_tables()
     /* we never reach (1<<16) here due to the (x+1) */
     /* result fits within 16 bits at maximum */
 
-    n = (s32)m;    /* 16 bits here */
+    n = cast(s32)m;    /* 16 bits here */
     n >>= 4;    /* 12 bits here */
     if (n&1)    /* round to nearest */
       n = (n>>1)+1;
@@ -1046,7 +1046,7 @@ static s32 init_tables()
 
     o = o / (ENV_STEP/4);
 
-    n = (s32)(2.0*o);
+    n = cast(s32)(2.0*o);
     if (n&1)            /* round to nearest */
       n = (n>>1)+1;
     else
@@ -1079,7 +1079,7 @@ static void OPLL_initalize()
   for( i = 0 ; i < 1024; i++ )
   {
     /* OPLL (YM2413) phase increment counter = 18bit */
-    ym2413.fn_tab[i] = (u32)( (double)i * 64 * freqbase * (1<<(FREQ_SH-10)) ); /* -10 because chip works with 10.10 fixed point, while we use 16.16 */
+    ym2413.fn_tab[i] = cast(u32)( cast(double)i * 64 * freqbase * (1<<(FREQ_SH-10)) ); /* -10 because chip works with 10.10 fixed point, while we use 16.16 */
   }
 
   /* Amplitude modulation: 27 output levels (triangle waveform); 1 level takes one of: 192, 256 or 448 samples */
@@ -1709,7 +1709,7 @@ void YM2413Update(s32 *buffer, s32 length)
 
 u8 *YM2413GetContextPtr()
 {
-  return (u8 *)&ym2413;
+  return cast(u8 *)&ym2413;
 }
 
 u32 YM2413GetContextSize()

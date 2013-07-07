@@ -18,7 +18,6 @@ import sms_ntsc;
 import sms_ntsc_config;
 import sms_ntsc_impl;
 
-
 alias u32 sms_ntsc_rgb_t;
 
 /* Image parameters, ranging from -1.0 to 1.0. Actual internal values shown
@@ -38,17 +37,12 @@ struct sms_ntsc_setup_t
   double artifacts;  /* artifacts caused by color changes */
   double fringing;   /* color artifacts caused by brightness changes */
   double bleed;      /* color bleed (color resolution reduction) */
-  float const* decoder_matrix; /* optional RGB decoder matrix, 6 elements */
+  const float* decoder_matrix; /* optional RGB decoder matrix, 6 elements */
   
   u8* palette_out;  /* optional RGB palette out, 3 bytes per color */
 }
 
 const int sms_ntsc_palette_size = 4096;
-
-/* Initializes and adjusts parameters. Can be called multiple times on the same
-sms_ntsc_t object. Can pass NULL for either parameter. */
-struct sms_ntsc_t sms_ntsc_t {
-}
 
 /* Interface for user-defined custom blitters */
 
@@ -70,40 +64,40 @@ struct SMSBlitData {
 }
 
 /* Begins input pixel */
-static void SMS_NTSC_COLOR_IN_(SMSBlitData* data, s32 index, SMS_NTSC_IN_T color, sms_ntsc_t const* table ) {
+static void SMS_NTSC_COLOR_IN_(SMSBlitData* data, s32 index, SMS_NTSC_IN_T color, const sms_ntsc_t* table ) {
   u32 color_;
   switch(index) {
     case 0:
-      data->kernelx0 = data->kernel0;
-      data->kernel0 = (color_ = color, SMS_NTSC_IN_FORMAT( table, color_ ));
+      data.kernelx0 = data.kernel0;
+      data.kernel0 = (color_ = color, SMS_NTSC_IN_FORMAT( table, color_ ));
       break;
     case 1:
-      data->kernelx1 = data->kernel1;
-      data->kernel1 = (color_ = color, SMS_NTSC_IN_FORMAT( table, color_ ));
+      data.kernelx1 = data.kernel1;
+      data.kernel1 = (color_ = color, SMS_NTSC_IN_FORMAT( table, color_ ));
       break;
     case 2:
-      data->kernelx2 = data->kernel2;
-      data->kernel2 = (color_ = color, SMS_NTSC_IN_FORMAT( table, color_ ));
+      data.kernelx2 = data.kernel2;
+      data.kernel2 = (color_ = color, SMS_NTSC_IN_FORMAT( table, color_ ));
       break;
   }
 }
 
-static void SMS_NTSC_COLOR_IN(SMSBlitData* data, s32 in_index, sms_ntsc_t const* ntsc, SMS_NTSC_IN_T color_in ) {
+static void SMS_NTSC_COLOR_IN(SMSBlitData* data, s32 in_index, const sms_ntsc_t* ntsc, SMS_NTSC_IN_T color_in ) {
   SMS_NTSC_COLOR_IN_(data, in_index, color_in, ntsc );
 }
 
 /* Generates output pixel */
 static sms_ntsc_out_t SMS_NTSC_RGB_OUT_(SMSBlitData* data, s32 x) {
-  return (data->raw_>>(13-x)& 0xF800)|(data->raw_>>(8-x)&0x07E0)|(data->raw_>>(4-x)&0x001F);
+  return (data.raw_>>(13-x)& 0xF800)|(data.raw_>>(8-x)&0x07E0)|(data.raw_>>(4-x)&0x001F);
 }
 
 static void SMS_NTSC_RGB_OUT(SMSBlitData* data, s32 x) {
-  data->raw_ =
-    data->kernel0  [x       ] + data->kernel1  [(x+12)%7+14] + data->kernel2  [(x+10)%7+28] +
-    data->kernelx0 [(x+7)%14] + data->kernelx1 [(x+ 5)%7+21] + data->kernelx2 [(x+ 3)%7+35];
-  SMS_NTSC_CLAMP_( data->raw_, 0 );
-  data->line_out = SMS_NTSC_RGB_OUT_( data, 0 );
-  data->line_out++;
+  data.raw_ =
+    data.kernel0  [x       ] + data.kernel1  [(x+12)%7+14] + data.kernel2  [(x+10)%7+28] +
+    data.kernelx0 [(x+7)%14] + data.kernelx1 [(x+ 5)%7+21] + data.kernelx2 [(x+ 3)%7+35];
+  SMS_NTSC_CLAMP_( data.raw_, 0 );
+  data.line_out = SMS_NTSC_RGB_OUT_( data, 0 );
+  data.line_out++;
 }
 
 /* private */
@@ -112,18 +106,18 @@ struct sms_ntsc_t {
   sms_ntsc_rgb_t[sms_ntsc_palette_size][sms_ntsc_entry_size] table;
 }
 
-static sms_ntsc_rgb_t* SMS_NTSC_BGR12(sms_ntsc_t const* ntsc, SMS_NTSC_IN_T n) {
-  return ntsc->table [n & 0xFFF];
+static sms_ntsc_rgb_t* SMS_NTSC_BGR12(const sms_ntsc_t* ntsc, SMS_NTSC_IN_T n) {
+  return ntsc.table [n & 0xFFF];
 }
 
-static sms_ntsc_rgb_t* SMS_NTSC_RGB16(sms_ntsc_t const* ntsc, SMS_NTSC_IN_T n) {
-  return (sms_ntsc_rgb_t*) ((char*) ntsc->table +
+static sms_ntsc_rgb_t* SMS_NTSC_RGB16(const sms_ntsc_t* ntsc, SMS_NTSC_IN_T n) {
+  return cast(sms_ntsc_rgb_t*) (cast(char*) ntsc.table +
   ((n << 10 & 0x7800) | (n & 0x0780) | (n >> 9 & 0x0078)) *
   (sms_ntsc_entry_size * sizeof (sms_ntsc_rgb_t) / 8));
 }
 
-static sms_ntsc_rgb_t* SMS_NTSC_RGB15(sms_ntsc_t const* ntsc, SMS_NTSC_IN_T n) {
-  return (sms_ntsc_rgb_t*) ((char*) ntsc->table +
+static sms_ntsc_rgb_t* SMS_NTSC_RGB15(const sms_ntsc_t* ntsc, SMS_NTSC_IN_T n) {
+  return cast(sms_ntsc_rgb_t*) (cast(char*) ntsc.table +
   ((n << 9 & 0x3C00) | (n & 0x03C0) | (n >> 9 & 0x003C)) *
   (sms_ntsc_entry_size * sizeof (sms_ntsc_rgb_t) / 4));
 }
@@ -179,7 +173,7 @@ static void correct_errors( sms_ntsc_rgb_t color, sms_ntsc_rgb_t* out_var )
   }
 }
 
-void sms_ntsc_init( sms_ntsc_t* ntsc, sms_ntsc_setup_t const* setup )
+void sms_ntsc_init( sms_ntsc_t* ntsc, const sms_ntsc_setup_t* setup )
 {
   int entry;
   init_t impl;
@@ -199,13 +193,13 @@ void sms_ntsc_init( sms_ntsc_t* ntsc, sms_ntsc_setup_t const* setup )
     YIQ_TO_RGB(y, i, q, impl.to_rgb, &r, &g, &b);
     sms_ntsc_rgb_t rgb = PACK_RGB( r, g, b );
     
-    if ( setup->palette_out )
-      RGB_PALETTE_OUT( rgb, &setup->palette_out [entry * 3] );
+    if ( setup.palette_out )
+      RGB_PALETTE_OUT( rgb, &setup.palette_out [entry * 3] );
     
     if ( ntsc )
     {
-      gen_kernel( &impl, y, i, q, ntsc->table [entry] );
-      correct_errors( rgb, ntsc->table [entry] );
+      gen_kernel( &impl, y, i, q, ntsc.table [entry] );
+      correct_errors( rgb, ntsc.table [entry] );
     }
   }
 }
@@ -214,15 +208,15 @@ void sms_ntsc_init( sms_ntsc_t* ntsc, sms_ntsc_setup_t const* setup )
 and output RGB depth is set by SMS_NTSC_OUT_DEPTH. Both default to 16-bit RGB.
 In_row_width is the number of pixels to get to the next input row. */
 version(CUSTOM_BLITTER) {
-void sms_ntsc_blit( sms_ntsc_t const* ntsc, SMS_NTSC_IN_T const* table, u8* input,
+void sms_ntsc_blit( const sms_ntsc_t* ntsc, const SMS_NTSC_IN_T* table, u8* input,
                     int in_width, int vline)
 {
-  int const chunk_count = in_width / sms_ntsc_in_chunk;
+  const int chunk_count = in_width / sms_ntsc_in_chunk;
 
   /* handle extra 0, 1, or 2 pixels by placing them at beginning of row */
-  int const in_extra = in_width - chunk_count * sms_ntsc_in_chunk;
-  u32 const extra2 = (u32) -(in_extra >> 1 & 1); /* (u32) -1 = ~0 */
-  u32 const extra1 = (u32) -(in_extra & 1) | extra2;
+  const int in_extra = in_width - chunk_count * sms_ntsc_in_chunk;
+  const u32 extra2 = cast(u32) -(in_extra >> 1 & 1); /* (u32) -1 = ~0 */
+  const u32 extra1 = cast(u32) -(in_extra & 1) | extra2;
 
   /* use palette entry 0 for unused pixels */
   SMS_NTSC_IN_T border = table[0];
@@ -237,7 +231,7 @@ void sms_ntsc_blit( sms_ntsc_t const* ntsc, SMS_NTSC_IN_T const* table, u8* inpu
   blit_data.kernelx1 = blit_data.kernel0;
   blit_data.kernelx2 = blit_data.kernel0;
 
-  blit_data.line_out  = (sms_ntsc_out_t*)(&bitmap.data[(vline * bitmap.pitch)]);
+  blit_data.line_out  = cast(sms_ntsc_out_t*)(&bitmap.data[(vline * bitmap.pitch)]);
 
   int n;
   input += in_extra;

@@ -124,7 +124,7 @@ void eeprom_93c_write(u8 data)
               case 2:
               {
                 /* READ */
-                eeprom_93c.buffer = *(u16 *)(sram.sram + ((eeprom_93c.opcode & 0x3F) << 1));
+                eeprom_93c.buffer = *cast(u16 *)(sram.sram + ((eeprom_93c.opcode & 0x3F) << 1));
                 eeprom_93c.cycles = 0;
                 eeprom_93c.state = STATE_READ_WORD;
 
@@ -138,7 +138,7 @@ void eeprom_93c_write(u8 data)
                 /* ERASE */
                 if (eeprom_93c.we)
                 {
-                  *(u16 *)(sram.sram + ((eeprom_93c.opcode & 0x3F) << 1)) = 0xFFFF;
+                  *cast(u16 *)(sram.sram + ((eeprom_93c.opcode & 0x3F) << 1)) = 0xFFFF;
                 }
 
                 /* wait for next command */
@@ -204,7 +204,7 @@ void eeprom_93c_write(u8 data)
               if (eeprom_93c.opcode & 0x40)
               {
                 /* write one word */
-                *(u16 *)(sram.sram + ((eeprom_93c.opcode & 0x3F) << 1)) = eeprom_93c.buffer;
+                *cast(u16 *)(sram.sram + ((eeprom_93c.opcode & 0x3F) << 1)) = eeprom_93c.buffer;
               }
               else
               {
@@ -212,7 +212,7 @@ void eeprom_93c_write(u8 data)
                 int i;
                 for (i=0; i<64; i++)
                 {
-                  *(u16 *)(sram.sram + (i << 1)) = eeprom_93c.buffer;
+                  *cast(u16 *)(sram.sram + (i << 1)) = eeprom_93c.buffer;
 
                 }
               }
@@ -235,7 +235,7 @@ void eeprom_93c_write(u8 data)
             /* read next word (93C46B) */
             eeprom_93c.opcode++;
             eeprom_93c.cycles = 0;
-            eeprom_93c.buffer = *(u16 *)(sram.sram + ((eeprom_93c.opcode & 0x3F) << 1));
+            eeprom_93c.buffer = *cast(u16 *)(sram.sram + ((eeprom_93c.opcode & 0x3F) << 1));
           }
           break;
         }

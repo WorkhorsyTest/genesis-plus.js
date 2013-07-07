@@ -46,7 +46,7 @@ import eeprom_i2c;
 import eeprom_spi;
 import gamepad;
 
-alias cart ext.md_cart;
+alias ext.md_cart cart;
 
 /* Lock-On cartridge type */
 const int TYPE_GG = 0x01;  /* Game Genie */
@@ -65,10 +65,10 @@ struct cart_hw_t
   u32[4] addr;                                           /* registers address */
   u16 realtec;                                           /* realtec mapper */
   u16 bankshift;                                         /* cartridge with bankshift mecanism reseted on software reset */
-  u32 (*time_r)(u32 address);             /* !TIME signal ($a130xx) read handler  */
-  void (*time_w)(u32 address, u32 data);  /* !TIME signal ($a130xx) write handler */
-  u32 (*regs_r)(u32 address);             /* cart hardware registers read handler  */
-  void (*regs_w)(u32 address, u32 data);  /* cart hardware registers write handler */
+  u32 function(u32 address) time_r;             /* !TIME signal ($a130xx) read handler  */
+  void function(u32 address, u32 data) time_w;  /* !TIME signal ($a130xx) write handler */
+  u32 function(u32 address) regs_r;             /* cart hardware registers read handler  */
+  void function(u32 address, u32 data) regs_w;  /* cart hardware registers write handler */
 }
 
 /* Cartridge type */
@@ -391,11 +391,11 @@ void md_cart_init()
   {
     svp_init();
 
-    m68k.memory_map[0x30].base    = svp->dram;
+    m68k.memory_map[0x30].base    = svp.dram;
     m68k.memory_map[0x30].read16  = NULL;
     m68k.memory_map[0x30].write16 = svp_write_dram;
 
-    m68k.memory_map[0x31].base    = svp->dram + 0x10000;
+    m68k.memory_map[0x31].base    = svp.dram + 0x10000;
     m68k.memory_map[0x31].read16  = NULL;
     m68k.memory_map[0x31].write16 = svp_write_dram;
 
@@ -659,7 +659,7 @@ version(LSB_FIRST) {
       zbank_memory_map[i].write  = zbank_unused_w;
     }
   }
-  else if ((*(u16 *)(cart.rom + 0x08) == 0x6000) && (*(u16 *)(cart.rom + 0x0a) == 0x01f6) && (rominfo.realchecksum == 0xf894))
+  else if ((*cast(u16 *)(cart.rom + 0x08) == 0x6000) && (*cast(u16 *)(cart.rom + 0x0a) == 0x01f6) && (rominfo.realchecksum == 0xf894))
   {
     /* Super Mario World 64 (unlicensed) mapper */
     for (i=0x08; i<0x10; i++)
@@ -795,9 +795,9 @@ int md_cart_context_save(u8 *state)
   /* SVP */
   if (svp)
   {
-    save_param(&bufferptr, state, svp->iram_rom, 0x800);
-    save_param(&bufferptr, state, svp->dram,sizeof(svp->dram));
-    save_param(&bufferptr, state, &svp->ssp1601,sizeof(ssp1601_t));
+    save_param(&bufferptr, state, svp.iram_rom, 0x800);
+    save_param(&bufferptr, state, svp.dram,sizeof(svp.dram));
+    save_param(&bufferptr, state, &svp.ssp1601,sizeof(ssp1601_t));
   }
 
   return bufferptr;
@@ -833,9 +833,9 @@ int md_cart_context_load(u8 *state)
   /* SVP */
   if (svp)
   {
-    load_param(&bufferptr, state, svp->iram_rom, 0x800);
-    load_param(&bufferptr, state, svp->dram,sizeof(svp->dram));
-    load_param(&bufferptr, state, &svp->ssp1601,sizeof(ssp1601_t));
+    load_param(&bufferptr, state, svp.iram_rom, 0x800);
+    load_param(&bufferptr, state, svp.dram,sizeof(svp.dram));
+    load_param(&bufferptr, state, &svp.ssp1601,sizeof(ssp1601_t));
   }
 
   return bufferptr;

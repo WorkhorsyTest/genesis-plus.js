@@ -639,7 +639,7 @@ s32 cdd_load(char *filename, char *header)
         /* auto-detect PAUSE within audio files */
         fseek(fd, 100 * 2352, SEEK_SET);
         fread(head, 4, 1, fd);
-        if (*(s32 *)head == 0)
+        if (*cast(s32 *)head == 0)
         {
           /* assume 2s PAUSE is included at the beginning of the file */
           cdd.toc.tracks[cdd.toc.last].offset -= 150 * 2352;
@@ -845,7 +845,7 @@ void cdd_read_audio(u32 samples)
 
     /* use CDD buffer as temporary buffer */
 version(LSB_FIRST) {
-    s16 *ptr = (s16 *) (cdc.ram);
+    s16 *ptr = cast(s16 *) (cdc.ram);
 } else {
     u8 *ptr = cdc.ram;
 }
@@ -865,7 +865,7 @@ version(LSB_FIRST) {
       delta = ((ptr[0] * mul) / 1024) - l;
       ptr++;
 } else {
-      delta = (((s16)((ptr[0] + ptr[1]*256)) * mul) / 1024) - l;
+      delta = ((cast(s16)((ptr[0] + ptr[1]*256)) * mul) / 1024) - l;
       ptr += 2;
 }
       l += delta;
@@ -876,7 +876,7 @@ version(LSB_FIRST) {
       delta = ((ptr[0] * mul) / 1024) - r;
       ptr++;
 } else {
-      delta = (((s16)((ptr[0] + ptr[1]*256)) * mul) / 1024) - r;
+      delta = ((cast(s16)((ptr[0] + ptr[1]*256)) * mul) / 1024) - r;
       ptr += 2;
 }
       r += delta;
@@ -966,7 +966,7 @@ version(LOG_CDD) {
       header[3] = 0x01;
 
       /* data track sector read is controlled by CDC */
-      cdd.lba += cdc_decoder_update(*(u32 *)(header));
+      cdd.lba += cdc_decoder_update(*cast(u32 *)(header));
     }
     else if (cdd.index < cdd.toc.last)
     {
@@ -1412,7 +1412,7 @@ version(LOG_ERROR) {
       scd.regs[0x40>>1].w = 0x000f;
 
 version(CD_TRAY_CALLBACK) {
-      CD_TRAY_CALLBACK
+      CD_TRAY_CALLBACK();
 }
       return;
     }
@@ -1431,7 +1431,7 @@ version(CD_TRAY_CALLBACK) {
       scd.regs[0x40>>1].w = ~CD_OPEN & 0x0f;
 
 version(CD_TRAY_CALLBACK) {
-      CD_TRAY_CALLBACK
+      CD_TRAY_CALLBACK();
 }
       return;
     }

@@ -51,9 +51,9 @@ static u32 fm_cycles_start;
 static u32 fm_cycles_count;
 
 /* YM chip function pointers */
-static void (*YM_Reset)();
-static void (*YM_Update)(int* buffer, int length);
-static void (*YM_Write)(u32 a, u32 v);
+static void function() YM_Reset;
+static void function(int* buffer, int length) YM_Update;
+static void function(u32 a, u32 v) YM_Write;
 
 /* Run FM chip until required M-cycles */
 void fm_update(u32 cycles)
@@ -123,7 +123,8 @@ void sound_reset()
 
 int sound_update(u32 cycles)
 {
-  int delta, preamp, time, l, r, *ptr;
+  int delta, preamp, time, l, r;
+  int* ptr;
 
   /* Run PSG & FM chips until end of frame */
   SN76489_Update(cycles);
@@ -161,7 +162,7 @@ int sound_update(u32 cycles)
       /* increment time counter */
       time += fm_cycles_ratio;
     }
-    while (time < (int) cycles);
+    while (time < cast(int) cycles);
   }
   else
   {
@@ -181,7 +182,7 @@ int sound_update(u32 cycles)
       /* increment time counter */
       time += fm_cycles_ratio;
     }
-    while (time < (int) cycles);
+    while (time < cast(int) cycles);
   }
 
   /* reset FM buffer pointer */

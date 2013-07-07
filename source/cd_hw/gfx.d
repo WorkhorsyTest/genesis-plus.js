@@ -80,7 +80,7 @@ void word_ram_0_dma_w(u32 words)
   while (words--)
   {
     /* read 16-bit word from CDC buffer */
-    data = *(u16 *)(cdc.ram + src_index);
+    data = *cast(u16 *)(cdc.ram + src_index);
 
 version(LSB_FIRST) {
     /* source data is stored in big endian format */
@@ -88,7 +88,7 @@ version(LSB_FIRST) {
 }
 
     /* write 16-bit word to WORD-RAM */
-    *(u16 *)(scd.word_ram[0] + dst_index) = data ;
+    *cast(u16 *)(scd.word_ram[0] + dst_index) = data ;
 
     /* increment CDC buffer source address */
     src_index = (src_index + 2) & 0x3ffe;
@@ -118,7 +118,7 @@ void word_ram_1_dma_w(u32 words)
   while (words--)
   {
     /* read 16-bit word from CDC buffer */
-    data = *(u16 *)(cdc.ram + src_index);
+    data = *cast(u16 *)(cdc.ram + src_index);
 
 version(LSB_FIRST) {
     /* source data is stored in big endian format */
@@ -126,7 +126,7 @@ version(LSB_FIRST) {
 }
 
     /* write 16-bit word to WORD-RAM */
-    *(u16 *)(scd.word_ram[1] + dst_index) = data ;
+    *cast(u16 *)(scd.word_ram[1] + dst_index) = data ;
 
     /* increment CDC buffer source address */
     src_index = (src_index + 2) & 0x3ffe;
@@ -156,7 +156,7 @@ void word_ram_2M_dma_w(u32 words)
   while (words--)
   {
     /* read 16-bit word from CDC buffer */
-    data = *(u16 *)(cdc.ram + src_index);
+    data = *cast(u16 *)(cdc.ram + src_index);
 
 version(LSB_FIRST) {
     /* source data is stored in big endian format */
@@ -164,7 +164,7 @@ version(LSB_FIRST) {
 }
 
     /* write 16-bit word to WORD-RAM */
-    *(u16 *)(scd.word_ram_2M + dst_index) = data ;
+    *cast(u16 *)(scd.word_ram_2M + dst_index) = data ;
 
     /* increment CDC buffer source address */
     src_index = (src_index + 2) & 0x3ffe;
@@ -277,25 +277,25 @@ void dot_ram_1_write8(u32 address, u32 data)
 u32 cell_ram_0_read16(u32 address)
 {
   address = gfx.lut_offset[(address >> 2) & 0x7fff] | (address & 0x10002);
-  return *(u16 *)(scd.word_ram[0] + address);
+  return *cast(u16 *)(scd.word_ram[0] + address);
 }
 
 u32 cell_ram_1_read16(u32 address)
 {
   address = gfx.lut_offset[(address >> 2) & 0x7fff] | (address & 0x10002);
-  return *(u16 *)(scd.word_ram[1] + address);
+  return *cast(u16 *)(scd.word_ram[1] + address);
 }
 
 void cell_ram_0_write16(u32 address, u32 data)
 {
   address = gfx.lut_offset[(address >> 2) & 0x7fff] | (address & 0x10002);
-  *(u16 *)(scd.word_ram[0] + address) = data;
+  *cast(u16 *)(scd.word_ram[0] + address) = data;
 }
 
 void cell_ram_1_write16(u32 address, u32 data)
 {
   address = gfx.lut_offset[(address >> 2) & 0x7fff] | (address & 0x10002);
-  *(u16 *)(scd.word_ram[1] + address) = data;
+  *cast(u16 *)(scd.word_ram[1] + address) = data;
 }
 
 u32 cell_ram_0_read8(u32 address)
@@ -457,10 +457,10 @@ s32 gfx_context_save(u8 *state)
   save_param(&bufferptr, state, &gfx.bufferOffset, sizeof(gfx.bufferOffset));
   save_param(&bufferptr, state, &gfx.bufferStart, sizeof(gfx.bufferStart));
 
-  tmp32 = (u8 *)(gfx.tracePtr) - scd.word_ram_2M;
+  tmp32 = cast(u8 *)(gfx.tracePtr) - scd.word_ram_2M;
   save_param(&bufferptr, state, &tmp32, 4);
 
-  tmp32 = (u8 *)(gfx.mapPtr) - scd.word_ram_2M;
+  tmp32 = cast(u8 *)(gfx.mapPtr) - scd.word_ram_2M;
   save_param(&bufferptr, state, &tmp32, 4);
 
   return bufferptr;
@@ -480,10 +480,10 @@ s32 gfx_context_load(u8 *state)
   load_param(&bufferptr, state, &gfx.bufferStart, sizeof(gfx.bufferStart));
 
   load_param(&bufferptr, state, &tmp32, 4);
-  gfx.tracePtr = (u16 *)(scd.word_ram_2M + tmp32);
+  gfx.tracePtr = cast(u16 *)(scd.word_ram_2M + tmp32);
 
   load_param(&bufferptr, state, &tmp32, 4);
-  gfx.mapPtr = (u16 *)(scd.word_ram_2M + tmp32);
+  gfx.mapPtr = cast(u16 *)(scd.word_ram_2M + tmp32);
 
   return bufferptr;
 }
@@ -623,7 +623,7 @@ void gfx_start(u32 base, s32 cycles)
     u32 mask;
     
     /* trace vector pointer */
-    gfx.tracePtr = (u16 *)(scd.word_ram_2M + ((base << 2) & 0x3fff8));
+    gfx.tracePtr = cast(u16 *)(scd.word_ram_2M + ((base << 2) & 0x3fff8));
 
     /* stamps & stamp map size */
     switch ((scd.regs[0x58>>1].b.l >> 1) & 0x03)
@@ -658,7 +658,7 @@ void gfx_start(u32 base, s32 cycles)
     }
 
     /* stamp map table base address */
-    gfx.mapPtr = (u16 *)(scd.word_ram_2M + ((scd.regs[0x5a>>1].w << 2) & mask));
+    gfx.mapPtr = cast(u16 *)(scd.word_ram_2M + ((scd.regs[0x5a>>1].w << 2) & mask));
 
     /* image buffer column offset (64 pixels/cell, minus 7 pixels to restart at cell beginning) */
     gfx.bufferOffset = (((scd.regs[0x5c>>1].b.l & 0x1f) + 1) << 6) - 7;

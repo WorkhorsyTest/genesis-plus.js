@@ -255,8 +255,8 @@ struct ssp1601_t {
 }
 
 
-static ssp1601_t *ssp = null;
-static u16 *PC;
+static ssp1601_t* ssp = null;
+static u16* PC;
 static int g_cycles;
 
 version(USE_DEBUGGER) {
@@ -264,35 +264,33 @@ static int running = 0;
 static int last_iram = 0;
 }
 
-static u32 read_P();
-
 /*#define USE_DEBUGGER*/
 
 /* 0 */
-alias ssp->gr[SSP_X].b.h          rX;
-alias ssp->gr[SSP_Y].b.h          rY;
-alias ssp->gr[SSP_A].b.h          rA;
-alias ssp->gr[SSP_ST].b.h         rST; /* 4 */
-alias ssp->gr[SSP_STACK].b.h      rSTACK;
-alias ssp->gr[SSP_PC].b.h         rPC;
-alias ssp->gr[SSP_P]              rP;
-alias ssp->gr[SSP_PM0].b.h        rPM0;/* 8 */
-alias ssp->gr[SSP_PM1].b.h        rPM1;
-alias ssp->gr[SSP_PM2].b.h        rPM2;
-alias ssp->gr[SSP_XST].b.h        rXST;
-alias ssp->gr[SSP_PM4].b.h        rPM4; /* 12 */
+alias ssp.gr[SSP_X].b.h          rX;
+alias ssp.gr[SSP_Y].b.h          rY;
+alias ssp.gr[SSP_A].b.h          rA;
+alias ssp.gr[SSP_ST].b.h         rST; /* 4 */
+alias ssp.gr[SSP_STACK].b.h      rSTACK;
+alias ssp.gr[SSP_PC].b.h         rPC;
+alias ssp.gr[SSP_P]              rP;
+alias ssp.gr[SSP_PM0].b.h        rPM0;/* 8 */
+alias ssp.gr[SSP_PM1].b.h        rPM1;
+alias ssp.gr[SSP_PM2].b.h        rPM2;
+alias ssp.gr[SSP_XST].b.h        rXST;
+alias ssp.gr[SSP_PM4].b.h        rPM4; /* 12 */
 /* 13 */
-alias ssp->gr[SSP_PMC]            rPMC;   /* will keep addr in .h, mode in .l */
-alias ssp->gr[SSP_A].b.l          rAL;
+alias ssp.gr[SSP_PMC]            rPMC;   /* will keep addr in .h, mode in .l */
+alias ssp.gr[SSP_A].b.l          rAL;
 
-alias ssp->gr[SSP_A].v            rA32;
-alias ssp->ptr.r                  rIJ;
+alias ssp.gr[SSP_A].v            rA32;
+alias ssp.ptr.r                  rIJ;
 
 int IJind(int op) { return (((op>>6)&4)|(op&3)); }
 
-u16 GET_PC() { return (PC - (u16 *)svp->iram_rom); }
-u32 GET_PPC_OFFS() { return ((u32)PC - (u32)svp->iram_rom - 2); }
-void SET_PC(u16 d) { PC = (u16 *)svp->iram_rom + d; }
+u16 GET_PC() { return (PC - (u16 *)svp.iram_rom); }
+u32 GET_PPC_OFFS() { return ((u32)PC - (u32)svp.iram_rom - 2); }
+void SET_PC(u16 d) { PC = (u16 *)svp.iram_rom + d; }
 
 /* flags */
 int SSP_FLAG_L() { return (1<<0xc); }
@@ -456,7 +454,7 @@ version(LOG_SVP) {
     elprintf(EL_ANOMALY|EL_SVP, "ssp FIXME: stack underflow! (%i) @ %04x", rSTACK, GET_PPC_OFFS());
 }
   }
-  return ssp->stack[rSTACK];
+  return ssp.stack[rSTACK];
 }
 
 static void write_STACK(u32 d)
@@ -467,7 +465,7 @@ version(LOG_SVP) {
 }
   rSTACK = 0;
   }
-  ssp->stack[rSTACK++] = d;
+  ssp.stack[rSTACK++] = d;
 }
 
 /* 6 */
@@ -515,7 +513,7 @@ void overwite_write(u16 dst, u32 d) {
 
 static u32 pm_io(int reg, int write, u32 d)
 {
-  if (ssp->emu_status & SSP_PMC_SET)
+  if (ssp.emu_status & SSP_PMC_SET)
   {
     /* this MUST be blind r or w */
     if ((*(PC-1) & 0xff0f) && (*(PC-1) & 0xfff0)) {
@@ -523,19 +521,19 @@ version(LOG_SVP) {
       elprintf(EL_SVP|EL_ANOMALY, "ssp FIXME: tried to set PM%i (%c) with non-blind i/o %08x @ %04x",
         reg, write ? 'w' : 'r', rPMC.v, GET_PPC_OFFS());
 }
-      ssp->emu_status &= ~SSP_PMC_SET;
+      ssp.emu_status &= ~SSP_PMC_SET;
       return 0;
     }
 version(LOG_SVP) {
     elprintf(EL_SVP, "PM%i (%c) set to %08x @ %04x", reg, write ? 'w' : 'r', rPMC.v, GET_PPC_OFFS());
 }
-    ssp->pmac[write][reg] = rPMC.v;
-    ssp->emu_status &= ~SSP_PMC_SET;
+    ssp.pmac[write][reg] = rPMC.v;
+    ssp.emu_status &= ~SSP_PMC_SET;
 version(LOG_SVP) {
     if ((rPMC.v & 0x7f) == 0x1c && (rPMC.v & 0x7fff0000) == 0) {
-      elprintf(EL_SVP, "ssp IRAM copy from %06x", (ssp->mem.bank.RAM1[0]-1)<<1);
+      elprintf(EL_SVP, "ssp IRAM copy from %06x", (ssp.mem.bank.RAM1[0]-1)<<1);
 version(USE_DEBUGGER) {
-      last_iram = (ssp->mem.bank.RAM1[0]-1)<<1;
+      last_iram = (ssp.mem.bank.RAM1[0]-1)<<1;
 }
     }
 }
@@ -543,12 +541,12 @@ version(USE_DEBUGGER) {
   }
 
   /* just in case */
-  if (ssp->emu_status & SSP_PMC_HAVE_ADDR) {
+  if (ssp.emu_status & SSP_PMC_HAVE_ADDR) {
 version(LOG_SVP) {
     elprintf(EL_SVP|EL_ANOMALY, "ssp FIXME: PM%i (%c) with only addr set @ %04x",
       reg, write ? 'w' : 'r', GET_PPC_OFFS());
 }
-    ssp->emu_status &= ~SSP_PMC_HAVE_ADDR;
+    ssp.emu_status &= ~SSP_PMC_HAVE_ADDR;
   }
 
   if (reg == 4 || (rST & 0x60))
@@ -556,13 +554,13 @@ version(LOG_SVP) {
 version(LOG_SVP) {
     #define CADDR ((((mode<<16)&0x7f0000)|addr)<<1)
 }
-    u16 *dram = (u16 *)svp->dram;
+    u16 *dram = (u16 *)svp.dram;
     if (write)
     {
-      /*int mode = ssp->pmac_write[reg]&0xffff;
-      int addr = ssp->pmac_write[reg]>>16;*/
-      int addr = ssp->pmac[1][reg]&0xffff;
-      int mode = ssp->pmac[1][reg]>>16;
+      /*int mode = ssp.pmac_write[reg]&0xffff;
+      int addr = ssp.pmac_write[reg]>>16;*/
+      int addr = ssp.pmac[1][reg]&0xffff;
+      int mode = ssp.pmac[1][reg]>>16;
 version(LOG_SVP) {
       if ((mode & 0xb800) == 0xb800)
         elprintf(EL_SVP|EL_ANOMALY, "ssp FIXME: mode %04x", mode);
@@ -577,7 +575,7 @@ version(LOG_SVP) {
         if (mode & 0x0400) {
                overwite_write(dram[addr], d);
         } else dram[addr] = d;
-        ssp->pmac[1][reg] += inc;
+        ssp.pmac[1][reg] += inc;
       }
       else if ((mode & 0xfbff) == 0x4018) /* DRAM, cell inc */
       {
@@ -588,8 +586,8 @@ version(LOG_SVP) {
         if (mode & 0x0400) {
                overwite_write(dram[addr], d);
         } else dram[addr] = d;
-        /* ssp->pmac_write[reg] += (addr&1) ? (31<<16) : (1<<16); */
-        ssp->pmac[1][reg] += (addr&1) ? 31 : 1;
+        /* ssp.pmac_write[reg] += (addr&1) ? (31<<16) : (1<<16); */
+        ssp.pmac[1][reg] += (addr&1) ? 31 : 1;
       }
       else if ((mode & 0x47ff) == 0x001c) /* IRAM */
       {
@@ -599,8 +597,8 @@ version(LOG_SVP) {
           elprintf(EL_SVP|EL_ANOMALY, "ssp FIXME: invalid IRAM addr: %04x", addr<<1);
         elprintf(EL_SVP, "ssp IRAM w [%06x] %04x (inc %i)", (addr<<1)&0x7ff, d, inc >> 16);
 }
-        ((u16 *)svp->iram_rom)[addr&0x3ff] = d;
-        ssp->pmac[1][reg] += inc;
+        ((u16 *)svp.iram_rom)[addr&0x3ff] = d;
+        ssp.pmac[1][reg] += inc;
       }
 version(LOG_SVP) {
       else
@@ -612,10 +610,10 @@ version(LOG_SVP) {
     }
     else
     {
-      /*int mode = ssp->pmac_read[reg]&0xffff;
-      int addr = ssp->pmac_read[reg]>>16;*/
-      int addr = ssp->pmac[0][reg]&0xffff;
-      int mode = ssp->pmac[0][reg]>>16;
+      /*int mode = ssp.pmac_read[reg]&0xffff;
+      int addr = ssp.pmac_read[reg]>>16;*/
+      int addr = ssp.pmac[0][reg]&0xffff;
+      int mode = ssp.pmac[0][reg]>>16;
 
       if      ((mode & 0xfff0) == 0x0800) /* ROM, inc 1, verified to be correct */
       {
@@ -623,10 +621,10 @@ version(LOG_SVP) {
         elprintf(EL_SVP, "ssp ROM  r [%06x] %04x", CADDR,
           ((u16 *)cart.rom)[addr|((mode&0xf)<<16)]);
 }
-        /*if ((s32)ssp->pmac_read[reg] >> 16 == -1) ssp->pmac_read[reg]++;
-        ssp->pmac_read[reg] += 1<<16;*/
-        if ((s32)(ssp->pmac[0][reg] & 0xffff) == -1) ssp->pmac[0][reg] += 1<<16;
-        ssp->pmac[0][reg] ++;
+        /*if ((s32)ssp.pmac_read[reg] >> 16 == -1) ssp.pmac_read[reg]++;
+        ssp.pmac_read[reg] += 1<<16;*/
+        if ((s32)(ssp.pmac[0][reg] & 0xffff) == -1) ssp.pmac[0][reg] += 1<<16;
+        ssp.pmac[0][reg] ++;
         
         d = ((u16 *)cart.rom)[addr|((mode&0xf)<<16)];
       }
@@ -637,7 +635,7 @@ version(LOG_SVP) {
         elprintf(EL_SVP, "ssp PM%i DRAM r [%06x] %04x (inc %i)", reg, CADDR, dram[addr], inc >> 16);
 }
         d = dram[addr];
-        ssp->pmac[0][reg] += inc;
+        ssp.pmac[0][reg] += inc;
       }
       else
       {
@@ -650,7 +648,7 @@ version(LOG_SVP) {
     }
 
     /* PMC value corresponds to last PMR accessed (not sure). */
-    rPMC.v = ssp->pmac[write][reg];
+    rPMC.v = ssp.pmac[write][reg];
 
     return d;
   }
@@ -668,7 +666,7 @@ version(LOG_SVP) {
 }
   d = rPM0;
   if (!(d & 2) && (GET_PPC_OFFS() == 0x800 || GET_PPC_OFFS() == 0x1851E)) {
-    ssp->emu_status |= SSP_WAIT_PM0;
+    ssp.emu_status |= SSP_WAIT_PM0;
 version(LOG_SVP) {
     elprintf(EL_SVP, "det TIGHT loop: PM0");
 }
@@ -764,13 +762,13 @@ static u32 read_PM4()
   if (d == 0) {
     switch (GET_PPC_OFFS()) {
       case 0x0854:
-        ssp->emu_status |= SSP_WAIT_30FE08;
+        ssp.emu_status |= SSP_WAIT_30FE08;
 version(LOG_SVP) {
         elprintf(EL_SVP, "det TIGHT loop: [30fe08]");
 }
         break;
       case 0x4f12:
-        ssp->emu_status |= SSP_WAIT_30FE06;
+        ssp.emu_status |= SSP_WAIT_30FE06;
 version(LOG_SVP) {
         elprintf(EL_SVP, "det TIGHT loop: [30fe06]");
 }
@@ -801,17 +799,17 @@ static u32 read_PMC()
 {
 version(LOG_SVP) {
   elprintf(EL_SVP, "PMC r a %04x (st %c) @ %04x", rPMC.b.h,
-    (ssp->emu_status & SSP_PMC_HAVE_ADDR) ? 'm' : 'a', GET_PPC_OFFS());
+    (ssp.emu_status & SSP_PMC_HAVE_ADDR) ? 'm' : 'a', GET_PPC_OFFS());
 }
-  if (ssp->emu_status & SSP_PMC_HAVE_ADDR) {
-    /* if (ssp->emu_status & SSP_PMC_SET) */
+  if (ssp.emu_status & SSP_PMC_HAVE_ADDR) {
+    /* if (ssp.emu_status & SSP_PMC_SET) */
     /*  elprintf(EL_ANOMALY|EL_SVP, "prev PMC not used @ %04x", GET_PPC_OFFS()); */
-    ssp->emu_status |= SSP_PMC_SET;
-    ssp->emu_status &= ~SSP_PMC_HAVE_ADDR;
+    ssp.emu_status |= SSP_PMC_SET;
+    ssp.emu_status &= ~SSP_PMC_HAVE_ADDR;
     /* return ((rPMC.h << 4) & 0xfff0) | ((rPMC.h >> 4) & 0xf); */
     return ((rPMC.b.l << 4) & 0xfff0) | ((rPMC.b.l >> 4) & 0xf);
   } else {
-    ssp->emu_status |= SSP_PMC_HAVE_ADDR;
+    ssp.emu_status |= SSP_PMC_HAVE_ADDR;
     /* return rPMC.h; */
     return rPMC.b.l;
   }
@@ -819,18 +817,18 @@ version(LOG_SVP) {
 
 static void write_PMC(u32 d)
 {
-  if (ssp->emu_status & SSP_PMC_HAVE_ADDR) {
-    /* if (ssp->emu_status & SSP_PMC_SET) */
+  if (ssp.emu_status & SSP_PMC_HAVE_ADDR) {
+    /* if (ssp.emu_status & SSP_PMC_SET) */
     /*  elprintf(EL_ANOMALY|EL_SVP, "prev PMC not used @ %04x", GET_PPC_OFFS()); */
-    ssp->emu_status |= SSP_PMC_SET;
-    ssp->emu_status &= ~SSP_PMC_HAVE_ADDR;
+    ssp.emu_status |= SSP_PMC_SET;
+    ssp.emu_status &= ~SSP_PMC_HAVE_ADDR;
     /* rPMC.l = d; */
     rPMC.b.h = d;
 version(LOG_SVP) {
     elprintf(EL_SVP, "PMC w m %04x @ %04x", rPMC.b.l, GET_PPC_OFFS());
 }
   } else {
-    ssp->emu_status |= SSP_PMC_HAVE_ADDR;
+    ssp.emu_status |= SSP_PMC_HAVE_ADDR;
     /* rPMC.h = d; */
     rPMC.b.l = d;
 version(LOG_SVP) {
@@ -846,7 +844,7 @@ static u32 read_AL()
 version(LOG_SVP) {
     elprintf(EL_SVP, "ssp dummy PM assign %08x @ %04x", rPMC.v, GET_PPC_OFFS());
 }
-    ssp->emu_status &= ~(SSP_PMC_SET|SSP_PMC_HAVE_ADDR); /* ? */
+    ssp.emu_status &= ~(SSP_PMC_SET|SSP_PMC_HAVE_ADDR); /* ? */
   }
   return rAL;
 }
@@ -907,47 +905,47 @@ static u32 ptr1_read_(int ri, int isj2, int modi3)
     /* mod=0 (00) */
     case 0x00:
     case 0x01:
-    case 0x02: return ssp->mem.bank.RAM0[ssp->ptr.bank.r0[t&3]];
-    case 0x03: return ssp->mem.bank.RAM0[0];
+    case 0x02: return ssp.mem.bank.RAM0[ssp.ptr.bank.r0[t&3]];
+    case 0x03: return ssp.mem.bank.RAM0[0];
     case 0x04:
     case 0x05:
-    case 0x06: return ssp->mem.bank.RAM1[ssp->ptr.bank.r1[t&3]];
-    case 0x07: return ssp->mem.bank.RAM1[0];
+    case 0x06: return ssp.mem.bank.RAM1[ssp.ptr.bank.r1[t&3]];
+    case 0x07: return ssp.mem.bank.RAM1[0];
     /* mod=1 (01), "+!" */
     case 0x08:
     case 0x09:
-    case 0x0a: return ssp->mem.bank.RAM0[ssp->ptr.bank.r0[t&3]++];
-    case 0x0b: return ssp->mem.bank.RAM0[1];
+    case 0x0a: return ssp.mem.bank.RAM0[ssp.ptr.bank.r0[t&3]++];
+    case 0x0b: return ssp.mem.bank.RAM0[1];
     case 0x0c:
     case 0x0d:
-    case 0x0e: return ssp->mem.bank.RAM1[ssp->ptr.bank.r1[t&3]++];
-    case 0x0f: return ssp->mem.bank.RAM1[1];
+    case 0x0e: return ssp.mem.bank.RAM1[ssp.ptr.bank.r1[t&3]++];
+    case 0x0f: return ssp.mem.bank.RAM1[1];
     /* mod=2 (10), "-" */
     case 0x10:
     case 0x11:
-    case 0x12: rp = &ssp->ptr.bank.r0[t&3]; t = ssp->mem.bank.RAM0[*rp];
+    case 0x12: rp = &ssp.ptr.bank.r0[t&3]; t = ssp.mem.bank.RAM0[*rp];
                if (!(rST&7)) { (*rp)--; return t; }
                add = -1; goto modulo;
-    case 0x13: return ssp->mem.bank.RAM0[2];
+    case 0x13: return ssp.mem.bank.RAM0[2];
     case 0x14:
     case 0x15:
-    case 0x16: rp = &ssp->ptr.bank.r1[t&3]; t = ssp->mem.bank.RAM1[*rp];
+    case 0x16: rp = &ssp.ptr.bank.r1[t&3]; t = ssp.mem.bank.RAM1[*rp];
                if (!(rST&7)) { (*rp)--; return t; }
                add = -1; goto modulo;
-    case 0x17: return ssp->mem.bank.RAM1[2];
+    case 0x17: return ssp.mem.bank.RAM1[2];
     /* mod=3 (11), "+" */
     case 0x18:
     case 0x19:
-    case 0x1a: rp = &ssp->ptr.bank.r0[t&3]; t = ssp->mem.bank.RAM0[*rp];
+    case 0x1a: rp = &ssp.ptr.bank.r0[t&3]; t = ssp.mem.bank.RAM0[*rp];
                if (!(rST&7)) { (*rp)++; return t; }
                add = 1; goto modulo;
-    case 0x1b: return ssp->mem.bank.RAM0[3];
+    case 0x1b: return ssp.mem.bank.RAM0[3];
     case 0x1c:
     case 0x1d:
-    case 0x1e: rp = &ssp->ptr.bank.r1[t&3]; t = ssp->mem.bank.RAM1[*rp];
+    case 0x1e: rp = &ssp.ptr.bank.r1[t&3]; t = ssp.mem.bank.RAM1[*rp];
                if (!(rST&7)) { (*rp)++; return t; }
                add = 1; goto modulo;
-    case 0x1f: return ssp->mem.bank.RAM1[3];
+    case 0x1f: return ssp.mem.bank.RAM1[3];
   }
 
   return 0;
@@ -970,12 +968,12 @@ static void ptr1_write(int op, u32 d)
     /* mod=0 (00) */
     case 0x00:
     case 0x01:
-    case 0x02: ssp->mem.bank.RAM0[ssp->ptr.bank.r0[t&3]] = d; return;
-    case 0x03: ssp->mem.bank.RAM0[0] = d; return;
+    case 0x02: ssp.mem.bank.RAM0[ssp.ptr.bank.r0[t&3]] = d; return;
+    case 0x03: ssp.mem.bank.RAM0[0] = d; return;
     case 0x04:
     case 0x05:
-    case 0x06: ssp->mem.bank.RAM1[ssp->ptr.bank.r1[t&3]] = d; return;
-    case 0x07: ssp->mem.bank.RAM1[0] = d; return;
+    case 0x06: ssp.mem.bank.RAM1[ssp.ptr.bank.r1[t&3]] = d; return;
+    case 0x07: ssp.mem.bank.RAM1[0] = d; return;
     /* mod=1 (01), "+!" */
     /* mod=3,      "+" */
     case 0x08:
@@ -983,27 +981,27 @@ static void ptr1_write(int op, u32 d)
     case 0x09:
     case 0x19:
     case 0x0a:
-    case 0x1a: ssp->mem.bank.RAM0[ssp->ptr.bank.r0[t&3]++] = d; return;
-    case 0x0b: ssp->mem.bank.RAM0[1] = d; return;
+    case 0x1a: ssp.mem.bank.RAM0[ssp.ptr.bank.r0[t&3]++] = d; return;
+    case 0x0b: ssp.mem.bank.RAM0[1] = d; return;
     case 0x0c:
     case 0x1c:
     case 0x0d:
     case 0x1d:
     case 0x0e:
-    case 0x1e: ssp->mem.bank.RAM1[ssp->ptr.bank.r1[t&3]++] = d; return;
-    case 0x0f: ssp->mem.bank.RAM1[1] = d; return;
+    case 0x1e: ssp.mem.bank.RAM1[ssp.ptr.bank.r1[t&3]++] = d; return;
+    case 0x0f: ssp.mem.bank.RAM1[1] = d; return;
     /* mod=2 (10), "-" */
     case 0x10:
     case 0x11:
-    case 0x12: ssp->mem.bank.RAM0[ssp->ptr.bank.r0[t&3]--] = d; return;
-    case 0x13: ssp->mem.bank.RAM0[2] = d; return;
+    case 0x12: ssp.mem.bank.RAM0[ssp.ptr.bank.r0[t&3]--] = d; return;
+    case 0x13: ssp.mem.bank.RAM0[2] = d; return;
     case 0x14:
     case 0x15:
-    case 0x16: ssp->mem.bank.RAM1[ssp->ptr.bank.r1[t&3]--] = d; return;
-    case 0x17: ssp->mem.bank.RAM1[2] = d; return;
+    case 0x16: ssp.mem.bank.RAM1[ssp.ptr.bank.r1[t&3]--] = d; return;
+    case 0x17: ssp.mem.bank.RAM1[2] = d; return;
     /* mod=3 (11) */
-    case 0x1b: ssp->mem.bank.RAM0[3] = d; return;
-    case 0x1f: ssp->mem.bank.RAM1[3] = d; return;
+    case 0x1b: ssp.mem.bank.RAM0[3] = d; return;
+    case 0x1f: ssp.mem.bank.RAM1[3] = d; return;
   }
 }
 
@@ -1015,21 +1013,21 @@ static u32 ptr2_read(int op)
     /* mod=0 (00) */
     case 0x00:
     case 0x01:
-    case 0x02: mv = ssp->mem.bank.RAM0[ssp->ptr.bank.r0[t&3]]++; break;
-    case 0x03: mv = ssp->mem.bank.RAM0[0]++; break;
+    case 0x02: mv = ssp.mem.bank.RAM0[ssp.ptr.bank.r0[t&3]]++; break;
+    case 0x03: mv = ssp.mem.bank.RAM0[0]++; break;
     case 0x04:
     case 0x05:
-    case 0x06: mv = ssp->mem.bank.RAM1[ssp->ptr.bank.r1[t&3]]++; break;
-    case 0x07: mv = ssp->mem.bank.RAM1[0]++; break;
+    case 0x06: mv = ssp.mem.bank.RAM1[ssp.ptr.bank.r1[t&3]]++; break;
+    case 0x07: mv = ssp.mem.bank.RAM1[0]++; break;
     /* mod=1 (01) */
-    case 0x0b: mv = ssp->mem.bank.RAM0[1]++; break;
-    case 0x0f: mv = ssp->mem.bank.RAM1[1]++; break;
+    case 0x0b: mv = ssp.mem.bank.RAM0[1]++; break;
+    case 0x0f: mv = ssp.mem.bank.RAM1[1]++; break;
     /* mod=2 (10) */
-    case 0x13: mv = ssp->mem.bank.RAM0[2]++; break;
-    case 0x17: mv = ssp->mem.bank.RAM1[2]++; break;
+    case 0x13: mv = ssp.mem.bank.RAM0[2]++; break;
+    case 0x17: mv = ssp.mem.bank.RAM1[2]++; break;
     /* mod=3 (11) */
-    case 0x1b: mv = ssp->mem.bank.RAM0[3]++; break;
-    case 0x1f: mv = ssp->mem.bank.RAM1[3]++; break;
+    case 0x1b: mv = ssp.mem.bank.RAM0[3]++; break;
+    case 0x1f: mv = ssp.mem.bank.RAM1[3]++; break;
     default:
 version(LOG_SVP) {
       elprintf(EL_SVP|EL_ANOMALY, "ssp FIXME: invalid mod in ((rX))? @ %04x", GET_PPC_OFFS());
@@ -1037,7 +1035,7 @@ version(LOG_SVP) {
       return 0;
   }
 
-  return ((u16 *)svp->iram_rom)[mv];
+  return ((u16 *)svp.iram_rom)[mv];
 }
 
 
@@ -1046,8 +1044,8 @@ version(LOG_SVP) {
 void ssp1601_reset(ssp1601_t *l_ssp)
 {
   ssp = l_ssp;
-  ssp->emu_status = 0;
-  ssp->gr[SSP_GR0].v = 0xffff0000;
+  ssp.emu_status = 0;
+  ssp.gr[SSP_GR0].v = 0xffff0000;
   rPC = 0x400;
   rSTACK = 0; /* ? using ascending stack */
   rST = 0;
@@ -1057,16 +1055,16 @@ void ssp1601_reset(ssp1601_t *l_ssp)
 version(USE_DEBUGGER) {
 static void debug_dump()
 {
-  printf("GR0:   %04x    X: %04x    Y: %04x  A: %08x\n", ssp->gr[SSP_GR0].b.h, rX, rY, ssp->gr[SSP_A].v);
-  printf("PC:    %04x  (%04x)                P: %08x\n", GET_PC(), GET_PC() << 1, ssp->gr[SSP_P].v);
+  printf("GR0:   %04x    X: %04x    Y: %04x  A: %08x\n", ssp.gr[SSP_GR0].b.h, rX, rY, ssp.gr[SSP_A].v);
+  printf("PC:    %04x  (%04x)                P: %08x\n", GET_PC(), GET_PC() << 1, ssp.gr[SSP_P].v);
   printf("PM0:   %04x  PM1: %04x  PM2: %04x\n", rPM0, rPM1, rPM2);
-  printf("XST:   %04x  PM4: %04x  PMC: %08x\n", rXST, rPM4, ssp->gr[SSP_PMC].v);
+  printf("XST:   %04x  PM4: %04x  PMC: %08x\n", rXST, rPM4, ssp.gr[SSP_PMC].v);
   printf(" ST:   %04x  %c%c%c%c,  GP0_0 %i,  GP0_1 %i\n", rST, rST&SSP_FLAG_N()?'N':'n', rST&SSP_FLAG_V()?'V':'v',
     rST&SSP_FLAG_Z()?'Z':'z', rST&SSP_FLAG_L()?'L':'l', (rST>>5)&1, (rST>>6)&1);
-  printf("STACK: %i %04x %04x %04x %04x %04x %04x\n", rSTACK, ssp->stack[0], ssp->stack[1],
-    ssp->stack[2], ssp->stack[3], ssp->stack[4], ssp->stack[5]);
+  printf("STACK: %i %04x %04x %04x %04x %04x %04x\n", rSTACK, ssp.stack[0], ssp.stack[1],
+    ssp.stack[2], ssp.stack[3], ssp.stack[4], ssp.stack[5]);
   printf("r0-r2: %02x %02x %02x  r4-r6: %02x %02x %02x\n", rIJ[0], rIJ[1], rIJ[2], rIJ[4], rIJ[5], rIJ[6]);
-  elprintf(EL_SVP, "cycles: %i, emu_status: %x", g_cycles, ssp->emu_status);
+  elprintf(EL_SVP, "cycles: %i, emu_status: %x", g_cycles, ssp.emu_status);
 }
 
 static void debug_dump_mem()
@@ -1078,7 +1076,7 @@ static void debug_dump_mem()
     if (h == 16) printf("RAM1\n");
     printf("%03x:", h*16);
     for (i = 0; i < 16; i++)
-      printf(" %04x", ssp->mem.RAM[h*16+i]);
+      printf(" %04x", ssp.mem.RAM[h*16+i]);
     printf("\n");
   }
 }
@@ -1145,8 +1143,8 @@ static void debug(u32 pc, u32 op)
       }
       case 'd':
         sprintf(buff, "iramrom_%04x.bin", last_iram);
-        debug_dump2file(buff, svp->iram_rom, sizeof(svp->iram_rom));
-        debug_dump2file("dram.bin", svp->dram, sizeof(svp->dram));
+        debug_dump2file(buff, svp.iram_rom, sizeof(svp.iram_rom));
+        debug_dump2file("dram.bin", svp.dram, sizeof(svp.dram));
         break;
       default:  printf("unknown command\n"); break;
     }
@@ -1202,7 +1200,7 @@ version(USE_DEBUGGER) {
       case 0x06: tmpv = *PC++; ptr1_write(op, tmpv); break;
 
       /* ld adr, a */
-      case 0x07: ssp->mem.RAM[op & 0x1ff] = rA; break;
+      case 0x07: ssp.mem.RAM[op & 0x1ff] = rA; break;
 
       /* ld d, ri */
       case 0x09: tmpv = rIJ[(op&3)|((op>>6)&4)]; REG_WRITE((op & 0xf0) >> 4, tmpv); break;
@@ -1226,7 +1224,7 @@ version(USE_DEBUGGER) {
       }
 
       /* ld d, (a) */
-      case 0x25: tmpv = ((u16 *)svp->iram_rom)[rA]; REG_WRITE((op & 0xf0) >> 4, tmpv); break;
+      case 0x25: tmpv = ((u16 *)svp.iram_rom)[rA]; REG_WRITE((op & 0xf0) >> 4, tmpv); break;
 
       /* bra cond, addr */
       case 0x26: {
@@ -1311,13 +1309,13 @@ version(LOG_SVP) {
       case 0x71: tmpv = ptr1_read(op); OP_EORA(tmpv); break;
 
       /* OP a, adr */
-      case 0x03: tmpv = ssp->mem.RAM[op & 0x1ff]; OP_LDA (tmpv); break;
-      case 0x13: tmpv = ssp->mem.RAM[op & 0x1ff]; OP_SUBA(tmpv); break;
-      case 0x33: tmpv = ssp->mem.RAM[op & 0x1ff]; OP_CMPA(tmpv); break;
-      case 0x43: tmpv = ssp->mem.RAM[op & 0x1ff]; OP_ADDA(tmpv); break;
-      case 0x53: tmpv = ssp->mem.RAM[op & 0x1ff]; OP_ANDA(tmpv); break;
-      case 0x63: tmpv = ssp->mem.RAM[op & 0x1ff]; OP_ORA (tmpv); break;
-      case 0x73: tmpv = ssp->mem.RAM[op & 0x1ff]; OP_EORA(tmpv); break;
+      case 0x03: tmpv = ssp.mem.RAM[op & 0x1ff]; OP_LDA (tmpv); break;
+      case 0x13: tmpv = ssp.mem.RAM[op & 0x1ff]; OP_SUBA(tmpv); break;
+      case 0x33: tmpv = ssp.mem.RAM[op & 0x1ff]; OP_CMPA(tmpv); break;
+      case 0x43: tmpv = ssp.mem.RAM[op & 0x1ff]; OP_ADDA(tmpv); break;
+      case 0x53: tmpv = ssp.mem.RAM[op & 0x1ff]; OP_ANDA(tmpv); break;
+      case 0x63: tmpv = ssp.mem.RAM[op & 0x1ff]; OP_ORA (tmpv); break;
+      case 0x73: tmpv = ssp.mem.RAM[op & 0x1ff]; OP_EORA(tmpv); break;
 
       /* OP a, imm */
       case 0x14: tmpv = *PC++; OP_SUBA(tmpv); break;
@@ -1389,25 +1387,25 @@ version(LOG_SVP) {
         break;
     }
   }
-  while (--g_cycles > 0 && !(ssp->emu_status & SSP_WAIT_MASK));
+  while (--g_cycles > 0 && !(ssp.emu_status & SSP_WAIT_MASK));
 
   read_P(); /* update P */
   rPC = GET_PC();
 
 version(LOG_SVP) {
-  if (ssp->gr[SSP_GR0].v != 0xffff0000)
-    elprintf(EL_ANOMALY|EL_SVP, "ssp FIXME: REG 0 corruption! %08x", ssp->gr[SSP_GR0].v);
+  if (ssp.gr[SSP_GR0].v != 0xffff0000)
+    elprintf(EL_ANOMALY|EL_SVP, "ssp FIXME: REG 0 corruption! %08x", ssp.gr[SSP_GR0].v);
 }
 }
 
 
 u32 REG_READ(u32 r) {
-    return (((r) <= 4) ? ssp->gr[r].b.h : read_handlers[r]());
+    return (((r) <= 4) ? ssp.gr[r].b.h : read_handlers[r]());
 }
 
 void REG_WRITE(u32 r, u32 d) {
   int r1 = r;
   if (r1 >= 4) write_handlers[r1](d);
-  else if (r1 > 0) ssp->gr[r1].b.h = d;
+  else if (r1 > 0) ssp.gr[r1].b.h = d;
 }
 

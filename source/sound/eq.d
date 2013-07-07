@@ -102,8 +102,8 @@ void init_3band_state(EQSTATE * es, int lowfreq, int highfreq, int mixfreq)
 
     /* Calculate filter cutoff frequencies */
 
-    es.lf = 2 * sin(M_PI * ((double) lowfreq / (double) mixfreq));
-    es.hf = 2 * sin(M_PI * ((double) highfreq / (double) mixfreq));
+    es.lf = 2 * sin(M_PI * (cast(double) lowfreq / cast(double) mixfreq));
+    es.hf = 2 * sin(M_PI * (cast(double) highfreq / cast(double) mixfreq));
 }
 
 
@@ -125,7 +125,7 @@ double do_3band(EQSTATE* es, int sample)
 
     /* Filter #1 (lowpass) */
 
-    es.f1p0 += (es.lf * ((double) sample - es.f1p0)) + vsa;
+    es.f1p0 += (es.lf * (cast(double) sample - es.f1p0)) + vsa;
     es.f1p1 += (es.lf * (es.f1p0 - es.f1p1));
     es.f1p2 += (es.lf * (es.f1p1 - es.f1p2));
     es.f1p3 += (es.lf * (es.f1p2 - es.f1p3));
@@ -134,7 +134,7 @@ double do_3band(EQSTATE* es, int sample)
 
     /* Filter #2 (highpass) */
 
-    es.f2p0 += (es.hf * ((double) sample - es.f2p0)) + vsa;
+    es.f2p0 += (es.hf * (cast(double) sample - es.f2p0)) + vsa;
     es.f2p1 += (es.hf * (es.f2p0 - es.f2p1));
     es.f2p2 += (es.hf * (es.f2p1 - es.f2p2));
     es.f2p3 += (es.hf * (es.f2p2 - es.f2p3));
@@ -161,5 +161,5 @@ double do_3band(EQSTATE* es, int sample)
 
     /* Return result */
 
-    return (int) (l + m + h);
+    return cast(int) (l + m + h);
 }
