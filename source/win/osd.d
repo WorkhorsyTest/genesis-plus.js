@@ -9,7 +9,6 @@ import common;
 import main;
 import config;
 import error;
-import unzip;
 import fileio;
 
 alias osd_input_update sdl_input_update;

@@ -40,8 +40,8 @@
  *
  ****************************************************************************************/
 
+import std.zip;
 import common;
-import zlib;
 
 int load_archive(char* filename, u8* buffer, int maxsize, char* extension)
 {
