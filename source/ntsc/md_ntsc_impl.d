@@ -24,7 +24,7 @@ const float PI = 3.14159265358979323846f;
 const int rgb_bits = 8;
 //const float artifacts_max = artifacts_mid * 1.5f;
 const float fringing_max = fringing_mid * 2;
-int STD_HUE_CONDITION(md_ntsc_setup_t const* setup) { return 1; }
+int STD_HUE_CONDITION(const md_ntsc_setup_t* setup) { return 1; }
 
 const int ext_decoder_hue     = std_decoder_hue + 15;
 const int rgb_unit            = 1 << rgb_bits;
@@ -42,7 +42,7 @@ struct init_t
   float brightness;
   float artifacts;
   float fringing;
-  float kernel [rescale_out * kernel_size * 2];
+  float[rescale_out * kernel_size * 2] kernel;
 }
 
 static void ROTATE_IQ(float* i, float* q, float sin_b, float cos_b) {
@@ -52,25 +52,25 @@ static void ROTATE_IQ(float* i, float* q, float sin_b, float cos_b) {
   (*i) = t;
 }
 
-static void init_filters( init_t* impl, md_ntsc_setup_t const* setup )
+static void init_filters( init_t* impl, const md_ntsc_setup_t* setup )
 {
 static if(rescale_out > 1) {
-    float kernels [kernel_size * 2];
+    float[kernel_size * 2] kernels;
 } else {
-  float* const kernels = impl->kernel;
+  const float* kernels = impl.kernel;
 }
 
   /* generate luma (y) filter using sinc kernel */
   {
     /* sinc with rolloff (dsf) */
-    float const rolloff = 1 + (float) setup->sharpness * (float) 0.032;
-    float const maxh = 32;
-    float const pow_a_n = (float) pow( rolloff, maxh );
+    const float rolloff = 1 + cast(float) setup.sharpness * cast(float) 0.032;
+    const float maxh = 32;
+    const float pow_a_n = cast(float) pow( rolloff, maxh );
     float sum;
     int i;
     /* quadratic mapping to reduce negative (blurring) range */
-    float to_angle = (float) setup->resolution + 1;
-    to_angle = PI / maxh * (float) LUMA_CUTOFF * (to_angle * to_angle + 1);
+    float to_angle = cast(float) setup.resolution + 1;
+    to_angle = PI / maxh * cast(float) LUMA_CUTOFF * (to_angle * to_angle + 1);
 
     kernels [kernel_size * 3 / 2] = maxh; /* default center value */
     for ( i = 0; i < kernel_half * 2 + 1; i++ )
@@ -78,15 +78,15 @@ static if(rescale_out > 1) {
       int x = i - kernel_half;
       float angle = x * to_angle;
       /* instability occurs at center point with rolloff very close to 1.0 */
-      if ( x || pow_a_n > (float) 1.056 || pow_a_n < (float) 0.981 )
+      if ( x || pow_a_n > cast(float) 1.056 || pow_a_n < cast(float) 0.981 )
       {
-        float rolloff_cos_a = rolloff * (float) cos( angle );
+        float rolloff_cos_a = rolloff * cast(float) cos( angle );
         float num = 1 - rolloff_cos_a -
-            pow_a_n * (float) cos( maxh * angle ) +
-            pow_a_n * rolloff * (float) cos( (maxh - 1) * angle );
+            pow_a_n * cast(float) cos( maxh * angle ) +
+            pow_a_n * rolloff * cast(float) cos( (maxh - 1) * angle );
         float den = 1 - rolloff_cos_a - rolloff_cos_a + rolloff * rolloff;
         float dsf = num / den;
-        kernels [kernel_size * 3 / 2 - kernel_half + i] = dsf - (float) 0.5;
+        kernels [kernel_size * 3 / 2 - kernel_half + i] = dsf - cast(float) 0.5;
       }
     }
 
@@ -95,7 +95,7 @@ static if(rescale_out > 1) {
     for ( i = 0; i < kernel_half * 2 + 1; i++ )
     {
       float x = PI * 2 / (kernel_half * 2) * i;
-      float blackman = 0.42f - 0.5f * (float) cos( x ) + 0.08f * (float) cos( x * 2 );
+      float blackman = 0.42f - 0.5f * cast(float) cos( x ) + 0.08f * cast(float) cos( x * 2 );
       sum += (kernels [kernel_size * 3 / 2 - kernel_half + i] *= blackman);
     }
 
@@ -111,8 +111,8 @@ static if(rescale_out > 1) {
 
   /* generate chroma (iq) filter using gaussian kernel */
   {
-    float const cutoff_factor = -0.03125f;
-    float cutoff = (float) setup->bleed;
+    const float cutoff_factor = -0.03125f;
+    float cutoff = cast(float) setup.bleed;
     int i;
 
     if ( cutoff < 0 )
@@ -126,7 +126,7 @@ static if(rescale_out > 1) {
     cutoff = cutoff_factor - 0.65f * cutoff_factor * cutoff;
 
     for ( i = -kernel_half; i <= kernel_half; i++ )
-      kernels [kernel_size / 2 + i] = (float) exp( i * i * cutoff );
+      kernels [kernel_size / 2 + i] = cast(float) exp( i * i * cutoff );
 
     /* normalize even and odd phases separately */
     for ( i = 0; i < 2; i++ )
@@ -155,10 +155,10 @@ static if(rescale_out > 1) {
   */
 
   /* generate linear rescale kernels */
-  #if rescale_out > 1
+  static if(rescale_out > 1) {
   {
     float weight = 1.0f;
-    float* out = impl->kernel;
+    float* out_var = impl.kernel;
     int n = rescale_out;
     do
     {
@@ -169,56 +169,56 @@ static if(rescale_out > 1) {
       {
         float cur = kernels [i];
         float m = cur * weight;
-        *out++ = m + remain;
+        *out_var++ = m + remain;
         remain = cur - m;
       }
     }
     while ( --n );
   }
-  #endif
+  }
 }
 
-static float const default_decoder [6] =
+static const float[6] default_decoder =
   { 0.956f, 0.621f, -0.272f, -0.647f, -1.105f, 1.702f };
 
-static void init( init_t* impl, md_ntsc_setup_t const* setup )
+static void init( init_t* impl, const md_ntsc_setup_t* setup )
 {
-  impl->brightness = (float) setup->brightness * (0.5f * rgb_unit) + rgb_offset;
-  impl->contrast   = (float) setup->contrast   * (0.5f * rgb_unit) + rgb_unit;
-  #ifdef default_palette_contrast
-    if ( !setup->palette )
-      impl->contrast *= default_palette_contrast;
-  #endif
+  impl.brightness = cast(float) setup.brightness * (0.5f * rgb_unit) + rgb_offset;
+  impl.contrast   = cast(float) setup.contrast   * (0.5f * rgb_unit) + rgb_unit;
+  version(default_palette_contrast) {
+    if ( !setup.palette )
+      impl.contrast *= default_palette_contrast;
+  }
 
-  impl->artifacts = (float) setup->artifacts;
-  if ( impl->artifacts > 0 )
-    impl->artifacts *= artifacts_max - artifacts_mid;
-  impl->artifacts = impl->artifacts * artifacts_mid + artifacts_mid;
+  impl.artifacts = cast(float) setup.artifacts;
+  if ( impl.artifacts > 0 )
+    impl.artifacts *= artifacts_max - artifacts_mid;
+  impl.artifacts = impl.artifacts * artifacts_mid + artifacts_mid;
 
-  impl->fringing = (float) setup->fringing;
-  if ( impl->fringing > 0 )
-    impl->fringing *= fringing_max - fringing_mid;
-  impl->fringing = impl->fringing * fringing_mid + fringing_mid;
+  impl.fringing = cast(float) setup.fringing;
+  if ( impl.fringing > 0 )
+    impl.fringing *= fringing_max - fringing_mid;
+  impl.fringing = impl.fringing * fringing_mid + fringing_mid;
 
   init_filters( impl, setup );
 
   /* generate gamma table */
   if ( gamma_size > 1 )
   {
-    float const to_float = 1.0f / (gamma_size - (gamma_size > 1));
-    float const gamma = 1.1333f - (float) setup->gamma * 0.5f;
+    const float to_float = 1.0f / (gamma_size - (gamma_size > 1));
+    const float gamma = 1.1333f - cast(float) setup.gamma * 0.5f;
     /* match common PC's 2.2 gamma to TV's 2.65 gamma */
     int i;
     for ( i = 0; i < gamma_size; i++ )
-      impl->to_float [i] =
-          (float) pow( i * to_float, gamma ) * impl->contrast + impl->brightness;
+      impl.to_float [i] =
+          cast(float) pow( i * to_float, gamma ) * impl.contrast + impl.brightness;
   }
 
   /* setup decoder matricies */
   {
-    float hue = (float) setup->hue * PI + PI / 180 * ext_decoder_hue;
-    float sat = (float) setup->saturation + 1;
-    float const* decoder = setup->decoder_matrix;
+    float hue = cast(float) setup.hue * PI + PI / 180 * ext_decoder_hue;
+    float sat = cast(float) setup.saturation + 1;
+    const float* decoder = setup.decoder_matrix;
     if ( !decoder )
     {
       decoder = default_decoder;
@@ -227,22 +227,22 @@ static void init( init_t* impl, md_ntsc_setup_t const* setup )
     }
 
     {
-      float s = (float) sin( hue ) * sat;
-      float c = (float) cos( hue ) * sat;
-      float* out = impl->to_rgb;
+      float s = cast(float) sin( hue ) * sat;
+      float c = cast(float) cos( hue ) * sat;
+      float* out_var = impl.to_rgb;
       int n;
 
       n = burst_count;
       do
       {
-        float const* in = decoder;
+        const float* in_var = decoder;
         int n = 3;
         do
         {
-          float i = *in++;
-          float q = *in++;
-          *out++ = i * c - q * s;
-          *out++ = i * s + q * c;
+          float i = *in_var++;
+          float q = *in_var++;
+          *out_var++ = i * c - q * s;
+          *out_var++ = i * s + q * c;
         }
         while ( --n );
         if ( burst_count <= 1 )
@@ -263,9 +263,9 @@ static float RGB_TO_YIQ(float r, float g, float b, float* y, float* i) {
 }
 
 static void YIQ_TO_RGB(float y, float i, float q, float* to_rgb, int* r, int* g, int* b) {
-  (*r) = (int) (y + to_rgb[0] * i + to_rgb[1] * q);
-  (*g) = (int) (y + to_rgb[2] * i + to_rgb[3] * q);
-  (*b) = (int) (y + to_rgb[4] * i + to_rgb[5] * q);
+  (*r) = cast(int) (y + to_rgb[0] * i + to_rgb[1] * q);
+  (*g) = cast(int) (y + to_rgb[2] * i + to_rgb[3] * q);
+  (*b) = cast(int) (y + to_rgb[4] * i + to_rgb[5] * q);
 }
 
 static md_ntsc_rgb_t PACK_RGB(int r, int g, int b) {
@@ -275,35 +275,39 @@ static md_ntsc_rgb_t PACK_RGB(int r, int g, int b) {
 enum { rgb_kernel_size = burst_size / alignment_count };
 enum { rgb_bias = rgb_unit * 2 * md_ntsc_rgb_builder };
 
-typedef struct pixel_info_t
+struct pixel_info_t
 {
   int offset;
   float negate;
-  float kernel [4];
-} pixel_info_t;
+  float[4] kernel;
+}
 
-#if rescale_in > 1
-  #define PIXEL_OFFSET_( ntsc, scaled ) \
-    (kernel_size / 2 + ntsc + (scaled != 0) + (rescale_out - scaled) % rescale_out + \
-        (kernel_size * 2 * scaled))
+static if(rescale_in > 1) {
+  int PIXEL_OFFSET_(int ntsc, int scaled) {
+    return (kernel_size / 2 + ntsc + (scaled != 0) + (rescale_out - scaled) % rescale_out + 
+        (kernel_size * 2 * scaled));
+  }
 
-  #define PIXEL_OFFSET( ntsc, scaled ) \
-    PIXEL_OFFSET_( ((ntsc) - (scaled) / rescale_out * rescale_in),\
-        (((scaled) + rescale_out * 10) % rescale_out) ),\
-    (1.0f - (((ntsc) + 100) & 2))
-#else
-  #define PIXEL_OFFSET( ntsc, scaled ) \
-    (kernel_size / 2 + (ntsc) - (scaled)),\
-    (1.0f - (((ntsc) + 100) & 2))
-#endif
+  int PIXEL_OFFSET(int ntsc, int scaled) {
+    return PIXEL_OFFSET_(
+        (ntsc - scaled / rescale_out * rescale_in),
+        ((scaled + rescale_out * 10) % rescale_out) ),
+        (1.0f - ((ntsc + 100) & 2));
+  }
+} else {
+  int PIXEL_OFFSET(int ntsc, int scaled ) {
+    return (kernel_size / 2 + ntsc - scaled),
+    (1.0f - ((ntsc + 100) & 2));
+  }
+}
 
-extern pixel_info_t const md_ntsc_pixels [alignment_count];
+extern const pixel_info_t[alignment_count] md_ntsc_pixels;
 
 /* Generate pixel at all burst phases and column alignments */
-static void gen_kernel( init_t* impl, float y, float i, float q, md_ntsc_rgb_t* out )
+static void gen_kernel( init_t* impl, float y, float i, float q, md_ntsc_rgb_t* out_var )
 {
   /* generate for each scanline burst phase */
-  float* to_rgb = impl->to_rgb;
+  float* to_rgb = impl.to_rgb;
   int burst_remain = burst_count;
   y -= rgb_offset;
   do
@@ -312,27 +316,27 @@ static void gen_kernel( init_t* impl, float y, float i, float q, md_ntsc_rgb_t* 
     Convolve these with kernels which: filter respective components, apply
     sharpening, and rescale horizontally. Convert resulting yiq to rgb and pack
     into integer. Based on algorithm by NewRisingSun. */
-    pixel_info_t const* pixel = md_ntsc_pixels;
+    const pixel_info_t* pixel = md_ntsc_pixels;
     int alignment_remain = alignment_count;
     do
     {
       /* negate is -1 when composite starts at odd multiple of 2 */
-      float const yy = y * impl->fringing * pixel->negate;
-      float const ic0 = (i + yy) * pixel->kernel [0];
-      float const qc1 = (q + yy) * pixel->kernel [1];
-      float const ic2 = (i - yy) * pixel->kernel [2];
-      float const qc3 = (q - yy) * pixel->kernel [3];
+      const float yy = y * impl.fringing * pixel.negate;
+      const float ic0 = (i + yy) * pixel.kernel [0];
+      const float qc1 = (q + yy) * pixel.kernel [1];
+      const float ic2 = (i - yy) * pixel.kernel [2];
+      const float qc3 = (q - yy) * pixel.kernel [3];
 
-      float const factor = impl->artifacts * pixel->negate;
-      float const ii = i * factor;
-      float const yc0 = (y + ii) * pixel->kernel [0];
-      float const yc2 = (y - ii) * pixel->kernel [2];
+      const float factor = impl.artifacts * pixel.negate;
+      const float ii = i * factor;
+      const float yc0 = (y + ii) * pixel.kernel [0];
+      const float yc2 = (y - ii) * pixel.kernel [2];
 
-      float const qq = q * factor;
-      float const yc1 = (y + qq) * pixel->kernel [1];
-      float const yc3 = (y - qq) * pixel->kernel [3];
+      const float qq = q * factor;
+      const float yc1 = (y + qq) * pixel.kernel [1];
+      const float yc3 = (y - qq) * pixel.kernel [3];
 
-      float const* k = &impl->kernel [pixel->offset];
+      const float* k = &impl.kernel [pixel.offset];
       int n;
       ++pixel;
       for ( n = rgb_kernel_size; n; --n )
@@ -343,14 +347,14 @@ static void gen_kernel( init_t* impl, float y, float i, float q, md_ntsc_rgb_t* 
                   k[kernel_size+2]*yc2 + k[kernel_size+3]*yc3 + rgb_offset;
         if ( rescale_out <= 1 )
           k--;
-        else if ( k < &impl->kernel [kernel_size * 2 * (rescale_out - 1)] )
+        else if ( k < &impl.kernel [kernel_size * 2 * (rescale_out - 1)] )
           k += kernel_size * 2 - 1;
         else
           k -= kernel_size * 2 * (rescale_out - 1) + 2;
         {
           int r, g, b;
           YIQ_TO_RGB(y, i, q, to_rgb, &r, &g, &b);
-          *out++ = PACK_RGB( r, g, b ) - rgb_bias;
+          *out_var++ = PACK_RGB( r, g, b ) - rgb_bias;
         }
       }
     }
@@ -370,15 +374,15 @@ static if(DISABLE_CORRECTION) {
   static void CORRECT_ERROR(md_ntsc_rgb_t* out_var, u32 i, u32 a) { out_var[i] += rgb_bias; }
 } else {
   static void CORRECT_ERROR(md_ntsc_rgb_t* out_var, u32 i, u32 a) { out_var[a] += error; }
-]
+}
 
 static void RGB_PALETTE_OUT(md_ntsc_rgb_t rgb, u8* out_ ) {
   u8* out_var = out_;
   md_ntsc_rgb_t clamped = rgb;
   MD_NTSC_CLAMP_( clamped, (8 - rgb_bits) );
-  out_var[0] = (u8) (clamped >> 21);
-  out_var[1] = (u8) (clamped >> 11);
-  out_var[2] = (u8) (clamped >>  1);
+  out_var[0] = cast(u8) (clamped >> 21);
+  out_var[1] = cast(u8) (clamped >> 11);
+  out_var[2] = cast(u8) (clamped >>  1);
 }
 
 

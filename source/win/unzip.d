@@ -45,7 +45,7 @@ import types;
 import unzip;
 import errno;
 
-version(STRICTUNZIP) || version(STRICTZIPUNZIP) {
+version(STRICTUNZIP) {
 /* like the STRICT of WIN32, we define a pointer that cannot be converted
     from (void*) without cast */
 struct unzFile__ {
@@ -90,7 +90,7 @@ struct unz_global_info
 /* unz_file_info contain information about a file in the zipfile */
 struct unz_file_info
 {
-    u32 version;              /* version made by                 2 bytes */
+    u32 version_made_by;      /* version made by                 2 bytes */
     u32 version_needed;       /* version needed to extract       2 bytes */
     u32 flag;                 /* general purpose bit flag        2 bytes */
     u32 compression_method;   /* compression method              2 bytes */
@@ -110,59 +110,37 @@ struct unz_file_info
 }
 
 
-#if !defined(unix) && !defined(CASESENSITIVITYDEFAULT_YES) && \
-                      !defined(CASESENSITIVITYDEFAULT_NO)
-#define CASESENSITIVITYDEFAULT_NO
-#endif
 
+const int UNZ_BUFSIZE = 16384;
+const int UNZ_MAXFILENAMEINZIP = 256;
 
-#ifndef UNZ_BUFSIZE
-#define UNZ_BUFSIZE (16384)
-#endif
+void* ALLOC(size_t size) { return malloc(size); }
+void TRYFREE(void* p) { if(p) free(p); }
 
-#ifndef UNZ_MAXFILENAMEINZIP
-#define UNZ_MAXFILENAMEINZIP (256)
-#endif
-
-#ifndef ALLOC
-# define ALLOC(size) (malloc(size))
-#endif
-#ifndef TRYFREE
-# define TRYFREE(p) {if (p) free(p);}
-#endif
-
-#define SIZECENTRALDIRITEM (0x2e)
-#define SIZEZIPLOCALHEADER (0x1e)
+const int SIZECENTRALDIRITEM = 0x2e;
+const int SIZEZIPLOCALHEADER = 0x1e;
 
 /* I've found an old Unix (a SunOS 4.1.3_U1) without all SEEK_* defined.... */
 
-#ifndef SEEK_CUR
-#define SEEK_CUR    1
-#endif
+const int SEEK_CUR    = 1;
+const int SEEK_END    = 2;
+const int SEEK_SET    = 0;
 
-#ifndef SEEK_END
-#define SEEK_END    2
-#endif
-
-#ifndef SEEK_SET
-#define SEEK_SET    0
-#endif
-
-const char unz_copyright[] =
+const char[] unz_copyright =
    " unzip 0.15 Copyright 1998 Gilles Vollant ";
 
 /* unz_file_info_interntal contain internal info about a file in zipfile*/
-typedef struct unz_file_info_internal_s
+struct unz_file_info_internal
 {
     u32 offset_curfile;/* relative offset of local header 4 bytes */
-} unz_file_info_internal;
+}
 
 
 /* file_in_zip_read_info_s contain internal information about a file in zipfile,
     when reading and decompress it */
-typedef struct
+struct file_in_zip_read_info_s
 {
-  char  *read_buffer;         /* internal buffer for compressed data */
+  char*  read_buffer;         /* internal buffer for compressed data */
   z_stream stream;            /* zLib stream structure for inflate */
 
   u32 pos_in_zipfile;       /* position in byte on the zipfile, for fseek*/
@@ -179,12 +157,12 @@ typedef struct
   FILE* file;                 /* io structore of the zipfile */
   u32 compression_method;   /* compression method (0==store) */
   u32 byte_before_the_zipfile;/* byte before the zipfile, (>0 for sfx)*/
-} file_in_zip_read_info_s;
+}
 
 
 /* unz_s contain internal information about the zipfile
 */
-typedef struct
+struct unz_s
 {
   FILE* file;                     /* io structore of the zipfile */
   unz_global_info gi;             /* public global information */
@@ -202,7 +180,7 @@ typedef struct
   unz_file_info_internal cur_file_info_internal;  /* private info about it*/
     file_in_zip_read_info_s* pfile_in_zip_read;   /* structure about the current
                                                       file if we are decompressing it */
-} unz_s;
+}
 
 
 /* ===========================================================================
@@ -612,7 +590,7 @@ static  int unzlocal_GetCurrentFileInfoInternal (file,
       err=UNZ_BADZIPFILE;
   }
 
-  if (unzlocal_getShort(s->file,&file_info.version) != UNZ_OK)
+  if (unzlocal_getShort(s->file,&file_info.version_made_by) != UNZ_OK)
     err=UNZ_ERRNO;
 
   if (unzlocal_getShort(s->file,&file_info.version_needed) != UNZ_OK)
