@@ -37,7 +37,7 @@
  *
  ****************************************************************************************/
 
-import shared;
+import common;
 import gamepad;
 
 struct gamepad_t

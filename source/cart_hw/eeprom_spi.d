@@ -36,7 +36,7 @@
  *
  ****************************************************************************************/
 
-import shared;
+import common;
 
 /* max supported size 64KB (25x512/95x512) */
 const int SIZE_MASK = 0xffff;

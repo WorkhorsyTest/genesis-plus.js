@@ -40,7 +40,7 @@
     - Rewrote core with various optimizations
 */
 
-import shared;
+import common;
 import blip_buf;
 
 const int SN_DISCRETE    = 0;

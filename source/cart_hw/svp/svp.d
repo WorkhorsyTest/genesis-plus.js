@@ -10,7 +10,7 @@
    Modified for Genesis Plus GX (Eke-Eke): added BIG ENDIAN support, fixed addr/code inversion
 */
 
-import shared;
+import common;
 import ssp16;
 
 struct svp_t {

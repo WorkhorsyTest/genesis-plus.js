@@ -41,7 +41,7 @@
  *
  ****************************************************************************************/
 
-import shared;
+import common;
 import eeprom_i2c;
 import eeprom_spi;
 import gamepad;

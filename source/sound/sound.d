@@ -37,7 +37,7 @@
  *
  ****************************************************************************************/
 
-import shared;
+import common;
 import blip_buf;
 
 /* FM output buffer (large enough to hold a whole frame at original chips rate) */

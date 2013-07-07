@@ -1,13 +1,11 @@
 
 
 import std.stdio;
-import string;
-import time;
+import std.string;
 
 import sdl;
-import stdlib;
 
-import shared;
+import common;
 import main;
 import config;
 import error;

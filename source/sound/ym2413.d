@@ -27,7 +27,7 @@ to do:
 
 /** EkeEke (2011): removed multiple chips support, cleaned code & added FM board interface for Genesis Plus GX **/
 
-import shared;
+import common;
 
 const int FREQ_SH = 16;  /* 16.16 fixed point (frequency calculations) */
 const int EG_SH   = 16;  /* 16.16 fixed point (EG timing)              */

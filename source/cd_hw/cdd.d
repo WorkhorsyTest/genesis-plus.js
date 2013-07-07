@@ -35,7 +35,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *
  ****************************************************************************************/
-import shared;
+import common;
 import blip_buf;
 
 alias scd.cdd_hw cdd;

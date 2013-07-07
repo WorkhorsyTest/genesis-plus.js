@@ -39,7 +39,7 @@
  *
  ****************************************************************************************/
 
-import shared;
+import common;
 import gamepad;
 import lightgun;
 import mouse;

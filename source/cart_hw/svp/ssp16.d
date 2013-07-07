@@ -189,7 +189,7 @@
  *   'ld d, (a)' loads from program ROM
  */
 
-import shared;
+import common;
 import ssp16;
 
 

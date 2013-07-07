@@ -36,7 +36,7 @@
  *
  ****************************************************************************************/
 
-import shared;
+import common;
 
 const int TYPE_PRO1         = 0x12;
 const int TYPE_PRO2         = 0x22;

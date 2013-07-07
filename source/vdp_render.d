@@ -39,7 +39,7 @@
  *
  ****************************************************************************************/
 
-import shared;
+import common;
 import md_ntsc;
 import sms_ntsc;
 

@@ -123,7 +123,7 @@
  *    to a detailed description by Sean Young which can be found at:
  *      http://www.msxnet.org/tech/z80-documented.pdf
  *****************************************************************************/
-import shared;
+import common;
 import types;
 
 /* line states */
@@ -172,7 +172,7 @@ struct Z80_Regs
 
 bool VERBOSE = false;
 
-void LOG(x) {
+void LOG(string x) {
   if(VERBOSE)
     logerror(x);
 }

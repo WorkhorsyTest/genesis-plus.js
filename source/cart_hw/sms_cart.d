@@ -36,7 +36,7 @@
  *
  ****************************************************************************************/
 
-import shared;
+import common;
 import eeprom_93c;
 import terebi_oekaki;
 

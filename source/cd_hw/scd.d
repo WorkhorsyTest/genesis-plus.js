@@ -36,7 +36,7 @@
  *
  ****************************************************************************************/
 
-import shared;
+import common;
 import cdd;
 import cdc;
 import gfx;

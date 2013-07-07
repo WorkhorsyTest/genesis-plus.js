@@ -1,6 +1,6 @@
 
 import sdl;
-import shared;
+import common;
 import sms_ntsc;
 import md_ntsc;
 
