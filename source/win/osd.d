@@ -5,13 +5,14 @@ import std.string;
 
 import sdl;
 
-import common;
-import main;
-import config;
-import error;
-import fileio;
+public import system;
+public import common;
+public import main;
+public import config;
+public import error;
+public import fileio;
 
-alias osd_input_update sdl_input_update;
+alias sdl_input_update osd_input_update;
 
 const string GG_ROM      = "./ggenie.bin";
 const string AR_ROM      = "./areplay.bin";

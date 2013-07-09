@@ -1,5 +1,8 @@
 /* Configure library by modifying this file */
 
+import types;
+import md_ntsc;
+
 /* Format of source & output pixels (RGB565 only)*/
 alias MD_NTSC_RGB16 MD_NTSC_IN_FORMAT;
 const int MD_NTSC_OUT_DEPTH = 16;

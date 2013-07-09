@@ -1,5 +1,8 @@
 /* Configure library by modifying this file */
 
+import types;
+import sms_ntsc;
+
 /* Format of source & output pixels (RGB565 only) */
 alias SMS_NTSC_RGB16 SMS_NTSC_IN_FORMAT;
 const int SMS_NTSC_OUT_DEPTH = 16;

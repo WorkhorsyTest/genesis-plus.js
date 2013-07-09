@@ -207,7 +207,7 @@ samples. Also begins new time frame at clock_duration, so that clock time 0 in
 the new time frame specifies the same clock as clock_duration in the old time
 frame specified. Deltas can have been added slightly past clock_duration (up to
 however many clocks there are in two output samples). */
-void blip_end_frame( blip_t* m, unsigned t )
+void blip_end_frame( blip_t* m, u32 t )
 {
 	m.offset += t * m.factor;
 	
@@ -369,9 +369,9 @@ And by having pre_shift 32, a 32-bit platform can easily do the shift by
 simply ignoring the low half. */
 
 /** Adds positive/negative delta into buffer at specified clock time. */
-void blip_add_delta( blip_t* m, unsigned time, int delta )
+void blip_add_delta( blip_t* m, u32 time, int delta )
 {
-	unsigned fixed = cast(unsigned) ((time * m.factor + m.offset) >> pre_shift);
+	u32 fixed = cast(u32) ((time * m.factor + m.offset) >> pre_shift);
 	buf_t* out_var = SAMPLES( m ) + (fixed >> frac_bits);
 	
 	const int phase_shift = frac_bits - phase_bits;
@@ -409,9 +409,9 @@ version(BLIP_ASSERT) {
 }
 
 /** Same as blip_add_delta(), but uses faster, lower-quality synthesis. */
-void blip_add_delta_fast( blip_t* m, unsigned time, int delta )
+void blip_add_delta_fast( blip_t* m, u32 time, int delta )
 {
-	unsigned fixed = cast(unsigned) ((time * m.factor + m.offset) >> pre_shift);
+	u32 fixed = cast(u32) ((time * m.factor + m.offset) >> pre_shift);
 	buf_t* out_var = SAMPLES( m ) + (fixed >> frac_bits);
 	
 	int interp = fixed >> (frac_bits - delta_bits) & (delta_unit - 1);

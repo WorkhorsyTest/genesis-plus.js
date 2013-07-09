@@ -214,7 +214,7 @@ u8 menacer_read()
   /* D0=??? (INPUT_B), D1=TRIGGER (INPUT_A), D2=??? (INPUT_C), D3= START (INPUT_START) (active high) */
   /* TL & TR pins always return 0 (normally set as output)  */
   /* TH always return 1 (0 on active pixel but button acquisition is always done during VBLANK) */
-  unsigned data = input.pad[4] >> 4;
+  u32 data = input.pad[4] >> 4;
   return ((data & 0x09) | ((data >> 1) & 0x02) | ((data << 1) & 0x04) | 0x40);
 }
 
