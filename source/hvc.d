@@ -152,6 +152,8 @@
 /*                                                             */
 /***************************************************************/
 
+import types;
+
 static const u8[3420] cycle2hc32 =
 {
   /* end of active display (16 pixels -> 160 Mcycles) , H interrupt triggered, Vcounter increment */

@@ -37,6 +37,7 @@
  ****************************************************************************************/
 import common;
 import blip_buf;
+import module_scd;
 
 alias scd.cdd_hw cdd;
 
@@ -927,7 +928,7 @@ version(LSB_FIRST) {
 void cdd_update()
 {  
 version(LOG_CDD) {
-  error("LBA = %d (track n\B0%d)(latency=%d)\n", cdd.lba, cdd.index, cdd.latency);
+  error("LBA = %d (track n0%d)(latency=%d)", cdd.lba, cdd.index, cdd.latency);
 }
   
   /* seeking disc */

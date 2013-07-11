@@ -180,7 +180,7 @@ static if(rescale_out > 1) {
 }
 
 static const float[6] default_decoder =
-  { 0.956f, 0.621f, -0.272f, -0.647f, -1.105f, 1.702f };
+  [ 0.956f, 0.621f, -0.272f, -0.647f, -1.105f, 1.702f ];
 
 static void init( init_t* impl, const sms_ntsc_setup_t* setup )
 {
@@ -284,21 +284,28 @@ struct pixel_info_t
 }
 
 static if(rescale_in > 1) {
-  int PIXEL_OFFSET_(int ntsc, int scaled) {
-    return (kernel_size / 2 + ntsc + (scaled != 0) + (rescale_out - scaled) % rescale_out + 
-        (kernel_size * 2 * scaled));
+  pixel_info_t PIXEL_OFFSET_(int ntsc, int scaled, float[4] kernel) {
+    return pixel_info_t(
+      (kernel_size / 2 + ntsc + (scaled != 0) + (rescale_out - scaled) % 
+      rescale_out + (kernel_size * 2 * scaled)),
+      (1.0f - ((ntsc + 100) & 2)),
+      kernel
+    );
   }
 
-  int PIXEL_OFFSET(int ntsc, int scaled) {
+  pixel_info_t PIXEL_OFFSET(int ntsc, int scaled, float[4] kernel) {
     return PIXEL_OFFSET_(
         (ntsc - scaled / rescale_out * rescale_in),
-        ((scaled + rescale_out * 10) % rescale_out) ),
-        (1.0f - ((ntsc + 100) & 2));
+        ((scaled + rescale_out * 10) % rescale_out),
+        kernel);
   }
 } else {
-  int PIXEL_OFFSET(int ntsc, int scaled ) {
-    return (kernel_size / 2 + ntsc - scaled),
-    (1.0f - ((ntsc + 100) & 2));
+  pixel_info_t PIXEL_OFFSET(int ntsc, int scaled, float[4] kernel) {
+    return pixel_info_t(
+      (kernel_size / 2 + ntsc - scaled),
+      (1.0f - ((ntsc + 100) & 2)),
+      kernel
+    );
   }
 }
 

@@ -162,10 +162,13 @@ const s32 m68ki_get_address_space() { return FUNCTION_CODE_USER_DATA; }
 /* Enable or disable Address error emulation */
 static if(M68K_EMULATE_ADDRESS_ERROR) {
   void m68ki_set_address_error_trap() {
+    // FIXME: Disabled until we find an alternative to  longjmp
+/*
     if(setjmp(m68ki_cpu.aerr_trap) != 0)
     {
       m68ki_exception_address_error();
     }
+*/
   }
 
   void m68ki_check_address_error(u32 ADDR, u32 WRITE_MODE, u32 FC) {
@@ -176,7 +179,8 @@ static if(M68K_EMULATE_ADDRESS_ERROR) {
         m68ki_cpu.aerr_address = ADDR;
         m68ki_cpu.aerr_write_mode = WRITE_MODE;
         m68ki_cpu.aerr_fc = FC;
-        longjmp(m68ki_cpu.aerr_trap, 1);
+// FIXME: Disabled until we find an alternative to  longjmp
+//        longjmp(m68ki_cpu.aerr_trap, 1);
       }
     }
   }

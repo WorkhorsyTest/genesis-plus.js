@@ -136,10 +136,10 @@ static void SMS_NTSC_CLAMP_(sms_ntsc_rgb_t io, s32 shift) {
 
 
 /* Video format presets */
-const sms_ntsc_setup_t[] sms_ntsc_monochrome = { 0,-1, 0, 0,.2,  0, .2,-.2,-.2,-1, 0,  0 }; /* desaturated + artifacts */
-const sms_ntsc_setup_t[] sms_ntsc_composite  = { 0, 0, 0, 0, 0,  0,.25,  0,  0, 0, 0,  0 }; /* color bleeding + artifacts */
-const sms_ntsc_setup_t[] sms_ntsc_svideo     = { 0, 0, 0, 0, 0,  0,.25, -1, -1, 0, 0,  0 }; /* color bleeding only */
-const sms_ntsc_setup_t[] sms_ntsc_rgb        = { 0, 0, 0, 0,.2,  0,.70, -1, -1,-1, 0,  0 }; /* crisp image */
+const sms_ntsc_setup_t sms_ntsc_monochrome = { 0,-1, 0, 0,.2,  0, .2,-.2,-.2,-1, null,  null }; /* desaturated + artifacts */
+const sms_ntsc_setup_t sms_ntsc_composite  = { 0, 0, 0, 0, 0,  0,.25,  0,  0, 0, null,  null }; /* color bleeding + artifacts */
+const sms_ntsc_setup_t sms_ntsc_svideo     = { 0, 0, 0, 0, 0,  0,.25, -1, -1, 0, null,  null }; /* color bleeding only */
+const sms_ntsc_setup_t sms_ntsc_rgb        = { 0, 0, 0, 0,.2,  0,.70, -1, -1,-1, null,  null }; /* crisp image */
 
 const int alignment_count = 3;
 const int burst_count     = 1;
@@ -154,11 +154,11 @@ const int std_decoder_hue  = 0;
 const int gamma_size      = 16;
 
 /* 3 input pixels -> 8 composite samples */
-const pixel_info_t[alignment_count] sms_ntsc_pixels = {
-  { PIXEL_OFFSET( -4, -9 ), { 1, 1, .6667f, 0 } },
-  { PIXEL_OFFSET( -2, -7 ), {       .3333f, 1, 1, .3333f } },
-  { PIXEL_OFFSET(  0, -5 ), {                  0, .6667f, 1, 1 } },
-};
+const pixel_info_t[alignment_count] sms_ntsc_pixels = [
+  PIXEL_OFFSET( -4, -9, [ 1, 1, .6667f, 0 ]),
+  PIXEL_OFFSET( -2, -7, [       .3333f, 1, 1, .3333f ]),
+  PIXEL_OFFSET(  0, -5, [                  0, .6667f, 1, 1 ]),
+];
 
 static void correct_errors( sms_ntsc_rgb_t color, sms_ntsc_rgb_t* out_var )
 {

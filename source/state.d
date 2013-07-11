@@ -39,7 +39,7 @@
 import common;
 
 const int STATE_SIZE    = 0xfd000;
-const stirng STATE_VERSION = "GENPLUS-GX 1.7.1";
+const string STATE_VERSION = "GENPLUS-GX 1.7.1";
 
 void load_param(int* bufferptr, u8* state, void* param, size_t size) {
   memcpy(param, &state[*bufferptr], size);

@@ -327,7 +327,7 @@ version(BLIP_ASSERT) {
 */
 
 /* Sinc_Generator( 0.9, 0.55, 4.5 ) */
-static const s16[phase_count + 1][half_width] bl_step = [
+static const s16[half_width][phase_count + 1] bl_step = [
 [   43, -115,  350, -488, 1136, -914, 5861,21022],
 [   44, -118,  348, -473, 1076, -799, 5274,21001],
 [   45, -121,  344, -454, 1011, -677, 4706,20936],

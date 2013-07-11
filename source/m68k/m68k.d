@@ -163,7 +163,8 @@ struct m68ki_cpu_core
   u32 instr_mode;      /* Stores whether we are in instruction mode or group 0/1 exception mode */
   u32 run_mode;        /* Stores whether we are processing a reset, bus error, address error, or something else */
   u32 aerr_enabled;    /* Enables/deisables address error checks at runtime */
-  jmp_buf aerr_trap;    /* Address error jump */
+// FIXME: Disabled until we find an alternative to  longjmp
+//  jmp_buf aerr_trap;    /* Address error jump */
   u32 aerr_address;    /* Address error location */
   u32 aerr_write_mode; /* Address error write mode */
   u32 aerr_fc;         /* Address error FC code */

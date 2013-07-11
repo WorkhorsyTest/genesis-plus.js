@@ -208,14 +208,14 @@ static void sdl_video_close()
     SDL_FreeSurface(sdl_video.surf_screen);
 }
 
-static const u16[4][2] vc_table = 
-{
+static const u16[2][4] vc_table = 
+[
   /* NTSC, PAL */
-  {0xDA , 0xF2},  /* Mode 4 (192 lines) */
-  {0xEA , 0x102}, /* Mode 5 (224 lines) */
-  {0xDA , 0xF2},  /* Mode 4 (192 lines) */
-  {0x106, 0x10A}  /* Mode 5 (240 lines) */
-};
+  [0xDA , 0xF2],  /* Mode 4 (192 lines) */
+  [0xEA , 0x102], /* Mode 5 (224 lines) */
+  [0xDA , 0xF2],  /* Mode 4 (192 lines) */
+  [0x106, 0x10A]  /* Mode 5 (240 lines) */
+];
 
 static int sdl_control_update(SDLKey keystate)
 {

@@ -37,10 +37,10 @@
  ****************************************************************************************/
 
 import common;
-import cdd;
-import cdc;
-import gfx;
-import pcm;
+import module_cdd;
+import module_cdc;
+import module_gfx;
+import module_pcm;
 import cd_cart;
 
 alias ext.cd_hw scd;
@@ -224,7 +224,7 @@ static void bram_write_word(u32 address, u32 data)
 /* PCM chip & Gate-Array area                                               */
 /*--------------------------------------------------------------------------*/
 
-static void s68k_poll_detect(reg)
+static void s68k_poll_detect(u32 reg)
 {
   /* detect SUB-CPU register polling */
   if (s68k.poll.detected == (1 << reg))
@@ -254,7 +254,7 @@ version(LOG_SCD) {
   s68k.poll.pc = s68k.pc;
 }
 
-static void s68k_poll_sync(reg)
+static void s68k_poll_sync(u32 reg)
 {
   /* relative MAIN-CPU cycle counter */
   u32 cycles = (s68k.cycles * MCYCLES_PER_LINE) / SCYCLES_PER_LINE;

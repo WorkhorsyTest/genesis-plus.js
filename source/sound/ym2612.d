@@ -269,7 +269,7 @@ O(16),O(16),O(16),O(16),O(16),O(16),O(16),O(16)
 /*shift 11,   10,   9,   8,   7,   6,  5,  4,  3,  2, 1,  0,  0,  0,  0,  0 */
 /*mask  2047, 1023, 511, 255, 127, 63, 31, 15, 7,  3, 1,  0,  0,  0,  0,  0 */
 
-int O(inta) { return a * 1; }
+int O(int a) { return a * 1; }
 static const u8[32+64+32] eg_rate_shift = [  /* Envelope Generator counter shifts (32 + 64 rates + 32 RKS) */
 /* 32 infinite time rates */
 /* O(0),O(0),O(0),O(0),O(0),O(0),O(0),O(0),

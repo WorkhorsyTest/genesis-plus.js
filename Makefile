@@ -31,7 +31,8 @@ INCLUDES  = \
 		-Isource/cart_hw \
 		-Isource/cd_hw \
 		-Isource/cart_hw/svp \
-		-Isource/ntsc -Isource/win
+		-Isource/ntsc \
+		-Isource/win
 
 LIBS      = -L-lSDL
 
@@ -92,11 +93,11 @@ OBJECTS += \
 		$(OBJDIR)/sms_cart.o
 
 OBJECTS += \
-		$(OBJDIR)/scd.o \
-		$(OBJDIR)/cdd.o \
-		$(OBJDIR)/cdc.o \
-		$(OBJDIR)/gfx.o \
-		$(OBJDIR)/pcm.o \
+		$(OBJDIR)/module_scd.o \
+		$(OBJDIR)/module_cdd.o \
+		$(OBJDIR)/module_cdc.o \
+		$(OBJDIR)/module_gfx.o \
+		$(OBJDIR)/module_pcm.o \
 		$(OBJDIR)/cd_cart.o
 
 OBJECTS += \

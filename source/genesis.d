@@ -41,6 +41,16 @@
 
 import types;
 import common;
+import md_cart;
+import sms_cart;
+import module_scd;
+
+/* External Hardware */
+union external_t
+{
+  md_cart_t md_cart;
+  cd_hw_t cd_hw;
+}
 
 external_t ext;           /* External Hardware (Cartridge, CD unit, ...) */
 u8[0x800] boot_rom;    /* Genesis BOOT ROM   */

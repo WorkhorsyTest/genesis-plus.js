@@ -37,6 +37,7 @@
  ****************************************************************************************/
 import common;
 import blip_buf;
+import module_scd;
 
 /* PCM channel */
 struct chan_t

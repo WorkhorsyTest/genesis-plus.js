@@ -38,7 +38,7 @@ const int FREQ_MASK    = (1 << FREQ_SH) - 1;
 /* envelope output entries */
 const int ENV_BITS    = 10;
 const int ENV_LEN     = 1 << ENV_BITS;
-const int ENV_STEP    = 128.0 / ENV_LEN;
+const float ENV_STEP    = 128.0 / ENV_LEN;
 
 const int MAX_ATT_INDEX  = (1 << (ENV_BITS - 2)) -1; /*255*/
 const int MIN_ATT_INDEX  = 0;
