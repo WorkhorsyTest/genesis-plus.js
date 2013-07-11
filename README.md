@@ -24,5 +24,9 @@ Build
 -----
 
     make
-    ./gen_sdl.exe game.smd
 
+
+Run
+-----
+
+    ./genplusjs game.smd

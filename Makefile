@@ -16,7 +16,7 @@
 # -DLOG_PCM   : enable PCM debug messages
 # -DLOGSOUND  : enable AUDIO debug messages
 
-NAME      = gen_sdl.exe
+NAME      = genplusjs
 
 CC        = dmd
 CFLAGS    = -g #-O
