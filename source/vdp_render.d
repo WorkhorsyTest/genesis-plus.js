@@ -66,7 +66,7 @@ clip_t[2] clip;
 
 /* Pattern attribute (priority + palette bits) expansion table */
 static const u32[] atex_table =
-{
+[
   0x00000000,
   0x10101010,
   0x20202020,
@@ -75,25 +75,25 @@ static const u32[] atex_table =
   0x50505050,
   0x60606060,
   0x70707070
-};
+];
 
 /* fixed Master System palette for Modes 0,1,2,3 */
 static const u8[16] tms_crom =
-{
+[
   0x00, 0x00, 0x08, 0x0C,
   0x10, 0x30, 0x01, 0x3C,
   0x02, 0x03, 0x05, 0x0F,
   0x04, 0x33, 0x15, 0x3F
-};
+];
 
 /* original SG-1000 palette */
 static const u16[16] tms_palette =
-{
+[
   0x0000, 0x0000, 0x2648, 0x5ECF,
   0x52BD, 0x7BBE, 0xD289, 0x475E,
   0xF2AA, 0xFBCF, 0xD60A, 0xE670,
   0x2567, 0xC2F7, 0xCE59, 0xFFFF
-};
+];
 
 /* Cached and flipped patterns */
 static u8[0x80000] bg_pattern_cache;

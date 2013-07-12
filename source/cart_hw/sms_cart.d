@@ -80,7 +80,7 @@ struct romhw_t
 }
 
 static const rominfo_t[GAME_DATABASE_CNT] game_list =
-{
+[
   /* program requiring Mega Drive VDP (Mode 5) */
   {0x47FA618D, 0, 1, SYSTEM_MS_GAMEPAD, MAPPER_SEGA, SYSTEM_PBC,  REGION_USA}, /* Charles MacDonald's Mode 5 Demo Program */
 
@@ -330,7 +330,7 @@ static const rominfo_t[GAME_DATABASE_CNT] game_list =
   {0x8132AB2C, 0, 1, SYSTEM_MS_GAMEPAD,  MAPPER_SEGA,   SYSTEM_SMS,  REGION_JAPAN_NTSC}, /* Tensai Bakabon */
   {0xC0CE19B1, 0, 1, SYSTEM_MS_GAMEPAD,  MAPPER_SEGA,   SYSTEM_SMS,  REGION_JAPAN_NTSC}, /* Thunder Blade (J) */
   {0x07301F83, 0, 1, SYSTEM_MS_GAMEPAD,  MAPPER_SEGA,   SYSTEM_PBC,  REGION_JAPAN_NTSC}  /* Phantasy Star [Megadrive] (J) */
-};
+];
 
 /* Cartridge & BIOS ROM hardware */
 static romhw_t cart_rom;

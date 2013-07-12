@@ -97,10 +97,10 @@ u32 function() vdp_68k_data_r;
 u32 function() vdp_z80_data_r;
 
 /* Tables that define the playfield layout */
-static const u8[] hscroll_mask_table = { 0x00, 0x07, 0xF8, 0xFF };
-static const u8[] shift_table        = { 6, 7, 0, 8 };
-static const u8[] col_mask_table     = { 0x0F, 0x1F, 0x0F, 0x3F };
-static const u16[] row_mask_table    = { 0x0FF, 0x1FF, 0x2FF, 0x3FF };
+static const u8[] hscroll_mask_table = [ 0x00, 0x07, 0xF8, 0xFF ];
+static const u8[] shift_table        = [ 6, 7, 0, 8 ];
+static const u8[] col_mask_table     = [ 0x0F, 0x1F, 0x0F, 0x3F ];
+static const u16[] row_mask_table    = [ 0x0FF, 0x1FF, 0x2FF, 0x3FF ];
 
 static u8 border;          /* Border color index */
 static u8 pending;         /* Pending write flag */
@@ -122,38 +122,38 @@ static void function(u32 level) set_irq_line;
 static void function(u32 level) set_irq_line_delay;
 
 /* Vertical counter overflow values (see hvc.h) */
-static const u16[4][2] vc_table = 
-{
+static const u16[2][4] vc_table = 
+[
   /* NTSC, PAL */
-  {0xDA , 0xF2},  /* Mode 4 (192 lines) */
-  {0xEA , 0x102}, /* Mode 5 (224 lines) */
-  {0xDA , 0xF2},  /* Mode 4 (192 lines) */
-  {0x106, 0x10A}  /* Mode 5 (240 lines) */
-};
+  [0xDA , 0xF2],  /* Mode 4 (192 lines) */
+  [0xEA , 0x102], /* Mode 5 (224 lines) */
+  [0xDA , 0xF2],  /* Mode 4 (192 lines) */
+  [0x106, 0x10A]  /* Mode 5 (240 lines) */
+];
 
 /* DMA Timings (number of access slots per line) */
 static const u8[2][2] dma_timing =
-{
+[
 /* H32, H40 */
-  {16 , 18},  /* active display */
-  {167, 205}  /* blank display */
-};
+  [16 , 18],  /* active display */
+  [167, 205]  /* blank display */
+];
 
 /* DMA processing functions (set by VDP register 23 high nibble) */
-static const void function(u32 length)[16] dma_func=
-{
+static const void function(u32 length)[16] dma_func =
+[
   /* 0x0-0x3 : DMA from 68k bus $000000-$7FFFFF (external area) */
-  vdp_dma_68k_ext,vdp_dma_68k_ext,vdp_dma_68k_ext,vdp_dma_68k_ext,
+  &vdp_dma_68k_ext, &vdp_dma_68k_ext, &vdp_dma_68k_ext, &vdp_dma_68k_ext,
 
   /* 0x4-0x7 : DMA from 68k bus $800000-$FFFFFF (internal RAM & I/O) */
-  vdp_dma_68k_ram, vdp_dma_68k_io,vdp_dma_68k_ram,vdp_dma_68k_ram,
+  &vdp_dma_68k_ram, &vdp_dma_68k_io, &vdp_dma_68k_ram, &vdp_dma_68k_ram,
 
   /* 0x8-0xB : DMA Fill */
-  vdp_dma_fill,vdp_dma_fill,vdp_dma_fill,vdp_dma_fill,
+  &vdp_dma_fill, &vdp_dma_fill, &vdp_dma_fill, &vdp_dma_fill,
 
   /* 0xC-0xF : DMA Copy */
-  vdp_dma_copy,vdp_dma_copy,vdp_dma_copy,vdp_dma_copy
-};
+  &vdp_dma_copy, &vdp_dma_copy, &vdp_dma_copy, &vdp_dma_copy
+];
 
 
 /*--------------------------------------------------------------------------*/

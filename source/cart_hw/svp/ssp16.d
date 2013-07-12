@@ -855,39 +855,39 @@ static void write_AL(u32 d)
 }
 
 static u32 function()[16] read_handlers =
-{
-  read_unknown, read_unknown, read_unknown, read_unknown, /* -, X, Y, A */
-  read_unknown,  /* 4 ST */
-  read_STACK,
-  read_PC,
-  read_P,
-  read_PM0,  /* 8 */
-  read_PM1,
-  read_PM2,
-  read_XST,
-  read_PM4,  /* 12 */
-  read_unknown,  /* 13 gr13 */
-  read_PMC,
-  read_AL
-};
+[
+  &read_unknown, &read_unknown, &read_unknown, &read_unknown, /* -, X, Y, A */
+  &read_unknown,  /* 4 ST */
+  &read_STACK,
+  &read_PC,
+  &read_P,
+  &read_PM0,  /* 8 */
+  &read_PM1,
+  &read_PM2,
+  &read_XST,
+  &read_PM4,  /* 12 */
+  &read_unknown,  /* 13 gr13 */
+  &read_PMC,
+  &read_AL
+];
 
 static void function(u32 d)[16] write_handlers =
-{
-  write_unknown, write_unknown, write_unknown, write_unknown, /* -, X, Y, A */
+[
+  &write_unknown, &write_unknown, &write_unknown, &write_unknown, /* -, X, Y, A */
 /*  write_unknown, */ /* 4 ST */
-  write_ST,  /* 4 ST (debug hook) */
-  write_STACK,
-  write_PC,
-  write_unknown,  /* 7 P */
-  write_PM0,  /* 8 */
-  write_PM1,
-  write_PM2,
-  write_XST,
-  write_PM4,  /* 12 */
-  write_unknown,  /* 13 gr13 */
-  write_PMC,
-  write_AL
-};
+  &write_ST,  /* 4 ST (debug hook) */
+  &write_STACK,
+  &write_PC,
+  &write_unknown,  /* 7 P */
+  &write_PM0,  /* 8 */
+  &write_PM1,
+  &write_PM2,
+  &write_XST,
+  &write_PM4,  /* 12 */
+  &write_unknown,  /* 13 gr13 */
+  &write_PMC,
+  &write_AL
+];
 
 /* ----------------------------------------------------- */
 /* pointer register handlers */

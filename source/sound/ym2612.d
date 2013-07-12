@@ -216,7 +216,7 @@ static const u8[19*RATE_STEPS] eg_inc = [
 ];
 
 
-int O(int a) { return a * RATE_STEPS; }
+u8 O(int a) { return cast(u8) (a * RATE_STEPS); }
 
 /*note that there is no O(17) in this table - it's directly in the code */
 static const u8[32+64+32] eg_rate_select = [  /* Envelope Generator rates (32 + 64 rates + 32 RKS) */
@@ -269,51 +269,51 @@ O(16),O(16),O(16),O(16),O(16),O(16),O(16),O(16)
 /*shift 11,   10,   9,   8,   7,   6,  5,  4,  3,  2, 1,  0,  0,  0,  0,  0 */
 /*mask  2047, 1023, 511, 255, 127, 63, 31, 15, 7,  3, 1,  0,  0,  0,  0,  0 */
 
-int O(int a) { return a * 1; }
+u8 P(int a) { return cast(u8) (a * 1); }
 static const u8[32+64+32] eg_rate_shift = [  /* Envelope Generator counter shifts (32 + 64 rates + 32 RKS) */
 /* 32 infinite time rates */
-/* O(0),O(0),O(0),O(0),O(0),O(0),O(0),O(0),
-O(0),O(0),O(0),O(0),O(0),O(0),O(0),O(0),
-O(0),O(0),O(0),O(0),O(0),O(0),O(0),O(0),
-O(0),O(0),O(0),O(0),O(0),O(0),O(0),O(0), */
+/* P(0),P(0),P(0),P(0),P(0),P(0),P(0),P(0),
+P(0),P(0),P(0),P(0),P(0),P(0),P(0),P(0),
+P(0),P(0),P(0),P(0),P(0),P(0),P(0),P(0),
+P(0),P(0),P(0),P(0),P(0),P(0),P(0),P(0), */
 
 /* fixed (should be the same as rate 0, even if it makes no difference since increment value is 0 for these rates) */
-O(11),O(11),O(11),O(11),O(11),O(11),O(11),O(11),
-O(11),O(11),O(11),O(11),O(11),O(11),O(11),O(11),
-O(11),O(11),O(11),O(11),O(11),O(11),O(11),O(11),
-O(11),O(11),O(11),O(11),O(11),O(11),O(11),O(11),
+P(11),P(11),P(11),P(11),P(11),P(11),P(11),P(11),
+P(11),P(11),P(11),P(11),P(11),P(11),P(11),P(11),
+P(11),P(11),P(11),P(11),P(11),P(11),P(11),P(11),
+P(11),P(11),P(11),P(11),P(11),P(11),P(11),P(11),
 
 /* rates 00-11 */
-O(11),O(11),O(11),O(11),
-O(10),O(10),O(10),O(10),
-O( 9),O( 9),O( 9),O( 9),
-O( 8),O( 8),O( 8),O( 8),
-O( 7),O( 7),O( 7),O( 7),
-O( 6),O( 6),O( 6),O( 6),
-O( 5),O( 5),O( 5),O( 5),
-O( 4),O( 4),O( 4),O( 4),
-O( 3),O( 3),O( 3),O( 3),
-O( 2),O( 2),O( 2),O( 2),
-O( 1),O( 1),O( 1),O( 1),
-O( 0),O( 0),O( 0),O( 0),
+P(11),P(11),P(11),P(11),
+P(10),P(10),P(10),P(10),
+P( 9),P( 9),P( 9),P( 9),
+P( 8),P( 8),P( 8),P( 8),
+P( 7),P( 7),P( 7),P( 7),
+P( 6),P( 6),P( 6),P( 6),
+P( 5),P( 5),P( 5),P( 5),
+P( 4),P( 4),P( 4),P( 4),
+P( 3),P( 3),P( 3),P( 3),
+P( 2),P( 2),P( 2),P( 2),
+P( 1),P( 1),P( 1),P( 1),
+P( 0),P( 0),P( 0),P( 0),
 
 /* rate 12 */
-O( 0),O( 0),O( 0),O( 0),
+P( 0),P( 0),P( 0),P( 0),
 
 /* rate 13 */
-O( 0),O( 0),O( 0),O( 0),
+P( 0),P( 0),P( 0),P( 0),
 
 /* rate 14 */
-O( 0),O( 0),O( 0),O( 0),
+P( 0),P( 0),P( 0),P( 0),
 
 /* rate 15 */
-O( 0),O( 0),O( 0),O( 0),
+P( 0),P( 0),P( 0),P( 0),
 
 /* 32 dummy rates (same as 15 3) */
-O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),
-O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),
-O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),
-O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0)
+P( 0),P( 0),P( 0),P( 0),P( 0),P( 0),P( 0),P( 0),
+P( 0),P( 0),P( 0),P( 0),P( 0),P( 0),P( 0),P( 0),
+P( 0),P( 0),P( 0),P( 0),P( 0),P( 0),P( 0),P( 0),
+P( 0),P( 0),P( 0),P( 0),P( 0),P( 0),P( 0),P( 0)
 
 ];
 
@@ -385,7 +385,7 @@ static const u8[4] lfo_ams_depth_shift = [8, 3, 1, 0];
    samples (32*432=13824; 32 because we store only a quarter of whole
             waveform in the table below)
 */
-static const u8[7*8][8] lfo_pm_output = [
+static const u8[8][7*8] lfo_pm_output = [
 /* 7 bits meaningful (of F-NUMBER), 8 LFO output levels per one depth (out of 32), 8 LFO depths */
 /* FNUM BIT 4: 000 0001xxxx */
 /* DEPTH 0 */ [0,   0,   0,   0,   0,   0,   0,   0],

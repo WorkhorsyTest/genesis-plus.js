@@ -163,53 +163,53 @@ struct YM2413 {
 /* key scale level */
 /* table is 3dB/octave, DV converts this into 6dB/octave */
 /* 0.1875 is bit 0 weight of the envelope counter (volume) expressed in the 'decibel' scale */
-const float DV = 0.1875 / 1.0;
+u32 DV(float num) { return cast(u32) (num / (0.1875 / 1.0)); }
 static const u32[8*16] ksl_tab = [
   /* OCT 0 */
-   0.000/DV, 0.000/DV, 0.000/DV, 0.000/DV,
-   0.000/DV, 0.000/DV, 0.000/DV, 0.000/DV,
-   0.000/DV, 0.000/DV, 0.000/DV, 0.000/DV,
-   0.000/DV, 0.000/DV, 0.000/DV, 0.000/DV,
+   DV(0.000), DV(0.000), DV(0.000), DV(0.000),
+   DV(0.000), DV(0.000), DV(0.000), DV(0.000),
+   DV(0.000), DV(0.000), DV(0.000), DV(0.000),
+   DV(0.000), DV(0.000), DV(0.000), DV(0.000),
   /* OCT 1 */
-   0.000/DV, 0.000/DV, 0.000/DV, 0.000/DV,
-   0.000/DV, 0.000/DV, 0.000/DV, 0.000/DV,
-   0.000/DV, 0.750/DV, 1.125/DV, 1.500/DV,
-   1.875/DV, 2.250/DV, 2.625/DV, 3.000/DV,
+   DV(0.000), DV(0.000), DV(0.000), DV(0.000),
+   DV(0.000), DV(0.000), DV(0.000), DV(0.000),
+   DV(0.000), DV(0.750), DV(1.125), DV(1.500),
+   DV(1.875), DV(2.250), DV(2.625), DV(3.000),
   /* OCT 2 */
-   0.000/DV, 0.000/DV, 0.000/DV, 0.000/DV,
-   0.000/DV, 1.125/DV, 1.875/DV, 2.625/DV,
-   3.000/DV, 3.750/DV, 4.125/DV, 4.500/DV,
-   4.875/DV, 5.250/DV, 5.625/DV, 6.000/DV,
+   DV(0.000), DV(0.000), DV(0.000), DV(0.000),
+   DV(0.000), DV(1.125), DV(1.875), DV(2.625),
+   DV(3.000), DV(3.750), DV(4.125), DV(4.500),
+   DV(4.875), DV(5.250), DV(5.625), DV(6.000),
   /* OCT 3 */
-   0.000/DV, 0.000/DV, 0.000/DV, 1.875/DV,
-   3.000/DV, 4.125/DV, 4.875/DV, 5.625/DV,
-   6.000/DV, 6.750/DV, 7.125/DV, 7.500/DV,
-   7.875/DV, 8.250/DV, 8.625/DV, 9.000/DV,
+   DV(0.000), DV(0.000), DV(0.000), DV(1.875),
+   DV(3.000), DV(4.125), DV(4.875), DV(5.625),
+   DV(6.000), DV(6.750), DV(7.125), DV(7.500),
+   DV(7.875), DV(8.250), DV(8.625), DV(9.000),
   /* OCT 4 */
-   0.000/DV, 0.000/DV, 3.000/DV, 4.875/DV,
-   6.000/DV, 7.125/DV, 7.875/DV, 8.625/DV,
-   9.000/DV, 9.750/DV,10.125/DV,10.500/DV,
-  10.875/DV,11.250/DV,11.625/DV,12.000/DV,
+   DV(0.000), DV(0.000), DV(3.000), DV(4.875),
+   DV(6.000), DV(7.125), DV(7.875), DV(8.625),
+   DV(9.000), DV(9.750), DV(10.125), DV(10.500),
+  DV(10.875), DV(11.250), DV(11.625), DV(12.000),
   /* OCT 5 */
-   0.000/DV, 3.000/DV, 6.000/DV, 7.875/DV,
-   9.000/DV,10.125/DV,10.875/DV,11.625/DV,
-  12.000/DV,12.750/DV,13.125/DV,13.500/DV,
-  13.875/DV,14.250/DV,14.625/DV,15.000/DV,
+   DV(0.000), DV(3.000), DV(6.000), DV(7.875),
+   DV(9.000),DV(10.125),DV(10.875),DV(11.625),
+  DV(12.000),DV(12.750),DV(13.125),DV(13.500),
+  DV(13.875),DV(14.250),DV(14.625),DV(15.000),
   /* OCT 6 */
-   0.000/DV, 6.000/DV, 9.000/DV,10.875/DV,
-  12.000/DV,13.125/DV,13.875/DV,14.625/DV,
-  15.000/DV,15.750/DV,16.125/DV,16.500/DV,
-  16.875/DV,17.250/DV,17.625/DV,18.000/DV,
+   DV(0.000), DV(6.000), DV(9.000),DV(10.875),
+  DV(12.000),DV(13.125),DV(13.875),DV(14.625),
+  DV(15.000),DV(15.750),DV(16.125),DV(16.500),
+  DV(16.875),DV(17.250),DV(17.625),DV(18.000),
   /* OCT 7 */
-   0.000/DV, 9.000/DV,12.000/DV,13.875/DV,
-  15.000/DV,16.125/DV,16.875/DV,17.625/DV,
-  18.000/DV,18.750/DV,19.125/DV,19.500/DV,
-  19.875/DV,20.250/DV,20.625/DV,21.000/DV
+   DV(0.000), DV(9.000),DV(12.000),DV(13.875),
+  DV(15.000),DV(16.125),DV(16.875),DV(17.625),
+  DV(18.000),DV(18.750),DV(19.125),DV(19.500),
+  DV(19.875),DV(20.250),DV(20.625),DV(21.000)
 ];
 
 /* sustain level table (3dB per step) */
 /* 0 - 15: 0, 3, 6, 9,12,15,18,21,24,27,30,33,36,39,42,45 (dB)*/
-float SC(int db) { return cast(u32) ( db * (1.0/ENV_STEP) ); }
+u32 SC(int db) { return cast(u32) ( db * (1.0/ENV_STEP) ); }
 static const u32[16] sl_tab = [
  SC( 0),SC( 1),SC( 2),SC(3 ),SC(4 ),SC(5 ),SC(6 ),SC( 7),
  SC( 8),SC( 9),SC(10),SC(11),SC(12),SC(13),SC(14),SC(15)
@@ -242,7 +242,7 @@ static const u8[15*RATE_STEPS] eg_inc = [
 ];
 
 
-float O(int a) { return a * RATE_STEPS; }
+u8 O(int a) { return cast(u8) (a * RATE_STEPS); }
 
 /*note that there is no O(13) in this table - it's directly in the code */
 static const u8[16+64+16] eg_rate_select = [  /* Envelope Generator rates (16 + 64 rates + 16 RKS) */
@@ -284,49 +284,49 @@ O(12),O(12),O(12),O(12),O(12),O(12),O(12),O(12),
 /*shift 13,   12,   11,   10,   9,   8,   7,   6,  5,  4,  3,  2,  1,  0,  0,  0 */
 /*mask  8191, 4095, 2047, 1023, 511, 255, 127, 63, 31, 15, 7,  3,  1,  0,  0,  0 */
 
-float O(int a) { return a * 1; }
+u8 P(int a) { return cast(u8) (a * 1); }
 static const u8[16+64+16] eg_rate_shift = [  /* Envelope Generator counter shifts (16 + 64 rates + 16 RKS) */
 /* 16 infinite time rates */
-O(0),O(0),O(0),O(0),O(0),O(0),O(0),O(0),
-O(0),O(0),O(0),O(0),O(0),O(0),O(0),O(0),
+P(0),P(0),P(0),P(0),P(0),P(0),P(0),P(0),
+P(0),P(0),P(0),P(0),P(0),P(0),P(0),P(0),
 
 /* rates 00-12 */
-O(13),O(13),O(13),O(13),
-O(12),O(12),O(12),O(12),
-O(11),O(11),O(11),O(11),
-O(10),O(10),O(10),O(10),
-O( 9),O( 9),O( 9),O( 9),
-O( 8),O( 8),O( 8),O( 8),
-O( 7),O( 7),O( 7),O( 7),
-O( 6),O( 6),O( 6),O( 6),
-O( 5),O( 5),O( 5),O( 5),
-O( 4),O( 4),O( 4),O( 4),
-O( 3),O( 3),O( 3),O( 3),
-O( 2),O( 2),O( 2),O( 2),
-O( 1),O( 1),O( 1),O( 1),
+P(13),P(13),P(13),P(13),
+P(12),P(12),P(12),P(12),
+P(11),P(11),P(11),P(11),
+P(10),P(10),P(10),P(10),
+P( 9),P( 9),P( 9),P( 9),
+P( 8),P( 8),P( 8),P( 8),
+P( 7),P( 7),P( 7),P( 7),
+P( 6),P( 6),P( 6),P( 6),
+P( 5),P( 5),P( 5),P( 5),
+P( 4),P( 4),P( 4),P( 4),
+P( 3),P( 3),P( 3),P( 3),
+P( 2),P( 2),P( 2),P( 2),
+P( 1),P( 1),P( 1),P( 1),
 
 /* rate 13 */
-O( 0),O( 0),O( 0),O( 0),
+P( 0),P( 0),P( 0),P( 0),
 
 /* rate 14 */
-O( 0),O( 0),O( 0),O( 0),
+P( 0),P( 0),P( 0),P( 0),
 
 /* rate 15 */
-O( 0),O( 0),O( 0),O( 0),
+P( 0),P( 0),P( 0),P( 0),
 
 /* 16 dummy rates (same as 15 3) */
-O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),
-O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),
+P( 0),P( 0),P( 0),P( 0),P( 0),P( 0),P( 0),P( 0),
+P( 0),P( 0),P( 0),P( 0),P( 0),P( 0),P( 0),P( 0),
 
 ];
 
 
 /* multiple table */
-const int ML = 2;
+u8 ML(float a) { return cast(u8) (a * 2); }
 static const u8[16] mul_tab = [
 /* 1/2, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,10,12,12,15,15 */
-   0.50*ML, 1.00*ML, 2.00*ML, 3.00*ML, 4.00*ML, 5.00*ML, 6.00*ML, 7.00*ML,
-   8.00*ML, 9.00*ML,10.00*ML,10.00*ML,12.00*ML,12.00*ML,15.00*ML,15.00*ML
+   ML(0.50), ML(1.00), ML(2.00), ML(3.00), ML(4.00), ML(5.00), ML(6.00), ML(7.00),
+   ML(8.00), ML(9.00), ML(10.00), ML(10.00), ML(12.00), ML(12.00), ML(15.00), ML(15.00)
 ];
 
 /*  TL_TAB_LEN is calculated as:
@@ -450,44 +450,44 @@ static const s8[8*8] lfo_pm_table = [
  - waveform DC and DM select are 100% correct
 */
 
-static u8[19][8] table = [
+static u8[8][19] table = [
 /* MULT  MULT modTL DcDmFb AR/DR AR/DR SL/RR SL/RR */
 /*   0     1     2     3     4     5     6    7    */
-  {0x49, 0x4c, 0x4c, 0x12, 0x00, 0x00, 0x00, 0x00 },  /* 0 */
+  [0x49, 0x4c, 0x4c, 0x12, 0x00, 0x00, 0x00, 0x00 ],  /* 0 */
 
-  {0x61, 0x61, 0x1e, 0x17, 0xf0, 0x78, 0x00, 0x17 },  /* 1 */
-  {0x13, 0x41, 0x1e, 0x0d, 0xd7, 0xf7, 0x13, 0x13 },  /* 2 */
-  {0x13, 0x01, 0x99, 0x04, 0xf2, 0xf4, 0x11, 0x23 },  /* 3 */
-  {0x21, 0x61, 0x1b, 0x07, 0xaf, 0x64, 0x40, 0x27 },  /* 4 */
+  [0x61, 0x61, 0x1e, 0x17, 0xf0, 0x78, 0x00, 0x17 ],  /* 1 */
+  [0x13, 0x41, 0x1e, 0x0d, 0xd7, 0xf7, 0x13, 0x13 ],  /* 2 */
+  [0x13, 0x01, 0x99, 0x04, 0xf2, 0xf4, 0x11, 0x23 ],  /* 3 */
+  [0x21, 0x61, 0x1b, 0x07, 0xaf, 0x64, 0x40, 0x27 ],  /* 4 */
 
-/*{0x22, 0x21, 0x1e, 0x09, 0xf0, 0x76, 0x08, 0x28 },  */ /* 5 */
-  {0x22, 0x21, 0x1e, 0x06, 0xf0, 0x75, 0x08, 0x18 },  /* 5 */
+/*[0x22, 0x21, 0x1e, 0x09, 0xf0, 0x76, 0x08, 0x28 ],  */ /* 5 */
+  [0x22, 0x21, 0x1e, 0x06, 0xf0, 0x75, 0x08, 0x18 ],  /* 5 */
 
-/*{0x31, 0x22, 0x16, 0x09, 0x90, 0x7f, 0x00, 0x08 },  */ /* 6 */
-  {0x31, 0x22, 0x16, 0x05, 0x90, 0x71, 0x00, 0x13 },  /* 6 */
+/*[0x31, 0x22, 0x16, 0x09, 0x90, 0x7f, 0x00, 0x08 ],  */ /* 6 */
+  [0x31, 0x22, 0x16, 0x05, 0x90, 0x71, 0x00, 0x13 ],  /* 6 */
 
-  {0x21, 0x61, 0x1d, 0x07, 0x82, 0x80, 0x10, 0x17 },  /* 7 */
-  {0x23, 0x21, 0x2d, 0x16, 0xc0, 0x70, 0x07, 0x07 },  /* 8 */
-  {0x61, 0x61, 0x1b, 0x06, 0x64, 0x65, 0x10, 0x17 },  /* 9 */
+  [0x21, 0x61, 0x1d, 0x07, 0x82, 0x80, 0x10, 0x17 ],  /* 7 */
+  [0x23, 0x21, 0x2d, 0x16, 0xc0, 0x70, 0x07, 0x07 ],  /* 8 */
+  [0x61, 0x61, 0x1b, 0x06, 0x64, 0x65, 0x10, 0x17 ],  /* 9 */
 
-/* {0x61, 0x61, 0x0c, 0x08, 0x85, 0xa0, 0x79, 0x07 },  */ /* A */
-  {0x61, 0x61, 0x0c, 0x18, 0x85, 0xf0, 0x70, 0x07 },  /* A */
+/* [0x61, 0x61, 0x0c, 0x08, 0x85, 0xa0, 0x79, 0x07 ],  */ /* A */
+  [0x61, 0x61, 0x0c, 0x18, 0x85, 0xf0, 0x70, 0x07 ],  /* A */
 
-  {0x23, 0x01, 0x07, 0x11, 0xf0, 0xa4, 0x00, 0x22 },  /* B */
-  {0x97, 0xc1, 0x24, 0x07, 0xff, 0xf8, 0x22, 0x12 },  /* C */
+  [0x23, 0x01, 0x07, 0x11, 0xf0, 0xa4, 0x00, 0x22 ],  /* B */
+  [0x97, 0xc1, 0x24, 0x07, 0xff, 0xf8, 0x22, 0x12 ],  /* C */
 
-/* {0x61, 0x10, 0x0c, 0x08, 0xf2, 0xc4, 0x40, 0xc8 },  */ /* D */
-  {0x61, 0x10, 0x0c, 0x05, 0xf2, 0xf4, 0x40, 0x44 },  /* D */
+/* [0x61, 0x10, 0x0c, 0x08, 0xf2, 0xc4, 0x40, 0xc8 ],  */ /* D */
+  [0x61, 0x10, 0x0c, 0x05, 0xf2, 0xf4, 0x40, 0x44 ],  /* D */
 
-  {0x01, 0x01, 0x55, 0x03, 0xf3, 0x92, 0xf3, 0xf3 },  /* E */
-  {0x61, 0x41, 0x89, 0x03, 0xf1, 0xf4, 0xf0, 0x13 },  /* F */
+  [0x01, 0x01, 0x55, 0x03, 0xf3, 0x92, 0xf3, 0xf3 ],  /* E */
+  [0x61, 0x41, 0x89, 0x03, 0xf1, 0xf4, 0xf0, 0x13 ],  /* F */
 
 /* drum instruments definitions */
 /* MULTI MULTI modTL  xxx  AR/DR AR/DR SL/RR SL/RR */
 /*   0     1     2     3     4     5     6    7    */
-  {0x01, 0x01, 0x16, 0x00, 0xfd, 0xf8, 0x2f, 0x6d },/* BD(multi verified, modTL verified, mod env - verified(close), carr. env verifed) */
-  {0x01, 0x01, 0x00, 0x00, 0xd8, 0xd8, 0xf9, 0xf8 },/* HH(multi verified), SD(multi not used) */
-  {0x05, 0x01, 0x00, 0x00, 0xf8, 0xba, 0x49, 0x55 },/* TOM(multi,env verified), TOP CYM(multi verified, env verified) */
+  [0x01, 0x01, 0x16, 0x00, 0xfd, 0xf8, 0x2f, 0x6d ],/* BD(multi verified, modTL verified, mod env - verified(close), carr. env verifed) */
+  [0x01, 0x01, 0x00, 0x00, 0xd8, 0xd8, 0xf9, 0xf8 ],/* HH(multi verified), SD(multi not used) */
+  [0x05, 0x01, 0x00, 0x00, 0xf8, 0xba, 0x49, 0x55 ],/* TOM(multi,env verified), TOP CYM(multi verified, env verified) */
 ];
 
 static s32[2] output;

@@ -118,7 +118,7 @@ static u8 rom_region;
  * http://www.zophar.net/tech/files/Genesis_ROM_Format.txt
  **************************************************************************/
 static const COMPANYINFO[MAXCOMPANY] companyinfo =
-{
+[
   {"ACLD", "Ballistic"},
   {"RSI", "Razorsoft"},
   {"SEGA", "SEGA"},
@@ -183,7 +183,7 @@ static const COMPANYINFO[MAXCOMPANY] companyinfo =
   {"177", "Ubisoft"},
   {"239", "Disney Interactive"},
   {"---", "Unknown"}
-};
+];
 
 /***************************************************************************
  * Genesis Peripheral Information
@@ -192,7 +192,7 @@ static const COMPANYINFO[MAXCOMPANY] companyinfo =
  * http://www.zophar.net/tech/files/Genesis_ROM_Format.txt
  ***************************************************************************/
 static const PERIPHERALINFO[MAXPERIPHERALS] peripheralinfo =
-{
+[
   {"J", "3B Joypad"},
   {"6", "6B Joypad"},
   {"K", "Keyboard"},
@@ -208,7 +208,7 @@ static const PERIPHERALINFO[MAXPERIPHERALS] peripheralinfo =
   {"C", "CD-ROM"},
   {"M", "Mega Mouse"},
   {"G", "Menacer"},
-};
+];
 
 /***************************************************************************
  *

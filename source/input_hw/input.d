@@ -146,7 +146,7 @@ struct t_input
 }
 
 t_input input;
-int old_system[2] = {-1,-1};
+int old_system[2] = [-1,-1];
 
 
 void input_init()
