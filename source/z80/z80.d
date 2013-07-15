@@ -126,6 +126,9 @@
 import common;
 import types;
 
+// FIXME: this is just a stub function
+int cpu_getactivecpu() { return 1; }
+
 /* line states */
 const int CLEAR_LINE = 0; /* clear (a fired, held or pulsed) line */
 const int ASSERT_LINE = 1;    /* assert an interrupt immediately */
@@ -174,8 +177,10 @@ struct Z80_Regs
 bool VERBOSE = false;
 
 void LOG(string x) {
-  if(VERBOSE)
-    logerror(x);
+  if(VERBOSE) {
+    // FIXME: Disabled until we find an alternative to logerror
+    //logerror(x);
+  }
 }
 
 u32 cpu_readop(u32 a) {
@@ -199,58 +204,58 @@ const int SF  = 0x80;
 const int INT_IRQ = 0x01;
 const int NMI_IRQ = 0x02;
 
-alias Z80.pc.d      PCD;
-alias Z80.pc.w.l    PC;
-
-alias Z80.sp.d      SPD;
-alias Z80.sp.w.l    SP;
-
-alias Z80.af.d      AFD;
-alias Z80.af.w.l    AF;
-alias Z80.af.b.h    A;
-alias Z80.af.b.l    F;
-
-alias Z80.bc.d      BCD;
-alias Z80.bc.w.l    BC;
-alias Z80.bc.b.h    B;
-alias Z80.bc.b.l    C;
-
-alias Z80.de.d      DED;
-alias Z80.de.w.l    DE;
-alias Z80.de.b.h    D;
-alias Z80.de.b.l    E;
-
-alias Z80.hl.d      HLD;
-alias Z80.hl.w.l    HL;
-alias Z80.hl.b.h    H;
-alias Z80.hl.b.l    L;
-
-alias Z80.ix.d      IXD;
-alias Z80.ix.w.l    IX;
-alias Z80.ix.b.h    HX;
-alias Z80.ix.b.l    LX;
-
-alias Z80.iy.d      IYD;
-alias Z80.iy.w.l    IY;
-alias Z80.iy.b.h    HY;
-alias Z80.iy.b.l    LY;
-
-alias Z80.wz.w.l    WZ;
-alias Z80.wz.b.h    WZ_H;
-alias Z80.wz.b.l    WZ_L;
-
-alias Z80.i         I;
-alias Z80.r         R;
-alias Z80.r2        R2;
-alias Z80.im        IM;
-alias Z80.iff1      IFF1;
-alias Z80.iff2      IFF2;
-alias Z80.halt      HALT;
-
 Z80_Regs Z80;
 
-u8[64] z80_readmap;
-u8[64] z80_writemap;
+u32 PCD() { return Z80.pc.d; } u32 PCD(u32 value) { return Z80.pc.d = value; }
+u16 PC() { return Z80.pc.w.l; } u16 PC(u16 value) { return Z80.pc.w.l = value; }
+
+u32 SPD() { return Z80.sp.d; } u32 SPD(u32 value) { return Z80.sp.d = value; }
+u16 SP() { return Z80.sp.w.l; } u16 SP(u16 value) { return Z80.sp.w.l = value; }
+
+u32 AFD() { return Z80.af.d; } u32 AFD(u32 value) { return Z80.af.d = value; }
+u16 AF() { return Z80.af.w.l; } u16 AF(u16 value) { return Z80.af.w.l = value; }
+u8 A() { return Z80.af.b.h; } u8 A(u8 value) { return Z80.af.b.h = value; }
+u8 F() { return Z80.af.b.l; } u8 F(u8 value) { return Z80.af.b.l = value; }
+
+u32 BCD() { return Z80.bc.d; } u32 BCD(u32 value) { return Z80.bc.d = value; }
+u16 BC() { return Z80.bc.w.l; } u16 BC(u16 value ) { return Z80.bc.w.l = value; }
+u8 B() { return Z80.bc.b.h; } u8 B(u8 value) { return Z80.bc.b.h = value; }
+u8 C() { return Z80.bc.b.l; } u8 C(u8 value) { return Z80.bc.b.l = value; }
+
+u32 DED() { return Z80.de.d; } u32 DED(u32 value) { return Z80.de.d = value; }
+u16 DE() { return Z80.de.w.l; } u16 DE(u16 value) { return Z80.de.w.l = value; }
+u8 D() { return Z80.de.b.h; } u8 D(u8 value) { return Z80.de.b.h = value; }
+u8 E() { return Z80.de.b.l; } u8 E(u8 value) { return Z80.de.b.l = value; }
+
+u32 HLD() { return Z80.hl.d; } u32 HLD(u32 value) { return Z80.hl.d = value; }
+u16 HL() { return Z80.hl.w.l; } u16 HL(u16 value) { return Z80.hl.w.l = value; }
+u8 H() { return Z80.hl.b.h; } u8 H(u8 value) { return Z80.hl.b.h = value; }
+u8 L() { return Z80.hl.b.l; } u8 L(u8 value) { return Z80.hl.b.l = value; }
+
+u32 IXD() { return Z80.ix.d; } u32 IXD(u32 value) { return Z80.ix.d = value; }
+u16 IX() { return Z80.ix.w.l; } u16 IX(u16 value) { return Z80.ix.w.l = value; }
+u8 HX() { return Z80.ix.b.h; } u8 HX(u8 value) { return Z80.ix.b.h = value; }
+u8 LX() { return Z80.ix.b.l; } u8 LX(u8 value) { return Z80.ix.b.l = value; }
+
+u32 IYD() { return Z80.iy.d; } u32 IYD(u32 value) { return Z80.iy.d = value; }
+u16 IY() { return Z80.iy.w.l; } u16 IY(u16 value) { return Z80.iy.w.l = value; }
+u8 HY() { return Z80.iy.b.h; } u8 HY(u8 value) { return Z80.iy.b.h = value; }
+u8 LY() { return Z80.iy.b.l; } u8 LY(u8 value) { return Z80.iy.b.l = value; }
+
+u16 WZ() { return Z80.wz.w.l; } u16 WZ(u16 value) { return Z80.wz.w.l = value; }
+u8 WZ_H() { return Z80.wz.b.h; } u8 WZ_H(u8 value) { return Z80.wz.b.h = value; }
+u8 WZ_L() { return Z80.wz.b.l; } u8 WZ_L(u8 value) { return Z80.wz.b.l = value; }
+
+u8 I() { return Z80.i; } u8 I(u8 value) { return Z80.i = value; }
+u8 R() { return Z80.r; } u8 R(u8 value) { return Z80.r = value; }
+u8 R2() { return Z80.r2; } u8 R2(u8 value) { return Z80.r2 = value; }
+u8 IM() { return Z80.im; } u8 IM(u8 value) { return Z80.im = value; }
+u8 IFF1() { return Z80.iff1; } u8 IFF1(u8 value) { return Z80.iff1 = value; }
+u8 IFF2() { return Z80.iff2; } u8 IFF2(u8 value) { return Z80.iff2 = value; }
+u8 HALT() { return Z80.halt; } u8 HALT(u8 value) { return Z80.halt = value; }
+
+u8[64][64] z80_readmap;
+u8[64][64] z80_writemap;
 
 void function(u32 address, u8 data) z80_writemem;
 u8 function(u32 address) z80_readmem;
@@ -379,7 +384,7 @@ static const u16[0x100] cc_ex = [
  6*15, 0*15, 0*15, 0*15, 7*15, 0*15, 0*15, 2*15, 6*15, 0*15, 0*15, 0*15, 7*15, 0*15, 0*15, 2*15,
  6*15, 0*15, 0*15, 0*15, 7*15, 0*15, 0*15, 2*15, 6*15, 0*15, 0*15, 0*15, 7*15, 0*15, 0*15, 2*15];
 
-static const u16[6] cc;
+static const u16[6][6] cc;
 
 
 static const void function()[0x100] Z80op = [
@@ -602,7 +607,7 @@ void BURNODD(s32 cycles, s32 opcodes, s32 cyclesum)
 {
   if( cycles > 0 )
   {
-    R += (cycles / cyclesum) * opcodes;
+    R = cast(u8) (R + (cycles / cyclesum) * opcodes);
     Z80.cycles += (cycles / cyclesum) * cyclesum * 15;
   }
 }
@@ -656,7 +661,7 @@ void EXEC_xycb(u8 opcode) {
  * Enter HALT state; write 1 to fake port on first execution
  ***************************************************************/
 void ENTER_HALT() {
-  PC--;
+  PC = cast(u16) (PC - 1);
   HALT = 1;
 }
 
@@ -667,7 +672,7 @@ void LEAVE_HALT() {
   if( HALT )
   {
     HALT = 0;
-    PC++;
+    PC = cast(u16) (PC + 1);
   }
 }
 
@@ -725,8 +730,8 @@ void WM16( u32 addr, PAIR *r )
 u8 ROP()
 {
   u32 pc = PCD;
-  PC++;
-  return cpu_readop(pc);
+  PC = cast(u16) (PC + 1);
+  return cast(u8) cpu_readop(pc);
 }
 
 /****************************************************************
@@ -738,14 +743,14 @@ u8 ROP()
 u8 ARG()
 {
   u32 pc = PCD;
-  PC++;
+  PC = cast(u16) (PC + 1);
   return cast(u8) cpu_readop_arg(pc);
 }
 
 u32 ARG16()
 {
   u32 pc = PCD;
-  PC += 2;
+  PC = cast(u16) (PC + 2);
   return cpu_readop_arg(pc) | (cpu_readop_arg((pc+1)&0xffff) << 8);
 }
 
@@ -755,12 +760,12 @@ u32 ARG16()
  ***************************************************************/
 void EAX() {
     EA = cast(u32)cast(u16)(IX + cast(s8)ARG());
-    WZ = EA;
+    WZ = cast(u16) EA;
 }
 
 void EAY() {
     EA = cast(u32)cast(u16)(IY + cast(s8)ARG());
-    WZ = EA;
+    WZ = cast(u16) EA;
 }
 
 /***************************************************************
@@ -768,74 +773,74 @@ void EAY() {
  ***************************************************************/
 void POP_af() {
     RM16( SPD, &Z80.af );
-    SP += 2;
+    SP = cast(u16) (SP + 2);
 }
 
 void POP_bc() {
     RM16( SPD, &Z80.bc );
-    SP += 2;
+    SP = cast(u16) (SP + 2);
 }
 
 void POP_de() {
     RM16( SPD, &Z80.de );
-    SP += 2;
+    SP = cast(u16) (SP + 2);
 }
 
 void POP_hl() {
     RM16( SPD, &Z80.hl );
-    SP += 2;
+    SP = cast(u16) (SP + 2);
 }
 
 void POP_iy() {
     RM16( SPD, &Z80.iy );
-    SP += 2;
+    SP = cast(u16) (SP + 2);
 }
 
 void POP_ix() {
     RM16( SPD, &Z80.ix );
-    SP += 2;
+    SP = cast(u16) (SP + 2);
 }
 
 void POP_pc() {
     RM16( SPD, &Z80.pc );
-    SP += 2;
+    SP = cast(u16) (SP + 2);
 }
 
 /***************************************************************
  * PUSH
  ***************************************************************/
 void PUSH_af() {
-	SP -= 2;
+	SP = cast(u16) (SP - 2);
 	WM16( SPD, &Z80.af );
 }
 
 void PUSH_bc() {
-	SP -= 2;
+	SP = cast(u16) (SP - 2);
 	WM16( SPD, &Z80.bc );
 }
 
 void PUSH_de() {
-	SP -= 2;
+	SP = cast(u16) (SP - 2);
 	WM16( SPD, &Z80.de );
 }
 
 void PUSH_hl() {
-	SP -= 2;
+	SP = cast(u16) (SP - 2);
 	WM16( SPD, &Z80.hl );
 }
 
 void PUSH_iy() {
-	SP -= 2;
+	SP = cast(u16) (SP - 2);
 	WM16( SPD, &Z80.iy );
 }
 
 void PUSH_ix() {
-	SP -= 2;
+	SP = cast(u16) (SP - 2);
 	WM16( SPD, &Z80.ix );
 }
 
 void PUSH_pc() {
-	SP -= 2;
+	SP = cast(u16) (SP - 2);
 	WM16( SPD, &Z80.pc );
 }
 
@@ -864,7 +869,7 @@ void JP_COND(int cond) {
  ***************************************************************/
 void JR() {
   s8 arg = cast(s8)ARG(); /* ARG() also increments PC */
-  PC += arg;        /* so don't do PC += ARG() */
+  PC = cast(u16) (PC + arg);        /* so don't do PC += ARG() */
   WZ = PC;
 }
 
@@ -876,8 +881,9 @@ void JR_COND(int cond, u8 opcode) {
   {
     JR();
     CC_ex(opcode);
+  } else {
+    PC = cast(u16) (PC + 1);
   }
-  else PC++;
 }
 
 /***************************************************************
@@ -924,7 +930,8 @@ void RET_COND(int cond, u8 opcode) {
  * RETN
  ***************************************************************/
 void RETN() {
-	LOG(("Z80 #%d RETN IFF1:%d IFF2:%d\n", cpu_getactivecpu(), IFF1, IFF2));
+	// FIXME: Make log work
+	//LOG(("Z80 #%d RETN IFF1:%d IFF2:%d\n", cpu_getactivecpu(), IFF1, IFF2));
 	POP_pc();
 	WZ = PC;
 	IFF1 = IFF2;
@@ -953,7 +960,7 @@ void LD_R_A() {
  ***************************************************************/
 void LD_A_R() {
   A = (R & 0x7f) | R2;
-  F = (F & CF) | SZ[A] | ( IFF2 << 2 );
+  F = cast(u8) ((F & CF) | SZ[A] | ( IFF2 << 2 ));
 }
 
 /***************************************************************
@@ -968,7 +975,7 @@ void LD_I_A() {
  ***************************************************************/
 void LD_A_I() {
   A = I;
-  F = (F & CF) | SZ[A] | ( IFF2 << 2 );
+  F = cast(u8) ((F & CF) | SZ[A] | ( IFF2 << 2 ));
 }
 
 /***************************************************************
@@ -986,7 +993,7 @@ void RST(u8 addr) {
 u8 INC(u8 value)
 {
   u8 res = cast(u8) (value + 1);
-  F = (F & CF) | SZHV_inc[res];
+  F = cast(u8) ((F & CF) | SZHV_inc[res]);
   return cast(u8)res;
 }
 
@@ -996,7 +1003,7 @@ u8 INC(u8 value)
 u8 DEC(u8 value)
 {
   u8 res = cast(u8) (value - 1);
-  F = (F & CF) | SZHV_dec[res];
+  F = cast(u8) ((F & CF) | SZHV_dec[res]);
   return res;
 }
 
@@ -1005,16 +1012,16 @@ u8 DEC(u8 value)
  ***************************************************************/
 void RLCA() {
   A = cast(u8) ((A << 1) | (A >> 7));
-  F = (F & (SF | ZF | PF)) | (A & (YF | XF | CF));
+  F = cast(u8) ((F & (SF | ZF | PF)) | (A & (YF | XF | CF)));
 }
 
 /***************************************************************
  * RRCA
  ***************************************************************/
 void RRCA() {
-  F = (F & (SF | ZF | PF)) | (A & CF);
+  F = cast(u8) ((F & (SF | ZF | PF)) | (A & CF));
   A = cast(u8) ((A >> 1) | (A << 7));
-  F |= (A & (YF | XF) );
+  F = cast(u8) (F | (A & (YF | XF) ));
 }
 
 /***************************************************************
@@ -1023,7 +1030,7 @@ void RRCA() {
 void RLA() {
   u8 res = cast(u8) ((A << 1) | (F & CF));
   u8 c = (A & 0x80) ? CF : 0;
-  F = (F & (SF | ZF | PF)) | c | (res & (YF | XF));
+  F = cast(u8) ((F & (SF | ZF | PF)) | c | (res & (YF | XF)));
   A = res;
 }
 
@@ -1033,7 +1040,7 @@ void RLA() {
 void RRA() {
   u8 res = cast(u8)((A >> 1) | (F << 7));
   u8 c = (A & 0x01) ? CF : 0;
-  F = (F & (SF | ZF | PF)) | c | (res & (YF | XF));
+  F = cast(u8) ((F & (SF | ZF | PF)) | c | (res & (YF | XF)));
   A = res;
 }
 
@@ -1045,7 +1052,7 @@ void RRD() {
   WZ = HL+1;
   WM( HL, (n >> 4) | (A << 4) );
   A = (A & 0xf0) | (n & 0x0f);
-  F = (F & CF) | SZP[A];
+  F = cast(u8) ((F & CF) | SZP[A]);
 }
 
 /***************************************************************
@@ -1056,7 +1063,7 @@ void RLD() {
   WZ = HL+1;
   WM( HL, (n << 4) | (A & 0x0f) );
   A = (A & 0xf0) | (n >> 4);
-  F = (F & CF) | SZP[A];
+  F = cast(u8) ((F & CF) | SZP[A]);
 }
 
 /***************************************************************
@@ -1523,7 +1530,7 @@ void LDIR() {
   LDI();
   if( BC )
   {
-    PC -= 2;
+    PC = cast(u16) (PC - 2);
     WZ = PC + 1;
     CC_ex(0xb0);
   }
@@ -1536,7 +1543,7 @@ void CPIR() {
   CPI();
   if( BC && !(F & ZF) )
   {
-    PC -= 2;
+    PC = cast(u16) (PC - 2);
    WZ = PC + 1;
     CC_ex(0xb1);
   }
@@ -1549,7 +1556,7 @@ void INIR() {
   INI();
   if( B )
   {
-    PC -= 2;
+    PC = cast(u16) (PC - 2);
     CC_ex(0xb2);
   }
 }
@@ -1561,7 +1568,7 @@ void OTIR() {
   OUTI();
   if( B )
   {
-    PC -= 2;
+    PC = cast(u16) (PC - 2);
     CC_ex(0xb3);
   }
 }
@@ -1573,7 +1580,7 @@ void LDDR() {
   LDD();
   if( BC )
   {
-    PC -= 2;
+    PC = cast(u16) (PC - 2);
     WZ = PC + 1;
     CC_ex(0xb8);
   }
@@ -1586,7 +1593,7 @@ void CPDR() {
   CPD();
   if( BC && !(F & ZF) )
   {
-    PC -= 2;
+    PC = cast(u16) (PC - 2);
    WZ = PC + 1;
     CC_ex(0xb9);
   }
@@ -1599,7 +1606,7 @@ void INDR() {
   IND();
   if( B )
   {
-    PC -= 2;
+    PC = cast(u16) (PC - 2);
     CC_ex(0xba);
   }
 }
@@ -1611,7 +1618,7 @@ void OTDR() {
   OUTD();
   if( B )
   {
-    PC -= 2;
+    PC = cast(u16) (PC - 2);
     CC_ex(0xbb);
   }
 }
@@ -2211,8 +2218,9 @@ void xycb_ff() { A = SET(7, RM(EA) ); WM( EA,A );          } /* SET  7,A=(XY+o) 
 
 void illegal_1() {
   if(VERBOSE) {
-    logerror("Z80 #%d ill. opcode $%02x $%02x\n",
-      cpu_getactivecpu(), cpu_readop((PCD-1)&0xffff), cpu_readop(PCD));
+    // FIXME: Disabled until we find an alternative to logerror
+    //logerror("Z80 #%d ill. opcode $%02x $%02x\n",
+    //  cpu_getactivecpu(), cpu_readop((PCD-1)&0xffff), cpu_readop(PCD));
   }
 }
 /**********************************************************
@@ -2800,8 +2808,9 @@ void fd_ff() { illegal_1(); op_ff();                             } /* DB   FD   
 void illegal_2()
 {
   if(VERBOSE) {
-    logerror("Z80 #%d ill. opcode $ed $%02x\n",
-      cpu_getactivecpu(), cpu_readop((PCD-1)&0xffff));
+    // FIXME: Disabled until we find an alternative to logerror
+    //logerror("Z80 #%d ill. opcode $ed $%02x\n",
+    //  cpu_getactivecpu(), cpu_readop((PCD-1)&0xffff));
   }
 }
 
