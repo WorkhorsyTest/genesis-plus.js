@@ -1049,8 +1049,8 @@ void RRA() {
  ***************************************************************/
 void RRD() {
   u8 n = RM(HL);
-  WZ = HL+1;
-  WM( HL, (n >> 4) | (A << 4) );
+  WZ = cast(u16) (HL+1);
+  WM( HL, cast(u8) ((n >> 4) | (A << 4)) );
   A = (A & 0xf0) | (n & 0x0f);
   F = cast(u8) ((F & CF) | SZP[A]);
 }
@@ -1060,8 +1060,8 @@ void RRD() {
  ***************************************************************/
 void RLD() {
   u8 n = RM(HL);
-  WZ = HL+1;
-  WM( HL, (n << 4) | (A & 0x0f) );
+  WZ = cast(u16) (HL+1);
+  WM( HL, cast(u8) ((n << 4) | (A & 0x0f)) );
   A = (A & 0xf0) | (n >> 4);
   F = cast(u8) ((F & CF) | SZP[A]);
 }
@@ -1136,7 +1136,7 @@ void DAA() {
  * AND  n
  ***************************************************************/
 void AND(u8 value) {
-  A &= value;
+  A = cast(u8) (A & value);
   F = SZP[A] | HF;
 }
 
@@ -1144,7 +1144,7 @@ void AND(u8 value) {
  * OR  n
  ***************************************************************/
 void OR(u8 value) {
-  A |= value;
+  A = cast(u8) (A | value);
   F = SZP[A];
 }
 
@@ -1152,7 +1152,7 @@ void OR(u8 value) {
  * XOR  n
  ***************************************************************/
 void XOR(u8 value) {
-  A ^= value;
+  A = cast(u8) (A ^ value);
   F = SZP[A];
 }
 
@@ -1203,7 +1203,7 @@ void EXSP_ix()
   RM16( SPD, &tmp );
   WM16( SPD, &Z80.ix );
   Z80.ix = tmp;
-  WZ = Z80.ix.d;
+  WZ = cast(u16) (Z80.ix.d);
 }
 
 void EXSP_iy()
@@ -1212,7 +1212,7 @@ void EXSP_iy()
   RM16( SPD, &tmp );
   WM16( SPD, &Z80.iy );
   Z80.iy = tmp;
-  WZ = Z80.iy.d;
+  WZ = cast(u16) (Z80.iy.d);
 }
 
 void EXSP_hl()
@@ -1241,7 +1241,7 @@ void ADD16(PAIR* DR, PAIR* SR) {
  ***************************************************************/
 void ADC16(u32 reg) {
   u32 res = HLD + reg + (F & CF);
-  WZ = HL + 1;
+  WZ = cast(u16) (HL + 1);
   F = (((HLD ^ res ^ reg) >> 8) & HF) |
     ((res >> 16) & CF) |
     ((res >> 8) & (SF | YF | XF)) |
@@ -1255,7 +1255,7 @@ void ADC16(u32 reg) {
  ***************************************************************/
 void SBC16(u32 reg) {
   u32 res = HLD - reg - (F & CF);
-  WZ = HL + 1;
+  WZ = cast(u16) (HL + 1);
   F = (((HLD ^ res ^ reg) >> 8) & HF) | NF |
     ((res >> 16) & CF) |
     ((res >> 8) & (SF | YF | XF)) |
@@ -1272,8 +1272,8 @@ u8 RLC(u8 value)
   u32 res = value;
   u32 c = (res & 0x80) ? CF : 0;
   res = ((res << 1) | (res >> 7)) & 0xff;
-  F = SZP[res] | c;
-  return res;
+  F = cast(u8) (SZP[res] | c);
+  return cast(u8) res;
 }
 
 /***************************************************************
@@ -1284,8 +1284,8 @@ u8 RRC(u8 value)
   u32 res = value;
   u32 c = (res & 0x01) ? CF : 0;
   res = ((res >> 1) | (res << 7)) & 0xff;
-  F = SZP[res] | c;
-  return res;
+  F = cast(u8) (SZP[res] | c);
+  return cast(u8) res;
 }
 
 /***************************************************************
@@ -1296,8 +1296,8 @@ u8 RL(u8 value)
   u32 res = value;
   u32 c = (res & 0x80) ? CF : 0;
   res = ((res << 1) | (F & CF)) & 0xff;
-  F = SZP[res] | c;
-  return res;
+  F = cast(u8) (SZP[res] | c);
+  return cast(u8) res;
 }
 
 /***************************************************************
@@ -1308,8 +1308,8 @@ u8 RR(u8 value)
   u32 res = value;
   u32 c = (res & 0x01) ? CF : 0;
   res = ((res >> 1) | (F << 7)) & 0xff;
-  F = SZP[res] | c;
-  return res;
+  F = cast(u8) (SZP[res] | c);
+  return cast(u8) res;
 }
 
 /***************************************************************
@@ -1320,8 +1320,8 @@ u8 SLA(u8 value)
   u32 res = value;
   u32 c = (res & 0x80) ? CF : 0;
   res = (res << 1) & 0xff;
-  F = SZP[res] | c;
-  return res;
+  F = cast(u8) (SZP[res] | c);
+  return cast(u8) res;
 }
 
 /***************************************************************
@@ -1332,8 +1332,8 @@ u8 SRA(u8 value)
   u32 res = value;
   u32 c = (res & 0x01) ? CF : 0;
   res = ((res >> 1) | (res & 0x80)) & 0xff;
-  F = SZP[res] | c;
-  return res;
+  F = cast(u8) (SZP[res] | c);
+  return cast(u8) res;
 }
 
 /***************************************************************
@@ -1344,8 +1344,8 @@ u8 SLL(u8 value)
   u32 res = value;
   u32 c = (res & 0x80) ? CF : 0;
   res = ((res << 1) | 0x01) & 0xff;
-  F = SZP[res] | c;
-  return res;
+  F = cast(u8) (SZP[res] | c);
+  return cast(u8) res;
 }
 
 /***************************************************************
@@ -1356,8 +1356,8 @@ u8 SRL(u8 value)
   u32 res = value;
   u32 c = (res & 0x01) ? CF : 0;
   res = (res >> 1) & 0xff;
-  F = SZP[res] | c;
-  return res;
+  F = cast(u8) (SZP[res] | c);
+  return cast(u8) res;
 }
 
 /***************************************************************
@@ -1394,7 +1394,7 @@ u8 RES(u8 bit, u8 value)
  ***************************************************************/
 u8 SET(u8 bit, u8 value)
 {
-  return value | (1<<bit);
+  return cast(u8) (value | (1<<bit));
 }
 
 /***************************************************************
@@ -1403,11 +1403,13 @@ u8 SET(u8 bit, u8 value)
 void LDI() {
   u8 io = RM(HL);
   WM( DE, io );
-  F &= SF | ZF | CF;
-  if( (A + io) & 0x02 ) F |= YF; /* bit 1 -> flag 5 */
-  if( (A + io) & 0x08 ) F |= XF; /* bit 3 -> flag 3 */
-  HL++; DE++; BC--;
-  if( BC ) F |= VF;
+  F = cast(u8) (F & (SF | ZF | CF));
+  if( (A + io) & 0x02 ) F = cast(u8) (F | YF); /* bit 1 -> flag 5 */
+  if( (A + io) & 0x08 ) F = cast(u8) (F | XF); /* bit 3 -> flag 3 */
+  HL = cast(u16) (HL + 1);
+  DE = cast(u16) (DE + 1);
+  BC = cast(u16) (BC - 1);
+  if( BC ) F = cast(u8) (F | VF);
 }
 
 /***************************************************************
@@ -1415,14 +1417,15 @@ void LDI() {
  ***************************************************************/
 void CPI() {
   u8 val = RM(HL);
-  u8 res = A - val;
-  WZ++;
-  HL++; BC--;
+  u8 res = cast(u8) (A - val);
+  WZ = cast(u16) (WZ + 1);
+  HL = cast(u16) (HL + 1);
+  BC = cast(u16) (BC - 1);
   F = (F & CF) | (SZ[res]&~(YF|XF)) | ((A^val^res)&HF) | NF;
   if( F & HF ) res -= 1;
-  if( res & 0x02 ) F |= YF; /* bit 1 -> flag 5 */
-  if( res & 0x08 ) F |= XF; /* bit 3 -> flag 3 */
-  if( BC ) F |= VF;
+  if( res & 0x02 ) F = cast(u8) (F | YF); /* bit 1 -> flag 5 */
+  if( res & 0x08 ) F = cast(u8) (F | XF); /* bit 3 -> flag 3 */
+  if( BC ) F = cast(u8) (F | VF);
 }
 
 /***************************************************************
@@ -1431,16 +1434,16 @@ void CPI() {
 void INI() {
   u32 t;
   u8 io = IN(BC);
-  WZ = BC + 1;
+  WZ = cast(u16) (BC + 1);
   CC_ex(0xa2);
-  B--;
+  B = cast(u8) (B - 1);
   WM( HL, io );
-  HL++;
+  HL = cast(u16) (HL + 1);
   F = SZ[B];
   t = cast(u32)((C + 1) & 0xff) + cast(u32)io;
-  if( io & SF ) F |= NF;
-  if( t & 0x100 ) F |= HF | CF;
-  F |= SZP[cast(u8)(t & 0x07) ^ B] & PF;
+  if( io & SF ) F = cast(u8) (F | NF);
+  if( t & 0x100 ) F = cast(u8) (F | (HF | CF));
+  F = cast(u8) (F | SZP[cast(u8)(t & 0x07) ^ B] & PF);
 }
 
 /***************************************************************
@@ -1449,15 +1452,15 @@ void INI() {
 void OUTI() {
   u32 t;
   u8 io = RM(HL);
-  B--;
-  WZ = BC + 1;
+  B = cast(u8) (B - 1);
+  WZ = cast(u16) (BC + 1);
   OUT( BC, io );
-  HL++;
+  HL = cast(u16) (HL + 1);
   F = SZ[B];
   t = cast(u32)L + cast(u32)io;
-  if( io & SF ) F |= NF;
-  if( t & 0x100 ) F |= HF | CF;
-  F |= SZP[cast(u8)(t & 0x07) ^ B] & PF;
+  if( io & SF ) F = cast(u8) (F | NF);
+  if( t & 0x100 ) F = cast(u8) (F | (HF | CF));
+  F = cast(u8) (F | SZP[cast(u8)(t & 0x07) ^ B] & PF);
 }
 
 /***************************************************************
@@ -1466,11 +1469,13 @@ void OUTI() {
 void LDD() {
   u8 io = RM(HL);
   WM( DE, io );
-  F &= SF | ZF | CF;
-  if( (A + io) & 0x02 ) F |= YF; /* bit 1 -> flag 5 */
-  if( (A + io) & 0x08 ) F |= XF; /* bit 3 -> flag 3 */
-  HL--; DE--; BC--;
-  if( BC ) F |= VF;
+  F = cast(u8) (F & (SF | ZF | CF));
+  if( (A + io) & 0x02 ) F = cast(u8) (F | YF); /* bit 1 -> flag 5 */
+  if( (A + io) & 0x08 ) F = cast(u8) (F | XF); /* bit 3 -> flag 3 */
+  HL = cast(u16) (HL - 1);
+  DE = cast(u16) (DE - 1);
+  BC = cast(u16) (BC - 1);
+  if( BC ) F = cast(u8) (F | VF);
 }
 
 /***************************************************************
@@ -1478,14 +1483,15 @@ void LDD() {
  ***************************************************************/
 void CPD() {
   u8 val = RM(HL);
-  u8 res = A - val;
-  WZ--;
-  HL--; BC--;
+  u8 res = cast(u8) (A - val);
+  WZ = cast(u16) (WZ - 1);
+  HL = cast(u16) (HL - 1);
+  BC = cast(u16) (BC - 1);
   F = (F & CF) | (SZ[res]&~(YF|XF)) | ((A^val^res)&HF) | NF;
   if( F & HF ) res -= 1;
-  if( res & 0x02 ) F |= YF; /* bit 1 -> flag 5 */
-  if( res & 0x08 ) F |= XF; /* bit 3 -> flag 3 */
-  if( BC ) F |= VF;
+  if( res & 0x02 ) F = cast(u8) (F | YF); /* bit 1 -> flag 5 */
+  if( res & 0x08 ) F = cast(u8) (F | XF); /* bit 3 -> flag 3 */
+  if( BC ) F = cast(u8) (F | VF);
 }
 
 /***************************************************************
@@ -1494,16 +1500,16 @@ void CPD() {
 void IND() {
   u32 t;
   u8 io = IN(BC);
-  WZ = BC - 1;
+  WZ = cast(u16) (BC - 1);
   CC_ex(0xaa);
-  B--;
+  B = cast(u8) (B - 1);
   WM( HL, io );
-  HL--;
+  HL = cast(u16) (HL - 1);
   F = SZ[B];
   t = (cast(u32)(C - 1) & 0xff) + cast(u32)io;
-  if( io & SF ) F |= NF;
-  if( t & 0x100 ) F |= HF | CF;
-  F |= SZP[cast(u8)(t & 0x07) ^ B] & PF;
+  if( io & SF ) F = cast(u8) (F | NF);
+  if( t & 0x100 ) F = cast(u8) (F | (HF | CF));
+  F = cast(u8) (F | SZP[cast(u8)(t & 0x07) ^ B] & PF);
 }
 
 /***************************************************************
@@ -1512,15 +1518,15 @@ void IND() {
 void OUTD() {
   u32 t;
   u8 io = RM(HL);
-  B--;
-  WZ = BC - 1;
+  B = cast(u8) (B - 1);
+  WZ = cast(u16) (BC - 1);
   OUT( BC, io );
-  HL--;
+  HL = cast(u16) (HL - 1);
   F = SZ[B];
   t = cast(u32)L + cast(u32)io;
-  if( io & SF ) F |= NF;
-  if( t & 0x100 ) F |= HF | CF;
-  F |= SZP[cast(u8)(t & 0x07) ^ B] & PF;
+  if( io & SF ) F = cast(u8) (F | NF);
+  if( t & 0x100 ) F = cast(u8) (F | (HF | CF));
+  F = cast(u8) (F | SZP[cast(u8)(t & 0x07) ^ B] & PF);
 }
 
 /***************************************************************
@@ -1531,7 +1537,7 @@ void LDIR() {
   if( BC )
   {
     PC = cast(u16) (PC - 2);
-    WZ = PC + 1;
+    WZ = cast(u16) (PC + 1);
     CC_ex(0xb0);
   }
 }
@@ -1544,7 +1550,7 @@ void CPIR() {
   if( BC && !(F & ZF) )
   {
     PC = cast(u16) (PC - 2);
-   WZ = PC + 1;
+   WZ = cast(u16) (PC + 1);
     CC_ex(0xb1);
   }
 }
@@ -1581,7 +1587,7 @@ void LDDR() {
   if( BC )
   {
     PC = cast(u16) (PC - 2);
-    WZ = PC + 1;
+    WZ = cast(u16) (PC + 1);
     CC_ex(0xb8);
   }
 }
@@ -1594,7 +1600,7 @@ void CPDR() {
   if( BC && !(F & ZF) )
   {
     PC = cast(u16) (PC - 2);
-   WZ = PC + 1;
+   WZ = cast(u16) (PC + 1);
     CC_ex(0xb9);
   }
 }
@@ -2263,9 +2269,9 @@ void dd_1e() { illegal_1(); op_1e();                             } /* DB   DD   
 void dd_1f() { illegal_1(); op_1f();                             } /* DB   DD       */
 
 void dd_20() { illegal_1(); op_20();                             } /* DB   DD       */
-void dd_21() { IX = ARG16();                                     } /* LD   IX,w     */
-void dd_22() { EA = ARG16(); WM16( EA, &Z80.ix ); WZ = EA+1;     } /* LD   (w),IX   */
-void dd_23() { IX++;                                             } /* INC  IX       */
+void dd_21() { IX = cast(u16) ARG16();                           } /* LD   IX,w     */
+void dd_22() { EA = ARG16(); WM16( EA, &Z80.ix ); WZ = cast(u16)(EA+1);     } /* LD   (w),IX   */
+void dd_23() { IX = cast(u16) (IX + 1);                          } /* INC  IX       */
 void dd_24() { HX = INC(HX);                                     } /* INC  HX       */
 void dd_25() { HX = DEC(HX);                                     } /* DEC  HX       */
 void dd_26() { HX = ARG();                                       } /* LD   HX,n     */
@@ -2273,8 +2279,8 @@ void dd_27() { illegal_1(); op_27();                             } /* DB   DD   
 
 void dd_28() { illegal_1(); op_28();                             } /* DB   DD       */
 void dd_29() { ADD16(&Z80.ix, &Z80.ix);                          } /* ADD  IX,IX    */
-void dd_2a() { EA = ARG16(); RM16( EA, &Z80.ix ); WZ = EA+1;     } /* LD   IX,(w)   */
-void dd_2b() { IX--;                                             } /* DEC  IX       */
+void dd_2a() { EA = ARG16(); RM16( EA, &Z80.ix ); WZ = cast(u16)(EA+1);     } /* LD   IX,(w)   */
+void dd_2b() { IX = cast(u16) (IX - 1);                          } /* DEC  IX       */
 void dd_2c() { LX = INC(LX);                                     } /* INC  LX       */
 void dd_2d() { LX = DEC(LX);                                     } /* DEC  LX       */
 void dd_2e() { LX = ARG();                                       } /* LD   LX,n     */
@@ -2554,9 +2560,9 @@ void fd_1e() { illegal_1(); op_1e();                             } /* DB   FD   
 void fd_1f() { illegal_1(); op_1f();                             } /* DB   FD       */
 
 void fd_20() { illegal_1(); op_20();                             } /* DB   FD       */
-void fd_21() { IY = ARG16();                                     } /* LD   IY,w     */
-void fd_22() { EA = ARG16(); WM16( EA, &Z80.iy ); WZ = EA+1;     } /* LD   (w),IY   */
-void fd_23() { IY++;                                             } /* INC  IY       */
+void fd_21() { IY = cast(u16)ARG16();                            } /* LD   IY,w     */
+void fd_22() { EA = ARG16(); WM16( EA, &Z80.iy ); WZ = cast(u16)(EA+1);     } /* LD   (w),IY   */
+void fd_23() { IY = cast(u16)(IY + 1);                           } /* INC  IY       */
 void fd_24() { HY = INC(HY);                                     } /* INC  HY       */
 void fd_25() { HY = DEC(HY);                                     } /* DEC  HY       */
 void fd_26() { HY = ARG();                                       } /* LD   HY,n     */
@@ -2564,8 +2570,8 @@ void fd_27() { illegal_1(); op_27();                             } /* DB   FD   
 
 void fd_28() { illegal_1(); op_28();                             } /* DB   FD       */
 void fd_29() { ADD16(&Z80.iy, &Z80.iy);                          } /* ADD  IY,IY    */
-void fd_2a() { EA = ARG16(); RM16( EA, &Z80.iy ); WZ = EA+1;     } /* LD   IY,(w)   */
-void fd_2b() { IY--;                                             } /* DEC  IY       */
+void fd_2a() { EA = ARG16(); RM16( EA, &Z80.iy ); WZ = cast(u16)(EA+1);     } /* LD   IY,(w)   */
+void fd_2b() { IY = cast(u16)(IY - 1);                           } /* DEC  IY       */
 void fd_2c() { LY = INC(LY);                                     } /* INC  LY       */
 void fd_2d() { LY = DEC(LY);                                     } /* DEC  LY       */
 void fd_2e() { LY = ARG();                                       } /* LD   LY,n     */
@@ -2892,7 +2898,7 @@ void ed_3f() { illegal_2();                                      } /* DB   ED   
 void ed_40() { B = IN(BC); F = (F & CF) | SZP[B];                } /* IN   B,(C)   */
 void ed_41() { OUT(BC, B);                                       } /* OUT  (C),B   */
 void ed_42() { SBC16( Z80.bc.d );                                } /* SBC  HL,BC   */
-void ed_43() { EA = ARG16(); WM16( EA, &Z80.bc ); WZ = EA+1;     } /* LD   (w),BC  */
+void ed_43() { EA = ARG16(); WM16( EA, &Z80.bc ); WZ = cast(u16)(EA+1);     } /* LD   (w),BC  */
 void ed_44() { NEG();                                              } /* NEG          */
 void ed_45() { RETN();                                             } /* RETN;        */
 void ed_46() { IM = 0;                                           } /* IM   0       */
@@ -2901,7 +2907,7 @@ void ed_47() { LD_I_A();                                           } /* LD   I,A
 void ed_48() { C = IN(BC); F = (F & CF) | SZP[C];                } /* IN   C,(C)   */
 void ed_49() { OUT(BC, C);                                       } /* OUT  (C),C   */
 void ed_4a() { ADC16( Z80.bc.d );                                } /* ADC  HL,BC   */
-void ed_4b() { EA = ARG16(); RM16( EA, &Z80.bc ); WZ = EA+1;     } /* LD   BC,(w)  */
+void ed_4b() { EA = ARG16(); RM16( EA, &Z80.bc ); WZ = cast(u16)(EA+1);     } /* LD   BC,(w)  */
 void ed_4c() { NEG();                                              } /* NEG          */
 void ed_4d() { RETI();                                             } /* RETI         */
 void ed_4e() { IM = 0;                                           } /* IM   0       */
@@ -2910,7 +2916,7 @@ void ed_4f() { LD_R_A();                                           } /* LD   R,A
 void ed_50() { D = IN(BC); F = (F & CF) | SZP[D];                } /* IN   D,(C)   */
 void ed_51() { OUT(BC, D);                                       } /* OUT  (C),D   */
 void ed_52() { SBC16( Z80.de.d );                                } /* SBC  HL,DE   */
-void ed_53() { EA = ARG16(); WM16( EA, &Z80.de ); WZ = EA+1;     } /* LD   (w),DE  */
+void ed_53() { EA = ARG16(); WM16( EA, &Z80.de ); WZ = cast(u16)(EA+1);     } /* LD   (w),DE  */
 void ed_54() { NEG();                                              } /* NEG          */
 void ed_55() { RETN();                                             } /* RETN;        */
 void ed_56() { IM = 1;                                           } /* IM   1       */
@@ -2919,7 +2925,7 @@ void ed_57() { LD_A_I();                                           } /* LD   A,I
 void ed_58() { E = IN(BC); F = (F & CF) | SZP[E];                } /* IN   E,(C)   */
 void ed_59() { OUT(BC, E);                                       } /* OUT  (C),E   */
 void ed_5a() { ADC16( Z80.de.d );                                } /* ADC  HL,DE   */
-void ed_5b() { EA = ARG16(); RM16( EA, &Z80.de ); WZ = EA+1;     } /* LD   DE,(w)  */
+void ed_5b() { EA = ARG16(); RM16( EA, &Z80.de ); WZ = cast(u16)(EA+1);     } /* LD   DE,(w)  */
 void ed_5c() { NEG();                                              } /* NEG          */
 void ed_5d() { RETI();                                             } /* RETI         */
 void ed_5e() { IM = 2;                                           } /* IM   2       */
@@ -2928,7 +2934,7 @@ void ed_5f() { LD_A_R();                                           } /* LD   A,R
 void ed_60() { H = IN(BC); F = (F & CF) | SZP[H];                } /* IN   H,(C)   */
 void ed_61() { OUT(BC, H);                                       } /* OUT  (C),H   */
 void ed_62() { SBC16( Z80.hl.d );                                } /* SBC  HL,HL   */
-void ed_63() { EA = ARG16(); WM16( EA, &Z80.hl ); WZ = EA+1;     } /* LD   (w),HL  */
+void ed_63() { EA = ARG16(); WM16( EA, &Z80.hl ); WZ = cast(u16)(EA+1);     } /* LD   (w),HL  */
 void ed_64() { NEG();                                              } /* NEG          */
 void ed_65() { RETN();                                             } /* RETN;        */
 void ed_66() { IM = 0;                                           } /* IM   0       */
@@ -2937,7 +2943,7 @@ void ed_67() { RRD();                                              } /* RRD  (HL
 void ed_68() { L = IN(BC); F = (F & CF) | SZP[L];                } /* IN   L,(C)   */
 void ed_69() { OUT(BC, L);                                       } /* OUT  (C),L   */
 void ed_6a() { ADC16( Z80.hl.d );                                } /* ADC  HL,HL   */
-void ed_6b() { EA = ARG16(); RM16( EA, &Z80.hl ); WZ = EA+1;     } /* LD   HL,(w)  */
+void ed_6b() { EA = ARG16(); RM16( EA, &Z80.hl ); WZ = cast(u16)(EA+1);     } /* LD   HL,(w)  */
 void ed_6c() { NEG();                                              } /* NEG          */
 void ed_6d() { RETI();                                             } /* RETI         */
 void ed_6e() { IM = 0;                                           } /* IM   0       */
@@ -2946,16 +2952,16 @@ void ed_6f() { RLD();                                              } /* RLD  (HL
 void ed_70() { u8 res = IN(BC); F = (F & CF) | SZP[res];      } /* IN   0,(C)   */
 void ed_71() { OUT(BC, 0);                                       } /* OUT  (C),0   */
 void ed_72() { SBC16( Z80.sp.d );                                } /* SBC  HL,SP   */
-void ed_73() { EA = ARG16(); WM16( EA, &Z80.sp ); WZ = EA+1;     } /* LD   (w),SP  */
+void ed_73() { EA = ARG16(); WM16( EA, &Z80.sp ); WZ = cast(u16)(EA+1);     } /* LD   (w),SP  */
 void ed_74() { NEG();                                              } /* NEG          */
 void ed_75() { RETN();                                             } /* RETN;        */
 void ed_76() { IM = 1;                                           } /* IM   1       */
 void ed_77() { illegal_2();                                      } /* DB   ED,77   */
 
-void ed_78() { A = IN(BC); F = (F & CF) | SZP[A]; WZ = BC+1;     } /* IN   E,(C)   */
-void ed_79() { OUT(BC, A); WZ = BC + 1;                          } /* OUT  (C),A   */
+void ed_78() { A = IN(BC); F = (F & CF) | SZP[A]; WZ = cast(u16)(BC+1);     } /* IN   E,(C)   */
+void ed_79() { OUT(BC, A); WZ = cast(u16)(BC + 1);                          } /* OUT  (C),A   */
 void ed_7a() { ADC16( Z80.sp.d );                                } /* ADC  HL,SP   */
-void ed_7b() { EA = ARG16(); RM16( EA, &Z80.sp ); WZ = EA+1; } /* LD   SP,(w)  */
+void ed_7b() { EA = ARG16(); RM16( EA, &Z80.sp ); WZ = cast(u16)(EA+1); } /* LD   SP,(w)  */
 void ed_7c() { NEG();                                              } /* NEG          */
 void ed_7d() { RETI();                                             } /* RETI         */
 void ed_7e() { IM = 2;                                           } /* IM   2       */
@@ -3112,7 +3118,7 @@ void ed_ff() { illegal_2();                                      } /* DB   ED   
 void op_00() {                                                                                                } /* NOP              */
 void op_01() { BC = cast(u16) ARG16();                                                                                  } /* LD   BC,w        */
 void op_02() { WM( BC, A ); WZ_L = (BC + 1) & 0xFF;  WZ_H = A;                                                } /* LD   (BC),A      */
-void op_03() { BC++;                                                                                          } /* INC  BC          */
+void op_03() { BC = cast(u16) (BC + 1);                                                                                          } /* INC  BC          */
 void op_04() { B = INC(B);                                                                                    } /* INC  B           */
 void op_05() { B = DEC(B);                                                                                    } /* DEC  B           */
 void op_06() { B = ARG();                                                                                     } /* LD   B,n         */
@@ -3121,16 +3127,16 @@ void op_07() { RLCA();                                                          
 void op_08() { EX_AF();                                                                                         } /* EX   AF,AF'      */
 void op_09() { ADD16(&Z80.hl, &Z80.bc);                                                                       } /* ADD  HL,BC       */
 void op_0a() { A = cast(u8) RM( BC ); WZ = cast(u16) (BC+1);                                                                         } /* LD   A,(BC)      */
-void op_0b() { BC--;                                                                                          } /* DEC  BC          */
+void op_0b() { BC = cast(u16) (BC - 1);                                                                                          } /* DEC  BC          */
 void op_0c() { C = INC(C);                                                                                    } /* INC  C           */
 void op_0d() { C = DEC(C);                                                                                    } /* DEC  C           */
 void op_0e() { C = ARG();                                                                                     } /* LD   C,n         */
 void op_0f() { RRCA();                                                                                          } /* RRCA             */
 
-void op_10() { B--; JR_COND( B, 0x10 );                                                                       } /* DJNZ o           */
+void op_10() { B = cast(u8) (B - 1); JR_COND( B, 0x10 );                                                                       } /* DJNZ o           */
 void op_11() { DE = cast(u16) ARG16();                                                                                  } /* LD   DE,w        */
 void op_12() { WM( DE, A ); WZ_L = (DE + 1) & 0xFF;  WZ_H = A;                                                } /* LD   (DE),A      */
-void op_13() { DE++;                                                                                          } /* INC  DE          */
+void op_13() { DE = cast(u16) (DE + 1);                                                                                          } /* INC  DE          */
 void op_14() { D = INC(D);                                                                                    } /* INC  D           */
 void op_15() { D = DEC(D);                                                                                    } /* DEC  D           */
 void op_16() { D = ARG();                                                                                     } /* LD   D,n         */
@@ -3139,7 +3145,7 @@ void op_17() { RLA();                                                           
 void op_18() { JR();                                                                                          } /* JR   o           */
 void op_19() { ADD16(&Z80.hl, &Z80.de);                                                                       } /* ADD  HL,DE       */
 void op_1a() { A = RM( DE ); WZ = cast(u16) (DE+1);                                                                         } /* LD   A,(DE)      */
-void op_1b() { DE--;                                                                                          } /* DEC  DE          */
+void op_1b() { DE = cast(u16)(DE - 1);                                                                        } /* DEC  DE          */
 void op_1c() { E = INC(E);                                                                                    } /* INC  E           */
 void op_1d() { E = DEC(E);                                                                                    } /* DEC  E           */
 void op_1e() { E = ARG();                                                                                     } /* LD   E,n         */
@@ -3148,7 +3154,7 @@ void op_1f() { RRA();                                                           
 void op_20() { JR_COND( !(F & ZF), 0x20 );                                                                    } /* JR   NZ,o        */
 void op_21() { HL = cast(u16) ARG16();                                                                                  } /* LD   HL,w        */
 void op_22() { EA = ARG16(); WM16( EA, &Z80.hl ); WZ = cast(u16)(EA+1);                                                  } /* LD   (w),HL      */
-void op_23() { HL++;                                                                                          } /* INC  HL          */
+void op_23() { HL = cast(u16) (HL + 1);                                                                                          } /* INC  HL          */
 void op_24() { H = INC(H);                                                                                    } /* INC  H           */
 void op_25() { H = DEC(H);                                                                                    } /* DEC  H           */
 void op_26() { H = ARG();                                                                                     } /* LD   H,n         */
@@ -3157,16 +3163,16 @@ void op_27() { DAA();                                                           
 void op_28() { JR_COND( F & ZF, 0x28 );                                                                       } /* JR   Z,o         */
 void op_29() { ADD16(&Z80.hl, &Z80.hl);                                                                       } /* ADD  HL,HL       */
 void op_2a() { EA = ARG16(); RM16( EA, &Z80.hl ); WZ = cast(u16)(EA+1);                                                  } /* LD   HL,(w)      */
-void op_2b() { HL--;                                                                                          } /* DEC  HL          */
+void op_2b() { HL = cast(u16) (HL - 1);                                                                                          } /* DEC  HL          */
 void op_2c() { L = INC(L);                                                                                    } /* INC  L           */
 void op_2d() { L = DEC(L);                                                                                    } /* DEC  L           */
 void op_2e() { L = ARG();                                                                                     } /* LD   L,n         */
-void op_2f() { A ^= 0xff; F = (F&(SF|ZF|PF|CF))|HF|NF|(A&(YF|XF));                                            } /* CPL              */
+void op_2f() { A = cast(u8)(A ^ 0xff); F = (F&(SF|ZF|PF|CF))|HF|NF|(A&(YF|XF));                               } /* CPL              */
 
 void op_30() { JR_COND( !(F & CF), 0x30 );                                                                    } /* JR   NC,o        */
 void op_31() { SP = cast(u16) ARG16();                                                                                  } /* LD   SP,w        */
 void op_32() { EA = ARG16(); WM( EA, A ); WZ_L=(EA+1)&0xFF;WZ_H=A;                                            } /* LD   (w),A       */
-void op_33() { SP++;                                                                                          } /* INC  SP          */
+void op_33() { SP = cast(u16)(SP + 1);                                                                        } /* INC  SP          */
 void op_34() { WM( HL, INC(RM(HL)) );                                                                         } /* INC  (HL)        */
 void op_35() { WM( HL, DEC(RM(HL)) );                                                                         } /* DEC  (HL)        */
 void op_36() { WM( HL, ARG() );                                                                               } /* LD   (HL),n      */
@@ -3175,7 +3181,7 @@ void op_37() { F = (F & (SF|ZF|YF|XF|PF)) | CF | (A & (YF|XF));                 
 void op_38() { JR_COND( F & CF, 0x38 );                                                                       } /* JR   C,o         */
 void op_39() { ADD16(&Z80.hl, &Z80.sp);                                                                       } /* ADD  HL,SP       */
 void op_3a() { EA = ARG16(); A = RM( EA ); WZ = cast(u16) (EA+1);                                                         } /* LD   A,(w)       */
-void op_3b() { SP--;                                                                                          } /* DEC  SP          */
+void op_3b() { SP = cast(u16)(SP - 1);                                                                        } /* DEC  SP          */
 void op_3c() { A = INC(A);                                                                                    } /* INC  A           */
 void op_3d() { A = DEC(A);                                                                                    } /* DEC  A           */
 void op_3e() { A = ARG();                                                                                     } /* LD   A,n         */
@@ -3337,7 +3343,7 @@ void op_c7() { RST(0x00);                                                       
 void op_c8() { RET_COND( F & ZF, 0xc8 );                                                                      } /* RET  Z           */
 void op_c9() { POP_pc(); WZ = cast(u16) PCD;                                                                             } /* RET              */
 void op_ca() { JP_COND( F & ZF );                                                                             } /* JP   Z,a         */
-void op_cb() { R++; EXEC_cb(ROP());                                                                           } /* **** CB xx       */
+void op_cb() { R = cast(u8)(R + 1); EXEC_cb(ROP());                                                           } /* **** CB xx       */
 void op_cc() { CALL_COND( F & ZF, 0xcc );                                                                     } /* CALL Z,a         */
 void op_cd() { CALL();                                                                                        } /* CALL a           */
 void op_ce() { ADC(ARG());                                                                                    } /* ADC  A,n         */
@@ -3357,7 +3363,7 @@ void op_d9() { EXX();                                                           
 void op_da() { JP_COND( F & CF );                                                                             } /* JP   C,a         */
 void op_db() { u32 n = ARG() | (A << 8); A = IN( n ); WZ = cast(u16) (n + 1);                                        } /* IN   A,(n)       */
 void op_dc() { CALL_COND( F & CF, 0xdc );                                                                     } /* CALL C,a         */
-void op_dd() { R++; EXEC_dd(ROP());                                                                           } /* **** DD xx       */
+void op_dd() { R = cast(u8)(R + 1); EXEC_dd(ROP());                                                           } /* **** DD xx       */
 void op_de() { SBC(ARG());                                                                                    } /* SBC  A,n         */
 void op_df() { RST(0x18);                                                                                     } /* RST  3           */
 
@@ -3375,7 +3381,7 @@ void op_e9() { PC = HL;                                                         
 void op_ea() { JP_COND( F & PF );                                                                             } /* JP   PE,a        */
 void op_eb() { EX_DE_HL();                                                                                      } /* EX   DE,HL       */
 void op_ec() { CALL_COND( F & PF, 0xec );                                                                     } /* CALL PE,a        */
-void op_ed() { R++; EXEC_ed(ROP());                                                                           } /* **** ED xx       */
+void op_ed() { R = cast(u8)(R + 1); EXEC_ed(ROP());                                                           } /* **** ED xx       */
 void op_ee() { XOR(ARG());                                                                                    } /* XOR  n           */
 void op_ef() { RST(0x28);                                                                                     } /* RST  5           */
 
@@ -3393,7 +3399,7 @@ void op_f9() { SP = HL;                                                         
 void op_fa() { JP_COND(F & SF);                                                                               } /* JP   M,a         */
 void op_fb() { EI();                                                                                            } /* EI               */
 void op_fc() { CALL_COND( F & SF, 0xfc );                                                                     } /* CALL M,a         */
-void op_fd() { R++; EXEC_fd(ROP());                                                                           } /* **** FD xx       */
+void op_fd() { R = cast(u8)(R + 1); EXEC_fd(ROP());                                                           } /* **** FD xx       */
 void op_fe() { CP(ARG());                                                                                     } /* CP   n           */
 void op_ff() { RST(0x38);                                                                                     } /* RST  7           */
 
