@@ -70,44 +70,45 @@ static const s32 RUN_MODE_BERR_AERR_RESET = 1;
 /* ------------------------------ CPU Access ------------------------------ */
 
 /* Access the CPU registers */
-alias m68ki_cpu.dar                 REG_DA;/* easy access to data and address regs */
-alias m68ki_cpu.dar                 REG_D;
-alias (m68ki_cpu.dar+8)             REG_A;
-alias m68ki_cpu.pc                  REG_PC;
-alias m68ki_cpu.sp                  REG_SP_BASE;
-alias m68ki_cpu.sp[0]               REG_USP;
-alias m68ki_cpu.sp[4]               REG_ISP;
-alias m68ki_cpu.dar[15]             REG_SP;
-alias m68ki_cpu.ir                  REG_IR;
+u32[] REG_DA() { return m68ki_cpu.dar; }                 /* easy access to data and address regs */
+u32[] REG_D() { return m68ki_cpu.dar; }
+u32 REG_A() { return m68ki_cpu.dar[8]; }
+u32 REG_PC() { return m68ki_cpu.pc; }
+u32[] REG_SP_BASE() { return m68ki_cpu.sp; }
+u32 REG_USP() { return m68ki_cpu.sp[0]; }
+u32 REG_ISP() { return m68ki_cpu.sp[4]; }
+u32 REG_SP() { return m68ki_cpu.dar[15]; }
+u32 REG_IR() { return m68ki_cpu.ir; }
 
-alias m68ki_cpu.t1_flag             FLAG_T1;
-alias m68ki_cpu.s_flag              FLAG_S;
-alias m68ki_cpu.x_flag              FLAG_X;
-alias m68ki_cpu.n_flag              FLAG_N;
-alias m68ki_cpu.not_z_flag          FLAG_Z;
-alias m68ki_cpu.v_flag              FLAG_V;
-alias m68ki_cpu.c_flag              FLAG_C;
-alias m68ki_cpu.int_mask            FLAG_INT_MASK;
+u32 FLAG_T1() { return m68ki_cpu.t1_flag; }
+u32 FLAG_S() { return m68ki_cpu.s_flag; }
+u32 FLAG_X() { return m68ki_cpu.x_flag; }
+u32 FLAG_N() { return m68ki_cpu.n_flag; }
+u32 FLAG_Z() { return m68ki_cpu.not_z_flag; }
+u32 FLAG_V() { return m68ki_cpu.v_flag; }
+u32 FLAG_C() { return m68ki_cpu.c_flag; }
+u32 FLAG_INT_MASK() { return m68ki_cpu.int_mask; }
 
-alias m68ki_cpu.int_level           CPU_INT_LEVEL; /* ASG: changed from CPU_INTS_PENDING */
-alias m68ki_cpu.stopped             CPU_STOPPED;
-alias 0x00ffffff                    CPU_ADDRESS_MASK;
+u32 CPU_INT_LEVEL() { return m68ki_cpu.int_level; } /* ASG: changed from CPU_INTS_PENDING */
+u32 CPU_STOPPED() { return m68ki_cpu.stopped; }
+u32 CPU_ADDRESS_MASK() { return 0x00ffffff; }
+
 static if(M68K_EMULATE_ADDRESS_ERROR) {
-alias m68ki_cpu.instr_mode          CPU_INSTR_MODE;
-alias m68ki_cpu.run_mode            CPU_RUN_MODE;
+u32 CPU_INSTR_MODE() { return m68ki_cpu.instr_mode; }
+u32 CPU_RUN_MODE() { return m68ki_cpu.run_mode; }
 }
 
-alias m68ki_cycles                  CYC_INSTRUCTION;
-alias m68ki_exception_cycle_table   CYC_EXCEPTION;
-alias ( -2 * MUL)                   CYC_BCC_NOTAKE_B;
-alias (  2 * MUL)                   CYC_BCC_NOTAKE_W;
-alias ( -2 * MUL)                   CYC_DBCC_F_NOEXP;
-alias (  2 * MUL)                   CYC_DBCC_F_EXP;
-alias (  2 * MUL)                   CYC_SCC_R_TRUE;
-alias (  4 * MUL)                   CYC_MOVEM_W;
-alias (  8 * MUL)                   CYC_MOVEM_L;
-alias (  2 * MUL)                   CYC_SHIFT;
-alias (132 * MUL)                   CYC_RESET;
+u8[] CYC_INSTRUCTION() { return m68ki_cycles; }
+const u16[256] CYC_EXCEPTION() { return m68ki_exception_cycle_table; }
+int CYC_BCC_NOTAKE_B() { return -2 * MUL; }
+int CYC_BCC_NOTAKE_W() { return 2 * MUL; }
+int CYC_DBCC_F_NOEXP() { return -2 * MUL; }
+int CYC_DBCC_F_EXP() { return 2 * MUL; }
+int CYC_SCC_R_TRUE() { return 2 * MUL; }
+int CYC_MOVEM_W() { return 4 * MUL; }
+int CYC_MOVEM_L() { return 8 * MUL; }
+int CYC_SHIFT() { return 2 * MUL; }
+int CYC_RESET() { return 132 * MUL; }
 
 
 /* No need to mask if we are 32 bit */
@@ -172,7 +173,7 @@ static if(M68K_EMULATE_ADDRESS_ERROR) {
   }
 
   void m68ki_check_address_error(u32 ADDR, u32 WRITE_MODE, u32 FC) {
-    if(ADDR & 1) {
+    if(ADDR & 1)
     {
       if (m68ki_cpu.aerr_enabled)
       {
@@ -202,12 +203,12 @@ static if(M68K_EMULATE_ADDRESS_ERROR) {
  */
 
 /* Data Register Isolation */
-alias (REG_D[(REG_IR >> 9) & 7])         DX;
-alias (REG_D[REG_IR & 7])                DY;
+auto DX() { return (REG_D[(REG_IR >> 9) & 7]); }
+auto DY() { return (REG_D[REG_IR & 7]); }
 
 /* Address Register Isolation */
-alias (REG_A[(REG_IR >> 9) & 7])         AX;
-alias (REG_A[REG_IR & 7])                AY;
+auto AX() { return (REG_A[(REG_IR >> 9) & 7]); }
+auto AY() { return (REG_A[REG_IR & 7]); }
 
 /* Effective Address Calculations */
 static u32 EA_AY_AI_8() { return AY; }                       /* address register indirect */
@@ -219,7 +220,7 @@ static u32 EA_AY_PI_32() { return (AY+=4)-4; }                           /* post
 static u32 EA_AY_PD_8() { return --AY; }                                /* predecrement (size = byte) */
 static u32 EA_AY_PD_16() { return AY-=2; }                               /* predecrement (size = word) */
 static u32 EA_AY_PD_32() { return AY-=4; }                               /* predecrement (size = long) */
-static u32 EA_AY_DI_8() { return AY+ (s16) m68ki_read_imm_16(); } /* displacement */
+static u32 EA_AY_DI_8() { return AY+ cast(s16) m68ki_read_imm_16(); } /* displacement */
 static u32 EA_AY_DI_16() { return EA_AY_DI_8(); }
 static u32 EA_AY_DI_32() { return EA_AY_DI_8(); }
 static u32 EA_AY_IX_8() { return m68ki_get_ea_ix(AY); }                   /* indirect + index */
@@ -235,7 +236,7 @@ static u32 EA_AX_PI_32() { return (AX+=4)-4; }
 static u32 EA_AX_PD_8() { return --AX; }
 static u32 EA_AX_PD_16() { return AX-=2; }
 static u32 EA_AX_PD_32() { return AX-=4; }
-static u32 EA_AX_DI_8() { return AX+ (s16) m68ki_read_imm_16(); }
+static u32 EA_AX_DI_8() { return AX+ cast(s16) m68ki_read_imm_16(); }
 static u32 EA_AX_DI_16() { return EA_AX_DI_8(); }
 static u32 EA_AX_DI_32() { return EA_AX_DI_8(); }
 static u32 EA_AX_IX_8() { return m68ki_get_ea_ix(AX); }
@@ -245,7 +246,7 @@ static u32 EA_AX_IX_32() { return EA_AX_IX_8(); }
 static u32 EA_A7_PI_8() { return (REG_A[7]+=2)-2; }
 static u32 EA_A7_PD_8() { return REG_A[7]-=2; }
 
-static u32 EA_AW_8() { return (s16) m68ki_read_imm_16(); }      /* absolute word */
+static u32 EA_AW_8() { return cast(s16) m68ki_read_imm_16(); }      /* absolute word */
 static u32 EA_AW_16() { return EA_AW_8(); }
 static u32 EA_AW_32() { return EA_AW_8(); }
 static u32 EA_AL_8() { return m68ki_read_imm_32(); }            /* absolute long */
@@ -383,7 +384,7 @@ static void SET_CYCLES(u32 A) { m68ki_cpu.cycles = A; }
 
 /* Read data immediately following the PC */
 static u32 m68k_read_immediate_16(u32 address) {
-	return *(u16 *)(m68ki_cpu.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff));
+	return *cast(u16 *)(m68ki_cpu.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff));
 }
 static u32 m68k_read_immediate_32(u32 address) {
 	return (m68k_read_immediate_16(address) << 16) | (m68k_read_immediate_16(address+2));
@@ -925,8 +926,8 @@ u32 m68ki_read_8_fc(u32 address)
 {
   cpu_memory_map *temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
 
-  if (temp->read8) return (*temp->read8)(ADDRESS_68K(address));
-  else return READ_BYTE(temp->base, (address) & 0xffff);
+  if (temp.read8) return (*temp.read8)(ADDRESS_68K(address));
+  else return READ_BYTE(temp.base, (address) & 0xffff);
 }
 
 u32 m68ki_read_16_fc(u32 address, u32 fc)
@@ -935,8 +936,8 @@ u32 m68ki_read_16_fc(u32 address, u32 fc)
   m68ki_check_address_error(address, MODE_READ, fc) /* auto-disable (see m68kcpu.h) */
   
   temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
-  if (temp->read16) return (*temp->read16)(ADDRESS_68K(address));
-  else return *(u16 *)(temp->base + ((address) & 0xffff));
+  if (temp.read16) return (*temp.read16)(ADDRESS_68K(address));
+  else return *cast(u16 *)(temp.base + ((address) & 0xffff));
 }
 
 u32 m68ki_read_32_fc(u32 address, u32 fc)
@@ -946,7 +947,7 @@ u32 m68ki_read_32_fc(u32 address, u32 fc)
   m68ki_check_address_error(address, MODE_READ, fc) /* auto-disable (see m68kcpu.h) */
 
   temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
-  if (temp->read16) return ((*temp->read16)(ADDRESS_68K(address)) << 16) | ((*temp->read16)(ADDRESS_68K(address + 2)));
+  if (temp.read16) return ((*temp.read16)(ADDRESS_68K(address)) << 16) | ((*temp.read16)(ADDRESS_68K(address + 2)));
   else return m68k_read_immediate_32(address);
 }
 
@@ -955,8 +956,8 @@ void m68ki_write_8_fc(u32 address, u32 value)
   cpu_memory_map *temp;
 
   temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
-  if (temp->write8) (*temp->write8)(ADDRESS_68K(address),value);
-  else WRITE_BYTE(temp->base, (address) & 0xffff, value);
+  if (temp.write8) (*temp.write8)(ADDRESS_68K(address),value);
+  else WRITE_BYTE(temp.base, (address) & 0xffff, value);
 }
 
 void m68ki_write_16_fc(u32 address, u32 fc, u32 value)
@@ -966,8 +967,8 @@ void m68ki_write_16_fc(u32 address, u32 fc, u32 value)
   m68ki_check_address_error(address, MODE_WRITE, fc); /* auto-disable (see m68kcpu.h) */
 
   temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
-  if (temp->write16) (*temp->write16)(ADDRESS_68K(address),value);
-  else *(u16 *)(temp->base + ((address) & 0xffff)) = value;
+  if (temp.write16) (*temp.write16)(ADDRESS_68K(address),value);
+  else *cast(u16 *)(temp.base + ((address) & 0xffff)) = value;
 }
 
 void m68ki_write_32_fc(u32 address, u32 fc, u32 value)
@@ -977,12 +978,12 @@ void m68ki_write_32_fc(u32 address, u32 fc, u32 value)
   m68ki_check_address_error(address, MODE_WRITE, fc) /* auto-disable (see m68kcpu.h) */
 
   temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
-  if (temp->write16) (*temp->write16)(ADDRESS_68K(address),value>>16);
-  else *(u16 *)(temp->base + ((address) & 0xffff)) = value >> 16;
+  if (temp.write16) (*temp.write16)(ADDRESS_68K(address),value>>16);
+  else *cast(u16 *)(temp.base + ((address) & 0xffff)) = value >> 16;
 
   temp = &m68ki_cpu.memory_map[((address + 2)>>16)&0xff];
-  if (temp->write16) (*temp->write16)(ADDRESS_68K(address+2),value&0xffff);
-  else *(u16 *)(temp->base + ((address + 2) & 0xffff)) = value;
+  if (temp.write16) (*temp.write16)(ADDRESS_68K(address+2),value&0xffff);
+  else *cast(u16 *)(temp.base + ((address + 2) & 0xffff)) = value;
 }
 
 
@@ -994,7 +995,7 @@ void m68ki_write_32_fc(u32 address, u32 fc, u32 value)
 u32 m68ki_get_ea_pcdi()
 {
   u32 old_pc = REG_PC;
-  return old_pc + (s16) m68ki_read_imm_16();
+  return old_pc + cast(s16) m68ki_read_imm_16();
 }
 
 
@@ -1055,10 +1056,10 @@ u32 m68ki_get_ea_ix(u32 An)
   /* Calculate index */
   Xn = REG_DA[extension>>12];     /* Xn */
   if(!BIT_B(extension))           /* W/L */
-    Xn = (s16) Xn;
+    Xn = cast(s16) Xn;
 
   /* Add base register and displacement and return */
-  return An + Xn + (s8) extension;
+  return An + Xn + cast(s8) extension;
 }
 
 
@@ -1121,15 +1122,15 @@ void m68ki_push_16(u32 value)
 {
   REG_SP = MASK_OUT_ABOVE_32(REG_SP - 2);
   /*m68ki_write_16(REG_SP, value);*/
-  *(u16 *)(m68ki_cpu.memory_map[(REG_SP>>16)&0xff].base + (REG_SP & 0xffff)) = value;
+  *cast(u16 *)(m68ki_cpu.memory_map[(REG_SP>>16)&0xff].base + (REG_SP & 0xffff)) = value;
 }
 
 void m68ki_push_32(u32 value)
 {
   REG_SP = MASK_OUT_ABOVE_32(REG_SP - 4);
   /*m68ki_write_32(REG_SP, value);*/
-  *(u16 *)(m68ki_cpu.memory_map[(REG_SP>>16)&0xff].base + (REG_SP & 0xffff)) = value >> 16;
-  *(u16 *)(m68ki_cpu.memory_map[((REG_SP + 2)>>16)&0xff].base + ((REG_SP + 2) & 0xffff)) = value & 0xffff;
+  *cast(u16 *)(m68ki_cpu.memory_map[(REG_SP>>16)&0xff].base + (REG_SP & 0xffff)) = value >> 16;
+  *cast(u16 *)(m68ki_cpu.memory_map[((REG_SP + 2)>>16)&0xff].base + ((REG_SP + 2) & 0xffff)) = value & 0xffff;
 }
 
 u32 m68ki_pull_16()
@@ -1174,12 +1175,12 @@ void m68ki_jump_vector(u32 vector)
  */
 void m68ki_branch_8(u32 offset)
 {
-  REG_PC += (s8) offset;
+  REG_PC += cast(s8) offset;
 }
 
 void m68ki_branch_16(u32 offset)
 {
-  REG_PC += (s16) offset;
+  REG_PC += cast(s16) offset;
 }
 
 void m68ki_branch_32(u32 offset)

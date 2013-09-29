@@ -171,7 +171,7 @@ struct Z80_Regs
   u32 cycles;         /* master clock cycles global counter */
   // FIXME:
   //const z80_irq_daisy_chain* daisy;
-  s32 function() irq_callback;
+  s32 function(s32 irqline) irq_callback;
 }
 
 bool VERBOSE = false;
@@ -384,7 +384,7 @@ static const u16[0x100] cc_ex = [
  6*15, 0*15, 0*15, 0*15, 7*15, 0*15, 0*15, 2*15, 6*15, 0*15, 0*15, 0*15, 7*15, 0*15, 0*15, 2*15,
  6*15, 0*15, 0*15, 0*15, 7*15, 0*15, 0*15, 2*15, 6*15, 0*15, 0*15, 0*15, 7*15, 0*15, 0*15, 2*15];
 
-static const u16[6][6] cc;
+static u16[0x100][6] cc;
 
 
 static const void function()[0x100] Z80op = [
@@ -3412,12 +3412,14 @@ static void take_interrupt()
   /* Clear both interrupt flip flops */
   IFF1 = IFF2 = 0;
 
-  LOG(("Z80 #%d single int. irq_vector $%02x\n", cpu_getactivecpu(), irq_vector));
+  // FIXME: Make log work
+  //LOG(("Z80 #%d single int. irq_vector $%02x\n", cpu_getactivecpu(), irq_vector));
 
   /* Interrupt mode 1. RST 38h */
   if( IM == 1 )
   {
-    LOG(("Z80 #%d IM1 $0038\n",cpu_getactivecpu() ));
+    // FIXME: Make log work
+    //LOG(("Z80 #%d IM1 $0038\n",cpu_getactivecpu() ));
     PUSH_pc();
     PCD = 0x0038;
     /* RST $38 + 'interrupt latency' cycles */
@@ -3426,7 +3428,7 @@ static void take_interrupt()
   else
   {
     /* call back the cpu interface to retrieve the vector */
-    s32 irq_vector = Z80.irq_callback();
+    s32 irq_vector = Z80.irq_callback(0);
 
     /* Interrupt mode 2. Call [Z80.i:databyte] */
     if( IM == 2 )
@@ -3434,7 +3436,8 @@ static void take_interrupt()
       irq_vector = (irq_vector & 0xff) | (I << 8);
       PUSH_pc();
       RM16( irq_vector, &Z80.pc );
-      LOG(("Z80 #%d IM2 [$%04x] = $%04x\n",cpu_getactivecpu() , irq_vector, PCD));
+      // FIXME: Make log work
+      //LOG(("Z80 #%d IM2 [$%04x] = $%04x\n",cpu_getactivecpu() , irq_vector, PCD));
         /* CALL $xxxx + 'interrupt latency' cycles */
       Z80.cycles += cc[Z80_TABLE.op][0xcd] + cc[Z80_TABLE.ex][0xff];
     }
@@ -3443,7 +3446,8 @@ static void take_interrupt()
       /* Interrupt mode 0. We check for CALL and JP instructions, */
       /* if neither of these were found we assume a 1 byte opcode */
       /* was placed on the databus                */
-      LOG(("Z80 #%d IM0 $%04x\n",cpu_getactivecpu() , irq_vector));
+      // FIXME: Make log work
+      //LOG(("Z80 #%d IM0 $%04x\n",cpu_getactivecpu() , irq_vector));
       switch (irq_vector & 0xff0000)
       {
         case 0xcd0000:  /* call */
@@ -3466,7 +3470,7 @@ static void take_interrupt()
       }
     }
   }
-  WZ=PCD;
+  WZ = cast(u16) PCD;
 }
 
 /****************************************************************************
@@ -3581,7 +3585,7 @@ void z80_reset()
 
   Z80.after_ei = false;
 
-  WZ=PCD;
+  WZ = cast(u16) PCD;
 }
 
 /****************************************************************************
@@ -3599,7 +3603,7 @@ void z80_run(u32 cycles)
     }
 
     Z80.after_ei = false;
-    R++;
+    R = cast(u8)(R + 1);
     EXEC_op(ROP());
   }
 } 
@@ -3627,7 +3631,7 @@ void z80_set_context (void *src)
  ****************************************************************************/
 void z80_set_irq_line(u32 state)
 {
-  Z80.irq_state = state;
+  Z80.irq_state = cast(u8) state;
 }
 
 void z80_set_nmi_line(u32 state)
@@ -3635,17 +3639,18 @@ void z80_set_nmi_line(u32 state)
   /* mark an NMI pending on the rising edge */
   if (Z80.nmi_state == CLEAR_LINE && state != CLEAR_LINE)
   {
-    LOG(("Z80 #%d take NMI\n", cpu_getactivecpu()));
+    // FIXME: Make log work
+    //LOG(("Z80 #%d take NMI\n", cpu_getactivecpu()));
     LEAVE_HALT();      /* Check if processor was halted */
 
     IFF1 = 0;
     PUSH_pc();
     PCD = 0x0066;
-    WZ=PCD;
+    WZ = cast(u16) PCD;
 
     Z80.cycles += 11*15;
   }
 
-  Z80.nmi_state = state;
+  Z80.nmi_state = cast(u8) state;
 }
 
