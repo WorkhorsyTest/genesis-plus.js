@@ -633,7 +633,8 @@ static u8[0x10000] m68ki_cycles;
 
 static s32 irq_latency;
 
-m68ki_cpu_core m68k;
+// FIXME: This clashes with the m68k.d import
+//m68ki_cpu_core m68k;
 
 
 /* ======================================================================== */
