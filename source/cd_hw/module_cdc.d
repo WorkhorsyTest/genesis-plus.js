@@ -88,7 +88,7 @@ const int DMA_BYTES_PER_LINE = 512;
 
 void cdc_init()
 {
-  memset(&cdc, 0, sizeof(cdc_t));
+  cdc = cdc_t.init;
 }
 
 void cdc_reset()

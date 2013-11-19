@@ -3552,7 +3552,7 @@ void z80_init(const void *config, s32 function(s32) irqcallback)
   }
 
   /* Initialize Z80 */
-  memset(&Z80, 0, sizeof(Z80));
+  Z80 = Z80_Regs.init;
   // FIXME:
   //Z80.daisy = config;
   Z80.irq_callback = irqcallback;

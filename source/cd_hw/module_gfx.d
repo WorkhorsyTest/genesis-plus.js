@@ -334,7 +334,7 @@ void gfx_init()
   u16 offset;
   u8 mask, row, col, temp;
 
-  memset(&gfx, 0, sizeof(gfx_t));
+  gfx = gfx_t.init;
 
   /* Initialize cell image lookup table */
   /* $220000-$22FFFF corresponds to $200000-$20FFFF */

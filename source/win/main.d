@@ -46,7 +46,7 @@ static s16 soundframe[SOUND_SAMPLES_SIZE];
 static void sdl_sound_callback(void *userdata, u8 *stream, int len)
 {
   if(sdl_sound.current_emulated_samples < len) {
-    memset(stream, 0, len);
+    stream[0 .. len] = 0;
   }
   else {
     memcpy(stream, sdl_sound.buffer, len);
@@ -90,7 +90,7 @@ static int sdl_sound_init()
   if(!sdl_sound.buffer) {
     fatal("Can't allocate audio buffer", __FILE__, __LINE__);
   }
-  memset(sdl_sound.buffer, 0, n);
+  sdl_sound.buffer[0 .. n] = 0;
   sdl_sound.current_pos = sdl_sound.buffer;
   return 1;
 }
@@ -639,7 +639,7 @@ int main(string[] args) {
 
   /* initialize Genesis virtual system */
   SDL_LockSurface(sdl_video.surf_bitmap);
-  memset(&bitmap, 0, sizeof(t_bitmap));
+  bitmap = t_bitmap.init;
   bitmap.width        = 720;
   bitmap.height       = 576;
   bitmap.pitch        = (bitmap.width * 2);

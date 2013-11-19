@@ -71,7 +71,7 @@ T_EEPROM_93C eeprom_93c;
 void eeprom_93c_init()
 {
   /* default eeprom state */
-  memset(&eeprom_93c, 0, sizeof(T_EEPROM_93C));
+  eeprom_93c = T_EEPROM_93C.init;
   eeprom_93c.data = 1;
   eeprom_93c.state = STATE_WAIT_START;
   sram.custom = 3;
@@ -164,7 +164,7 @@ void eeprom_93c_write(u8 data)
                     /* ERASE ALL */
                     if (eeprom_93c.we)
                     {
-                      memset(sram.sram, 0xFF, 128);
+                      sram.sram[0 .. 128] = 0xFF;
                     }
 
                     /* wait for next command */

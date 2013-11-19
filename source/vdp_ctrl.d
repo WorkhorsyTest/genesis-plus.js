@@ -184,11 +184,11 @@ void vdp_reset()
 {
   int i;
 
-  memset (cast(char *) sat, 0, sizeof (sat));
-  memset (cast(char *) vram, 0, sizeof (vram));
-  memset (cast(char *) cram, 0, sizeof (cram));
-  memset (cast(char *) vsram, 0, sizeof (vsram));
-  memset (cast(char *) reg, 0, sizeof (reg));
+  sat[] = 0;
+  vram[] = 0;
+  cram[] = 0;
+  vsram[] = 0;
+  reg[] = 0;
 
   addr            = 0;
   addr_latch      = 0;
@@ -226,8 +226,8 @@ void vdp_reset()
 
   /* reset pattern cache changes */
   bg_list_index = 0;
-  memset (cast(char *) bg_name_dirty, 0, sizeof (bg_name_dirty));
-  memset (cast(char *) bg_name_list, 0, sizeof (bg_name_list));
+  bg_name_dirty[] = 0;
+  bg_name_list[] = 0;
 
   /* default HVC */
   hvc_latch = 0x10000;

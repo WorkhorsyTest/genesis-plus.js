@@ -140,7 +140,7 @@ s32 audio_init(s32 samplerate, double framerate)
   audio_shutdown();
 
   /* Clear the sound data context */
-  memset(&snd, 0, sizeof (snd));
+  snd = t_snd.init;
 
   /* Initialize audio rates */
   snd.sample_rate = samplerate;

@@ -1194,10 +1194,10 @@ void scd_init()
   gfx_init();
 
   /* Clear RAM */
-  memset(scd.prg_ram, 0x00, sizeof(scd.prg_ram));
-  memset(scd.word_ram, 0x00, sizeof(scd.word_ram));
-  memset(scd.word_ram_2M, 0x00, sizeof(scd.word_ram_2M));
-  memset(scd.bram, 0x00, sizeof(scd.bram));
+  scd.prg_ram[] = 0;
+  scd.word_ram[] = 0;
+  scd.word_ram_2M[] = 0;
+  scd.bram[] = 0;
 }
 
 void scd_reset(s32 hard)
@@ -1208,7 +1208,7 @@ void scd_reset(s32 hard)
     s32 i;
     
     /* Clear all ASIC registers by default */
-    memset(scd.regs, 0, sizeof(scd.regs));
+    scd.regs[] = 0;
 
     /* Clear pending DMNA write status */
     scd.dmna = 0;
@@ -1263,8 +1263,8 @@ void scd_reset(s32 hard)
   scd.pending = 0;
 
   /* Clear CPU polling detection */
-  memset(&m68k.poll, 0, sizeof(m68k.poll));
-  memset(&s68k.poll, 0, sizeof(s68k.poll));
+  m68k.poll[] = 0;
+  s68k.poll[] = 0;
 
   /* Reset CD hardware */
   cdd_reset();

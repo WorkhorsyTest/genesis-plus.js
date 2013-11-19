@@ -85,7 +85,7 @@ void pcm_init(blip_t* left, blip_t* right)
 void pcm_reset()
 {
   /* reset chip & clear external RAM */
-  memset(&pcm, 0, sizeof(pcm_t));
+  pcm = pcm_t.init;
 
   /* reset default bank */
   pcm.bank = pcm.ram;

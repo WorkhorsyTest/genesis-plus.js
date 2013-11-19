@@ -1161,7 +1161,7 @@ void render_bg_m1(int line, int width)
   u8 *pg = &vram[((reg[4] << 11) & 0x3800) + (line & 7)];
 
   /* Left border (8 pixels) */
-  memset (lb, 0x40, 8);
+  lb[0 .. 8] = 0x40;
   lb += 8;
 
   /* 40 x 6 pixels */
@@ -1181,7 +1181,7 @@ void render_bg_m1(int line, int width)
   while (--width);
 
   /* Right borders (8 pixels) */
-  memset(lb, 0x40, 8);
+  lb[0 .. 8] = 0x40;
 }
 
 /* Text + extended PG */
@@ -1206,7 +1206,7 @@ void render_bg_m1x(int line, int width)
   pg = &vram[((0x2000 + ((line & 0xC0) << 5)) & pg_mask) + (line & 7)];
 
   /* Left border (8 pixels) */
-  memset (lb, 0x40, 8);
+  lb[0 .. 8] = 0x40;
   lb += 8;
 
   /* 40 x 6 pixels */
@@ -1226,7 +1226,7 @@ void render_bg_m1x(int line, int width)
   while (--width);
 
   /* Right borders (8 pixels) */
-  memset(lb, 0x40, 8);
+  lb[0 .. 8] = 0x40;
 }
 
 /* Graphics II */
@@ -1352,7 +1352,7 @@ void render_bg_inv(int line, int width)
   u8 *lb = &linebuf[0][0x20];
 
   /* Left border (8 pixels) */
-  memset (lb, 0x40, 8);
+  lb[0 .. 8] = 0x40;
   lb += 8;
 
   /* 40 x 6 pixels */
@@ -1370,7 +1370,7 @@ void render_bg_inv(int line, int width)
   while (--width);
 
   /* Right borders (8 pixels) */
-  memset(lb, 0x40, 8);
+  lb[0 .. 8] = 0x40;
 }
 
 /* Mode 4 */
@@ -3295,7 +3295,7 @@ void render_init()
 void render_reset()
 {
   /* Clear display bitmap */
-  memset(bitmap.data, 0, bitmap.pitch * bitmap.height);
+  bitmap.data[0 .. bitmap.pitch * bitmap.height] = 0;
 
   /* Clear line buffers */
   memset(linebuf, 0, sizeof(linebuf));

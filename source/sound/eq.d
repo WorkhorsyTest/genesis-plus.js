@@ -92,7 +92,7 @@ void init_3band_state(EQSTATE * es, int lowfreq, int highfreq, int mixfreq)
 {
     /* Clear state */
 
-    memset(es, 0, sizeof(EQSTATE));
+    es = EQSTATE.init;
 
     /* Set Low/Mid/High gains to unity */
 

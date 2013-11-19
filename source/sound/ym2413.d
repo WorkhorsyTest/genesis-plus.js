@@ -1590,7 +1590,7 @@ void YM2413Init()
   init_tables();
 
   /* clear */
-  memset(&ym2413,0,sizeof(YM2413));
+  ym2413 = YM2413.init;
 
   /* init global tables */
   OPLL_initalize();

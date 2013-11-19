@@ -801,7 +801,7 @@ void cdd_unload()
   }
 
   /* reset TOC */
-  memset(&cdd.toc, 0x00, sizeof(cdd.toc));
+  cdd.toc = toc_t.init;
     
   /* unknown CD image file format */
   cdd.sectorSize = 0;

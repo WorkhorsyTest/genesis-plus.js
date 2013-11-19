@@ -156,7 +156,7 @@ void eeprom_i2c_init()
   int i = 0;
 
   /* initialize eeprom */
-  memset(&eeprom_i2c, 0, sizeof(T_EEPROM_I2C));
+  eeprom_i2c = T_EEPROM_I2C.init;
   eeprom_i2c.sda = eeprom_i2c.old_sda = 1;
   eeprom_i2c.scl = eeprom_i2c.old_scl = 1;
   eeprom_i2c.state = STAND_BY;
