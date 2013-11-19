@@ -11,9 +11,6 @@ const int MUL = 4;
 /* ================================ INCLUDES ============================== */
 /* ======================================================================== */
 
-version(BUILD_TABLES) {
-import s68ki_cycles.d;
-}
 
 import s68kconf;
 import m68kcpu;
@@ -23,9 +20,7 @@ import m68kops;
 /* ================================= DATA ================================= */
 /* ======================================================================== */
 
-version(BUILD_TABLES) {
-static u8[0x10000] s68ki_cycles;
-}
+
 static s32 irq_latency;
 
 /* IRQ priority */
@@ -193,16 +188,7 @@ version(LOG_SCD) {
 
 void s68k_init()
 {
-version(BUILD_TABLES) {
-  static uint emulation_initialized = 0;
 
-  /* The first call to this function initializes the opcode handler jump table */
-  if(!emulation_initialized)
-  {
-    m68ki_build_opcode_table();
-    emulation_initialized = 1;
-  }
-}
 }
 
 /* Pulse the RESET line on the CPU */

@@ -13,10 +13,6 @@ const int MUL = 7;
 /* ================================ INCLUDES ============================== */
 /* ======================================================================== */
 
-version(BUILD_TABLES) {
-import m68ki_cycles;
-}
-
 import m68kconf;
 import m68kcpu;
 import m68kops;
@@ -627,10 +623,6 @@ u32 ROR_33(u32 A, u32 C) { return                   (LSR_32(A, C) | LSL_32(A, 33
 /* ================================= DATA ================================= */
 /* ======================================================================== */
 
-version(BUILD_TABLES) {
-static u8[0x10000] m68ki_cycles;
-}
-
 static s32 irq_latency;
 
 // FIXME: This clashes with the m68k.d import
@@ -831,16 +823,7 @@ version(LOGVDP) {
 
 void m68k_init()
 {
-version(BUILD_TABLES) {
-  static uint emulation_initialized = 0;
 
-  /* The first call to this function initializes the opcode handler jump table */
-  if(!emulation_initialized)
-  {
-    m68ki_build_opcode_table();
-    emulation_initialized = 1;
-  }
-}
 }
 
 /* Pulse the RESET line on the CPU */

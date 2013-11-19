@@ -23481,11 +23481,6 @@ static void m68k_op_unlk_32()
 /* ========================= OPCODE TABLE BUILDER ========================= */
 /* ======================================================================== */
 
-version(BUILD_TABLES) {
-
-import m68ki_instruction_jump_table.d;
-
-} else {
 
 /* This is used to generate the opcode handler jump table */
 struct opcode_handler_struct
@@ -25293,7 +25288,6 @@ static void m68ki_build_opcode_table()
   }
 }
 
-}
 
 /* ======================================================================== */
 /* ============================== END OF FILE ============================= */
