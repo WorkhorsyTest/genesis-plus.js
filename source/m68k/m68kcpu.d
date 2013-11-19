@@ -926,28 +926,28 @@ u32 m68ki_read_8_fc(u32 address)
 {
   cpu_memory_map *temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
 
-  if (temp.read8) return (*temp.read8)(ADDRESS_68K(address));
+  if (temp.read8) return temp.read8(ADDRESS_68K(address));
   else return READ_BYTE(temp.base, (address) & 0xffff);
 }
 
 u32 m68ki_read_16_fc(u32 address, u32 fc)
 {
   cpu_memory_map *temp;
-  m68ki_check_address_error(address, MODE_READ, fc) /* auto-disable (see m68kcpu.h) */
+  m68ki_check_address_error(address, MODE_READ, fc); /* auto-disable (see m68kcpu.h) */
   
-  temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
-  if (temp.read16) return (*temp.read16)(ADDRESS_68K(address));
-  else return *cast(u16 *)(temp.base + ((address) & 0xffff));
+  temp = &m68ki_cpu.memory_map[(address>>16)&0xff];
+  if (temp.read16) return temp.read16(ADDRESS_68K(address));
+  else return *cast(u16 *)(temp.base + (address & 0xffff));
 }
 
 u32 m68ki_read_32_fc(u32 address, u32 fc)
 {
   cpu_memory_map *temp;
 
-  m68ki_check_address_error(address, MODE_READ, fc) /* auto-disable (see m68kcpu.h) */
+  m68ki_check_address_error(address, MODE_READ, fc); /* auto-disable (see m68kcpu.h) */
 
   temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
-  if (temp.read16) return ((*temp.read16)(ADDRESS_68K(address)) << 16) | ((*temp.read16)(ADDRESS_68K(address + 2)));
+  if (temp.read16) return (temp.read16(ADDRESS_68K(address)) << 16) | (temp.read16(ADDRESS_68K(address + 2)));
   else return m68k_read_immediate_32(address);
 }
 
@@ -956,7 +956,7 @@ void m68ki_write_8_fc(u32 address, u32 value)
   cpu_memory_map *temp;
 
   temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
-  if (temp.write8) (*temp.write8)(ADDRESS_68K(address),value);
+  if (temp.write8) temp.write8(ADDRESS_68K(address),value);
   else WRITE_BYTE(temp.base, (address) & 0xffff, value);
 }
 
@@ -967,7 +967,7 @@ void m68ki_write_16_fc(u32 address, u32 fc, u32 value)
   m68ki_check_address_error(address, MODE_WRITE, fc); /* auto-disable (see m68kcpu.h) */
 
   temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
-  if (temp.write16) (*temp.write16)(ADDRESS_68K(address),value);
+  if (temp.write16) temp.write16(ADDRESS_68K(address),value);
   else *cast(u16 *)(temp.base + ((address) & 0xffff)) = value;
 }
 
@@ -975,14 +975,14 @@ void m68ki_write_32_fc(u32 address, u32 fc, u32 value)
 {
   cpu_memory_map *temp;
 
-  m68ki_check_address_error(address, MODE_WRITE, fc) /* auto-disable (see m68kcpu.h) */
+  m68ki_check_address_error(address, MODE_WRITE, fc); /* auto-disable (see m68kcpu.h) */
 
   temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
-  if (temp.write16) (*temp.write16)(ADDRESS_68K(address),value>>16);
+  if (temp.write16) temp.write16(ADDRESS_68K(address),value>>16);
   else *cast(u16 *)(temp.base + ((address) & 0xffff)) = value >> 16;
 
   temp = &m68ki_cpu.memory_map[((address + 2)>>16)&0xff];
-  if (temp.write16) (*temp.write16)(ADDRESS_68K(address+2),value&0xffff);
+  if (temp.write16) temp.write16(ADDRESS_68K(address+2),value&0xffff);
   else *cast(u16 *)(temp.base + ((address + 2) & 0xffff)) = value;
 }
 
