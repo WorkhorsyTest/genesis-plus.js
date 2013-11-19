@@ -628,7 +628,7 @@ u32 ROR_33(u32 A, u32 C) { return                   (LSR_32(A, C) | LSL_32(A, 33
 /* ======================================================================== */
 
 version(BUILD_TABLES) {
-static u8 m68ki_cycles[0x10000];
+static u8[0x10000] m68ki_cycles;
 }
 
 static s32 irq_latency;
