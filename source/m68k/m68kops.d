@@ -17,7 +17,7 @@ static void UseDivuCycles(u32 dst, u32 src)
   for (i=0; i<15; i++)
   {
     /* check if carry bit set  */
-    if ((s32) dst < 0)
+    if (cast(s32) dst < 0)
     {
       /* shift dividend and apply divisor */
       dst <<= 1;
@@ -1231,7 +1231,7 @@ static void m68k_op_adda_16_d()
 {
   u32* r_dst = &AX;
 
-  *r_dst = MASK_OUT_ABOVE_32(*r_dst + (s16) DY);
+  *r_dst = MASK_OUT_ABOVE_32(*r_dst + cast(s16) DY);
 }
 
 
@@ -1239,14 +1239,14 @@ static void m68k_op_adda_16_a()
 {
   u32* r_dst = &AX;
 
-  *r_dst = MASK_OUT_ABOVE_32(*r_dst + (s16) AY);
+  *r_dst = MASK_OUT_ABOVE_32(*r_dst + cast(s16) AY);
 }
 
 
 static void m68k_op_adda_16_ai()
 {
   u32* r_dst = &AX;
-  u32 src = (s16) OPER_AY_AI_16();
+  u32 src = cast(s16) OPER_AY_AI_16();
 
   *r_dst = MASK_OUT_ABOVE_32(*r_dst + src);
 }
@@ -1255,7 +1255,7 @@ static void m68k_op_adda_16_ai()
 static void m68k_op_adda_16_pi()
 {
   u32* r_dst = &AX;
-  u32 src = (s16) OPER_AY_PI_16();
+  u32 src = cast(s16) OPER_AY_PI_16();
 
   *r_dst = MASK_OUT_ABOVE_32(*r_dst + src);
 }
@@ -1264,7 +1264,7 @@ static void m68k_op_adda_16_pi()
 static void m68k_op_adda_16_pd()
 {
   u32* r_dst = &AX;
-  u32 src = (s16) OPER_AY_PD_16();
+  u32 src = cast(s16) OPER_AY_PD_16();
 
   *r_dst = MASK_OUT_ABOVE_32(*r_dst + src);
 }
@@ -1273,7 +1273,7 @@ static void m68k_op_adda_16_pd()
 static void m68k_op_adda_16_di()
 {
   u32* r_dst = &AX;
-  u32 src = (s16) OPER_AY_DI_16();
+  u32 src = cast(s16) OPER_AY_DI_16();
 
   *r_dst = MASK_OUT_ABOVE_32(*r_dst + src);
 }
@@ -1282,7 +1282,7 @@ static void m68k_op_adda_16_di()
 static void m68k_op_adda_16_ix()
 {
   u32* r_dst = &AX;
-  u32 src = (s16) OPER_AY_IX_16();
+  u32 src = cast(s16) OPER_AY_IX_16();
 
   *r_dst = MASK_OUT_ABOVE_32(*r_dst + src);
 }
@@ -1291,7 +1291,7 @@ static void m68k_op_adda_16_ix()
 static void m68k_op_adda_16_aw()
 {
   u32* r_dst = &AX;
-  u32 src = (s16) OPER_AW_16();
+  u32 src = cast(s16) OPER_AW_16();
 
   *r_dst = MASK_OUT_ABOVE_32(*r_dst + src);
 }
@@ -1300,7 +1300,7 @@ static void m68k_op_adda_16_aw()
 static void m68k_op_adda_16_al()
 {
   u32* r_dst = &AX;
-  u32 src = (s16) OPER_AL_16();
+  u32 src = cast(s16) OPER_AL_16();
 
   *r_dst = MASK_OUT_ABOVE_32(*r_dst + src);
 }
@@ -1309,7 +1309,7 @@ static void m68k_op_adda_16_al()
 static void m68k_op_adda_16_pcdi()
 {
   u32* r_dst = &AX;
-  u32 src = (s16) OPER_PCDI_16();
+  u32 src = cast(s16) OPER_PCDI_16();
 
   *r_dst = MASK_OUT_ABOVE_32(*r_dst + src);
 }
@@ -1318,7 +1318,7 @@ static void m68k_op_adda_16_pcdi()
 static void m68k_op_adda_16_pcix()
 {
   u32* r_dst = &AX;
-  u32 src = (s16) OPER_PCIX_16();
+  u32 src = cast(s16) OPER_PCIX_16();
 
   *r_dst = MASK_OUT_ABOVE_32(*r_dst + src);
 }
@@ -1327,7 +1327,7 @@ static void m68k_op_adda_16_pcix()
 static void m68k_op_adda_16_i()
 {
   u32* r_dst = &AX;
-  u32 src = (s16) OPER_I_16();
+  u32 src = cast(s16) OPER_I_16();
 
   *r_dst = MASK_OUT_ABOVE_32(*r_dst + src);
 }
@@ -5517,8 +5517,8 @@ static void m68k_op_btst_8_s_pcix()
 
 static void m68k_op_chk_16_d()
 {
-  s32 src = (s16) DX;
-  s32 bound = (s16) DY;
+  s32 src = cast(s16) DX;
+  s32 bound = cast(s16) DY;
 
   FLAG_Z = ZFLAG_16(src); /* Undocumented */
   FLAG_V = VFLAG_CLEAR;   /* Undocumented */
@@ -5535,8 +5535,8 @@ static void m68k_op_chk_16_d()
 
 static void m68k_op_chk_16_ai()
 {
-  s32 src = (s16) DX;
-  s32 bound = (s16) OPER_AY_AI_16();
+  s32 src = cast(s16) DX;
+  s32 bound = cast(s16) OPER_AY_AI_16();
 
   FLAG_Z = ZFLAG_16(src); /* Undocumented */
   FLAG_V = VFLAG_CLEAR;   /* Undocumented */
@@ -5553,8 +5553,8 @@ static void m68k_op_chk_16_ai()
 
 static void m68k_op_chk_16_pi()
 {
-  s32 src = (s16) DX;
-  s32 bound = (s16) OPER_AY_PI_16();
+  s32 src = cast(s16) DX;
+  s32 bound = cast(s16) OPER_AY_PI_16();
 
   FLAG_Z = ZFLAG_16(src); /* Undocumented */
   FLAG_V = VFLAG_CLEAR;   /* Undocumented */
@@ -5571,8 +5571,8 @@ static void m68k_op_chk_16_pi()
 
 static void m68k_op_chk_16_pd()
 {
-  s32 src = (s16) DX;
-  s32 bound = (s16) OPER_AY_PD_16();
+  s32 src = cast(s16) DX;
+  s32 bound = cast(s16) OPER_AY_PD_16();
 
   FLAG_Z = ZFLAG_16(src); /* Undocumented */
   FLAG_V = VFLAG_CLEAR;   /* Undocumented */
@@ -5589,8 +5589,8 @@ static void m68k_op_chk_16_pd()
 
 static void m68k_op_chk_16_di()
 {
-  s32 src = (s16) DX;
-  s32 bound = (s16) OPER_AY_DI_16();
+  s32 src = cast(s16) DX;
+  s32 bound = cast(s16) OPER_AY_DI_16();
 
   FLAG_Z = ZFLAG_16(src); /* Undocumented */
   FLAG_V = VFLAG_CLEAR;   /* Undocumented */
@@ -5607,8 +5607,8 @@ static void m68k_op_chk_16_di()
 
 static void m68k_op_chk_16_ix()
 {
-  s32 src = (s16) DX;
-  s32 bound = (s16) OPER_AY_IX_16();
+  s32 src = cast(s16) DX;
+  s32 bound = cast(s16) OPER_AY_IX_16();
 
   FLAG_Z = ZFLAG_16(src); /* Undocumented */
   FLAG_V = VFLAG_CLEAR;   /* Undocumented */
@@ -5625,8 +5625,8 @@ static void m68k_op_chk_16_ix()
 
 static void m68k_op_chk_16_aw()
 {
-  s32 src = (s16) DX;
-  s32 bound = (s16) OPER_AW_16();
+  s32 src = cast(s16) DX;
+  s32 bound = cast(s16) OPER_AW_16();
 
   FLAG_Z = ZFLAG_16(src); /* Undocumented */
   FLAG_V = VFLAG_CLEAR;   /* Undocumented */
@@ -5643,8 +5643,8 @@ static void m68k_op_chk_16_aw()
 
 static void m68k_op_chk_16_al()
 {
-  s32 src = (s16) DX;
-  s32 bound = (s16) OPER_AL_16();
+  s32 src = cast(s16) DX;
+  s32 bound = cast(s16) OPER_AL_16();
 
   FLAG_Z = ZFLAG_16(src); /* Undocumented */
   FLAG_V = VFLAG_CLEAR;   /* Undocumented */
@@ -5661,8 +5661,8 @@ static void m68k_op_chk_16_al()
 
 static void m68k_op_chk_16_pcdi()
 {
-  s32 src = (s16) DX;
-  s32 bound = (s16) OPER_PCDI_16();
+  s32 src = cast(s16) DX;
+  s32 bound = cast(s16) OPER_PCDI_16();
 
   FLAG_Z = ZFLAG_16(src); /* Undocumented */
   FLAG_V = VFLAG_CLEAR;   /* Undocumented */
@@ -5679,8 +5679,8 @@ static void m68k_op_chk_16_pcdi()
 
 static void m68k_op_chk_16_pcix()
 {
-  s32 src = (s16) DX;
-  s32 bound = (s16) OPER_PCIX_16();
+  s32 src = cast(s16) DX;
+  s32 bound = cast(s16) OPER_PCIX_16();
 
   FLAG_Z = ZFLAG_16(src); /* Undocumented */
   FLAG_V = VFLAG_CLEAR;   /* Undocumented */
@@ -5697,8 +5697,8 @@ static void m68k_op_chk_16_pcix()
 
 static void m68k_op_chk_16_i()
 {
-  s32 src = (s16) DX;
-  s32 bound = (s16) OPER_I_16();
+  s32 src = cast(s16) DX;
+  s32 bound = cast(s16) OPER_I_16();
 
   FLAG_Z = ZFLAG_16(src); /* Undocumented */
   FLAG_V = VFLAG_CLEAR;   /* Undocumented */
@@ -6482,7 +6482,7 @@ static void m68k_op_cmp_32_i()
 
 static void m68k_op_cmpa_16_d()
 {
-  u32 src = (s16) DY;
+  u32 src = cast(s16) DY;
   u32 dst = AX;
   u32 res = dst - src;
 
@@ -6495,7 +6495,7 @@ static void m68k_op_cmpa_16_d()
 
 static void m68k_op_cmpa_16_a()
 {
-  u32 src = (s16) AY;
+  u32 src = cast(s16) AY;
   u32 dst = AX;
   u32 res = dst - src;
 
@@ -6508,7 +6508,7 @@ static void m68k_op_cmpa_16_a()
 
 static void m68k_op_cmpa_16_ai()
 {
-  u32 src = (s16) OPER_AY_AI_16();
+  u32 src = cast(s16) OPER_AY_AI_16();
   u32 dst = AX;
   u32 res = dst - src;
 
@@ -6521,7 +6521,7 @@ static void m68k_op_cmpa_16_ai()
 
 static void m68k_op_cmpa_16_pi()
 {
-  u32 src = (s16) OPER_AY_PI_16();
+  u32 src = cast(s16) OPER_AY_PI_16();
   u32 dst = AX;
   u32 res = dst - src;
 
@@ -6534,7 +6534,7 @@ static void m68k_op_cmpa_16_pi()
 
 static void m68k_op_cmpa_16_pd()
 {
-  u32 src = (s16) OPER_AY_PD_16();
+  u32 src = cast(s16) OPER_AY_PD_16();
   u32 dst = AX;
   u32 res = dst - src;
 
@@ -6547,7 +6547,7 @@ static void m68k_op_cmpa_16_pd()
 
 static void m68k_op_cmpa_16_di()
 {
-  u32 src = (s16) OPER_AY_DI_16();
+  u32 src = cast(s16) OPER_AY_DI_16();
   u32 dst = AX;
   u32 res = dst - src;
 
@@ -6560,7 +6560,7 @@ static void m68k_op_cmpa_16_di()
 
 static void m68k_op_cmpa_16_ix()
 {
-  u32 src = (s16) OPER_AY_IX_16();
+  u32 src = cast(s16) OPER_AY_IX_16();
   u32 dst = AX;
   u32 res = dst - src;
 
@@ -6573,7 +6573,7 @@ static void m68k_op_cmpa_16_ix()
 
 static void m68k_op_cmpa_16_aw()
 {
-  u32 src = (s16) OPER_AW_16();
+  u32 src = cast(s16) OPER_AW_16();
   u32 dst = AX;
   u32 res = dst - src;
 
@@ -6586,7 +6586,7 @@ static void m68k_op_cmpa_16_aw()
 
 static void m68k_op_cmpa_16_al()
 {
-  u32 src = (s16) OPER_AL_16();
+  u32 src = cast(s16) OPER_AL_16();
   u32 dst = AX;
   u32 res = dst - src;
 
@@ -6599,7 +6599,7 @@ static void m68k_op_cmpa_16_al()
 
 static void m68k_op_cmpa_16_pcdi()
 {
-  u32 src = (s16) OPER_PCDI_16();
+  u32 src = cast(s16) OPER_PCDI_16();
   u32 dst = AX;
   u32 res = dst - src;
 
@@ -6612,7 +6612,7 @@ static void m68k_op_cmpa_16_pcdi()
 
 static void m68k_op_cmpa_16_pcix()
 {
-  u32 src = (s16) OPER_PCIX_16();
+  u32 src = cast(s16) OPER_PCIX_16();
   u32 dst = AX;
   u32 res = dst - src;
 
@@ -6625,7 +6625,7 @@ static void m68k_op_cmpa_16_pcix()
 
 static void m68k_op_cmpa_16_i()
 {
-  u32 src = (s16) OPER_I_16();
+  u32 src = cast(s16) OPER_I_16();
   u32 dst = AX;
   u32 res = dst - src;
 
@@ -7575,7 +7575,7 @@ static void m68k_op_dble_16()
 static void m68k_op_divs_16_d()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) DY;
+  s32 src = cast(s16) DY;
   s32 quotient;
   s32 remainder;
 
@@ -7583,7 +7583,7 @@ static void m68k_op_divs_16_d()
   {
     UseDivsCycles(*r_dst,src);
 
-    if((u32)*r_dst == 0x80000000 && src == -1)
+    if(cast(u32)*r_dst == 0x80000000 && src == -1)
     {
       FLAG_Z = 0;
       FLAG_N = NFLAG_CLEAR;
@@ -7593,10 +7593,10 @@ static void m68k_op_divs_16_d()
       return;
     }
 
-    quotient = ((s32) (*r_dst)) / src;
-    remainder = ((s32) (*r_dst)) % src;
+    quotient = (cast(s32) (*r_dst)) / src;
+    remainder = (cast(s32) (*r_dst)) % src;
 
-    if(quotient == (s16) quotient)
+    if(quotient == cast(s16) quotient)
     {
       FLAG_Z = quotient;
       FLAG_N = NFLAG_16(quotient);
@@ -7618,7 +7618,7 @@ static void m68k_op_divs_16_d()
 static void m68k_op_divs_16_ai()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) OPER_AY_AI_16();
+  s32 src = cast(s16) OPER_AY_AI_16();
   s32 quotient;
   s32 remainder;
 
@@ -7626,7 +7626,7 @@ static void m68k_op_divs_16_ai()
   {
     UseDivsCycles(*r_dst,src);
 
-    if((u32)*r_dst == 0x80000000 && src == -1)
+    if(cast(u32)*r_dst == 0x80000000 && src == -1)
     {
       FLAG_Z = 0;
       FLAG_N = NFLAG_CLEAR;
@@ -7636,10 +7636,10 @@ static void m68k_op_divs_16_ai()
       return;
     }
 
-    quotient = ((s32)(*r_dst)) / src;
-    remainder = ((s32)(*r_dst)) % src;
+    quotient = (cast(s32)(*r_dst)) / src;
+    remainder = (cast(s32)(*r_dst)) % src;
 
-    if(quotient == (s16) quotient)
+    if(quotient == cast(s16) quotient)
     {
       FLAG_Z = quotient;
       FLAG_N = NFLAG_16(quotient);
@@ -7661,7 +7661,7 @@ static void m68k_op_divs_16_ai()
 static void m68k_op_divs_16_pi()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) OPER_AY_PI_16();
+  s32 src = cast(s16) OPER_AY_PI_16();
   s32 quotient;
   s32 remainder;
 
@@ -7669,7 +7669,7 @@ static void m68k_op_divs_16_pi()
   {
     UseDivsCycles(*r_dst,src);
 
-    if((u32)*r_dst == 0x80000000 && src == -1)
+    if(cast(u32)*r_dst == 0x80000000 && src == -1)
     {
       FLAG_Z = 0;
       FLAG_N = NFLAG_CLEAR;
@@ -7679,10 +7679,10 @@ static void m68k_op_divs_16_pi()
       return;
     }
 
-    quotient = ((s32) (*r_dst)) / src;
-    remainder = ((s32) (*r_dst)) % src;
+    quotient = (cast(s32) (*r_dst)) / src;
+    remainder = (cast(s32) (*r_dst)) % src;
 
-    if(quotient == (s16) quotient)
+    if(quotient == cast(s16) quotient)
     {
       FLAG_Z = quotient;
       FLAG_N = NFLAG_16(quotient);
@@ -7704,7 +7704,7 @@ static void m68k_op_divs_16_pi()
 static void m68k_op_divs_16_pd()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) OPER_AY_PD_16();
+  s32 src = cast(s16) OPER_AY_PD_16();
   s32 quotient;
   s32 remainder;
 
@@ -7712,7 +7712,7 @@ static void m68k_op_divs_16_pd()
   {
     UseDivsCycles(*r_dst,src);
 
-    if((u32)*r_dst == 0x80000000 && src == -1)
+    if(cast(u32)*r_dst == 0x80000000 && src == -1)
     {
       FLAG_Z = 0;
       FLAG_N = NFLAG_CLEAR;
@@ -7722,10 +7722,10 @@ static void m68k_op_divs_16_pd()
       return;
     }
 
-    quotient = ((s32) (*r_dst)) / src;
-    remainder = ((s32) (*r_dst)) % src;
+    quotient = (cast(s32) (*r_dst)) / src;
+    remainder = (cast(s32) (*r_dst)) % src;
 
-    if(quotient == (s16) quotient)
+    if(quotient == cast(s16) quotient)
     {
       FLAG_Z = quotient;
       FLAG_N = NFLAG_16(quotient);
@@ -7747,7 +7747,7 @@ static void m68k_op_divs_16_pd()
 static void m68k_op_divs_16_di()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) OPER_AY_DI_16();
+  s32 src = cast(s16) OPER_AY_DI_16();
   s32 quotient;
   s32 remainder;
 
@@ -7755,7 +7755,7 @@ static void m68k_op_divs_16_di()
   {
     UseDivsCycles(*r_dst,src);
 
-    if((u32)*r_dst == 0x80000000 && src == -1)
+    if(cast(u32)*r_dst == 0x80000000 && src == -1)
     {
       FLAG_Z = 0;
       FLAG_N = NFLAG_CLEAR;
@@ -7765,10 +7765,10 @@ static void m68k_op_divs_16_di()
       return;
     }
 
-    quotient = ((s32) (*r_dst)) / src;
-    remainder = ((s32) (*r_dst)) % src;
+    quotient = (cast(s32) (*r_dst)) / src;
+    remainder = (cast(s32) (*r_dst)) % src;
 
-    if(quotient == (s16) quotient)
+    if(quotient == cast(s16) quotient)
     {
       FLAG_Z = quotient;
       FLAG_N = NFLAG_16(quotient);
@@ -7790,7 +7790,7 @@ static void m68k_op_divs_16_di()
 static void m68k_op_divs_16_ix()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) OPER_AY_IX_16();
+  s32 src = cast(s16) OPER_AY_IX_16();
   s32 quotient;
   s32 remainder;
 
@@ -7798,7 +7798,7 @@ static void m68k_op_divs_16_ix()
   {
     UseDivsCycles(*r_dst,src);
 
-    if((u32)*r_dst == 0x80000000 && src == -1)
+    if(cast(u32)*r_dst == 0x80000000 && src == -1)
     {
       FLAG_Z = 0;
       FLAG_N = NFLAG_CLEAR;
@@ -7808,10 +7808,10 @@ static void m68k_op_divs_16_ix()
       return;
     }
 
-    quotient = ((s32) (*r_dst)) / src;
-    remainder = ((s32) (*r_dst)) % src;
+    quotient = (cast(s32) (*r_dst)) / src;
+    remainder = (cast(s32) (*r_dst)) % src;
 
-    if(quotient == (s16) quotient)
+    if(quotient == cast(s16) quotient)
     {
       FLAG_Z = quotient;
       FLAG_N = NFLAG_16(quotient);
@@ -7833,7 +7833,7 @@ static void m68k_op_divs_16_ix()
 static void m68k_op_divs_16_aw()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) OPER_AW_16();
+  s32 src = cast(s16) OPER_AW_16();
   s32 quotient;
   s32 remainder;
 
@@ -7841,7 +7841,7 @@ static void m68k_op_divs_16_aw()
   {
     UseDivsCycles(*r_dst,src);
 
-    if((u32)*r_dst == 0x80000000 && src == -1)
+    if(cast(u32)*r_dst == 0x80000000 && src == -1)
     {
       FLAG_Z = 0;
       FLAG_N = NFLAG_CLEAR;
@@ -7851,10 +7851,10 @@ static void m68k_op_divs_16_aw()
       return;
     }
 
-    quotient = ((s32) (*r_dst)) / src;
-    remainder = ((s32) (*r_dst)) % src;
+    quotient = (cast(s32) (*r_dst)) / src;
+    remainder = (cast(s32) (*r_dst)) % src;
 
-    if(quotient == (s16) quotient)
+    if(quotient == cast(s16) quotient)
     {
       FLAG_Z = quotient;
       FLAG_N = NFLAG_16(quotient);
@@ -7876,7 +7876,7 @@ static void m68k_op_divs_16_aw()
 static void m68k_op_divs_16_al()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) OPER_AL_16();
+  s32 src = cast(s16) OPER_AL_16();
   s32 quotient;
   s32 remainder;
 
@@ -7884,7 +7884,7 @@ static void m68k_op_divs_16_al()
   {
     UseDivsCycles(*r_dst,src);
 
-    if((u32)*r_dst == 0x80000000 && src == -1)
+    if(cast(u32)*r_dst == 0x80000000 && src == -1)
     {
       FLAG_Z = 0;
       FLAG_N = NFLAG_CLEAR;
@@ -7894,10 +7894,10 @@ static void m68k_op_divs_16_al()
       return;
     }
 
-    quotient = ((s32) (*r_dst)) / src;
-    remainder = ((s32) (*r_dst)) % src;
+    quotient = (cast(s32) (*r_dst)) / src;
+    remainder = (cast(s32) (*r_dst)) % src;
 
-    if(quotient == (s16) quotient)
+    if(quotient == cast(s16) quotient)
     {
       FLAG_Z = quotient;
       FLAG_N = NFLAG_16(quotient);
@@ -7919,7 +7919,7 @@ static void m68k_op_divs_16_al()
 static void m68k_op_divs_16_pcdi()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) OPER_PCDI_16();
+  s32 src = cast(s16) OPER_PCDI_16();
   s32 quotient;
   s32 remainder;
 
@@ -7927,7 +7927,7 @@ static void m68k_op_divs_16_pcdi()
   {
     UseDivsCycles(*r_dst,src);
 
-    if((u32)*r_dst == 0x80000000 && src == -1)
+    if(cast(u32)*r_dst == 0x80000000 && src == -1)
     {
       FLAG_Z = 0;
       FLAG_N = NFLAG_CLEAR;
@@ -7937,10 +7937,10 @@ static void m68k_op_divs_16_pcdi()
       return;
     }
 
-    quotient = ((s32) (*r_dst)) / src;
-    remainder = ((s32) (*r_dst)) % src;
+    quotient = (cast(s32) (*r_dst)) / src;
+    remainder = (cast(s32) (*r_dst)) % src;
 
-    if(quotient == (s16) quotient)
+    if(quotient == cast(s16) quotient)
     {
       FLAG_Z = quotient;
       FLAG_N = NFLAG_16(quotient);
@@ -7962,7 +7962,7 @@ static void m68k_op_divs_16_pcdi()
 static void m68k_op_divs_16_pcix()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) OPER_PCIX_16();
+  s32 src = cast(s16) OPER_PCIX_16();
   s32 quotient;
   s32 remainder;
 
@@ -7970,7 +7970,7 @@ static void m68k_op_divs_16_pcix()
   {
     UseDivsCycles(*r_dst,src);
 
-    if((u32)*r_dst == 0x80000000 && src == -1)
+    if(cast(u32)*r_dst == 0x80000000 && src == -1)
     {
       FLAG_Z = 0;
       FLAG_N = NFLAG_CLEAR;
@@ -7980,10 +7980,10 @@ static void m68k_op_divs_16_pcix()
       return;
     }
 
-    quotient = ((s32) (*r_dst)) / src;
-    remainder = ((s32) (*r_dst)) % src;
+    quotient = (cast(s32) (*r_dst)) / src;
+    remainder = (cast(s32) (*r_dst)) % src;
 
-    if(quotient == (s16) quotient)
+    if(quotient == cast(s16) quotient)
     {
       FLAG_Z = quotient;
       FLAG_N = NFLAG_16(quotient);
@@ -8005,7 +8005,7 @@ static void m68k_op_divs_16_pcix()
 static void m68k_op_divs_16_i()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) OPER_I_16();
+  s32 src = cast(s16) OPER_I_16();
   s32 quotient;
   s32 remainder;
 
@@ -8013,7 +8013,7 @@ static void m68k_op_divs_16_i()
   {
     UseDivsCycles(*r_dst,src);
 
-    if((u32)*r_dst == 0x80000000 && src == -1)
+    if(cast(u32)*r_dst == 0x80000000 && src == -1)
     {
       FLAG_Z = 0;
       FLAG_N = NFLAG_CLEAR;
@@ -8023,10 +8023,10 @@ static void m68k_op_divs_16_i()
       return;
     }
 
-    quotient = ((s32) (*r_dst)) / src;
-    remainder = ((s32) (*r_dst)) % src;
+    quotient = (cast(s32) (*r_dst)) / src;
+    remainder = (cast(s32) (*r_dst)) % src;
 
-    if(quotient == (s16) quotient)
+    if(quotient == cast(s16) quotient)
     {
       FLAG_Z = quotient;
       FLAG_N = NFLAG_16(quotient);
@@ -9343,7 +9343,7 @@ static void m68k_op_link_16_a7()
 {
   REG_A[7] -= 4;
   m68ki_write_32(REG_A[7], REG_A[7]);
-  REG_A[7] = MASK_OUT_ABOVE_32(REG_A[7] + (s16) OPER_I_16());
+  REG_A[7] = MASK_OUT_ABOVE_32(REG_A[7] + cast(s16) OPER_I_16());
 }
 
 
@@ -9353,7 +9353,7 @@ static void m68k_op_link_16()
 
   m68ki_push_32(*r_dst);
   *r_dst = REG_A[7];
-  REG_A[7] = MASK_OUT_ABOVE_32(REG_A[7] + (s16) OPER_I_16());
+  REG_A[7] = MASK_OUT_ABOVE_32(REG_A[7] + cast(s16) OPER_I_16());
 }
 
 
@@ -14423,73 +14423,73 @@ static void m68k_op_move_32_al_i()
 
 static void m68k_op_movea_16_d()
 {
-  AX = (s16) DY;
+  AX = cast(s16) DY;
 }
 
 
 static void m68k_op_movea_16_a()
 {
-  AX = (s16) AY;
+  AX = cast(s16) AY;
 }
 
 
 static void m68k_op_movea_16_ai()
 {
-  AX = (s16) OPER_AY_AI_16();
+  AX = cast(s16) OPER_AY_AI_16();
 }
 
 
 static void m68k_op_movea_16_pi()
 {
-  AX = (s16) OPER_AY_PI_16();
+  AX = cast(s16) OPER_AY_PI_16();
 }
 
 
 static void m68k_op_movea_16_pd()
 {
-  AX = (s16) OPER_AY_PD_16();
+  AX = cast(s16) OPER_AY_PD_16();
 }
 
 
 static void m68k_op_movea_16_di()
 {
-  AX = (s16) OPER_AY_DI_16();
+  AX = cast(s16) OPER_AY_DI_16();
 }
 
 
 static void m68k_op_movea_16_ix()
 {
-  AX = (s16) OPER_AY_IX_16();
+  AX = cast(s16) OPER_AY_IX_16();
 }
 
 
 static void m68k_op_movea_16_aw()
 {
-  AX = (s16) OPER_AW_16();
+  AX = cast(s16) OPER_AW_16();
 }
 
 
 static void m68k_op_movea_16_al()
 {
-  AX = (s16) OPER_AL_16();
+  AX = cast(s16) OPER_AL_16();
 }
 
 
 static void m68k_op_movea_16_pcdi()
 {
-  AX = (s16) OPER_PCDI_16();
+  AX = cast(s16) OPER_PCDI_16();
 }
 
 
 static void m68k_op_movea_16_pcix()
 {
-  AX = (s16) OPER_PCIX_16();
+  AX = cast(s16) OPER_PCIX_16();
 }
 
 
 static void m68k_op_movea_16_i()
 {
-  AX = (s16) OPER_I_16();
+  AX = cast(s16) OPER_I_16();
 }
 
 
@@ -15079,7 +15079,7 @@ static void m68k_op_movem_16_er_pi()
   for(; i < 16; i++)
     if(register_list & (1 << i))
     {
-      REG_DA[i] = (s16) MASK_OUT_ABOVE_16(m68ki_read_16(ea));
+      REG_DA[i] = cast(s16) MASK_OUT_ABOVE_16(m68ki_read_16(ea));
       ea += 2;
       count++;
     }
@@ -15099,7 +15099,7 @@ static void m68k_op_movem_16_er_pcdi()
   for(; i < 16; i++)
     if(register_list & (1 << i))
     {
-      REG_DA[i] = (s16) MASK_OUT_ABOVE_16(m68ki_read_pcrel_16(ea));
+      REG_DA[i] = cast(s16) MASK_OUT_ABOVE_16(m68ki_read_pcrel_16(ea));
       ea += 2;
       count++;
     }
@@ -15118,7 +15118,7 @@ static void m68k_op_movem_16_er_pcix()
   for(; i < 16; i++)
     if(register_list & (1 << i))
     {
-      REG_DA[i] = (s16) MASK_OUT_ABOVE_16(m68ki_read_pcrel_16(ea));
+      REG_DA[i] = cast(s16) MASK_OUT_ABOVE_16(m68ki_read_pcrel_16(ea));
       ea += 2;
       count++;
     }
@@ -15137,7 +15137,7 @@ static void m68k_op_movem_16_er_ai()
   for(; i < 16; i++)
     if(register_list & (1 << i))
     {
-      REG_DA[i] = (s16) MASK_OUT_ABOVE_16(m68ki_read_16(ea));
+      REG_DA[i] = cast(s16) MASK_OUT_ABOVE_16(m68ki_read_16(ea));
       ea += 2;
       count++;
     }
@@ -15156,7 +15156,7 @@ static void m68k_op_movem_16_er_di()
   for(; i < 16; i++)
     if(register_list & (1 << i))
     {
-      REG_DA[i] = (s16) MASK_OUT_ABOVE_16(m68ki_read_16(ea));
+      REG_DA[i] = cast(s16) MASK_OUT_ABOVE_16(m68ki_read_16(ea));
       ea += 2;
       count++;
     }
@@ -15175,7 +15175,7 @@ static void m68k_op_movem_16_er_ix()
   for(; i < 16; i++)
     if(register_list & (1 << i))
     {
-      REG_DA[i] = (s16) MASK_OUT_ABOVE_16(m68ki_read_16(ea));
+      REG_DA[i] = cast(s16) MASK_OUT_ABOVE_16(m68ki_read_16(ea));
       ea += 2;
       count++;
     }
@@ -15194,7 +15194,7 @@ static void m68k_op_movem_16_er_aw()
   for(; i < 16; i++)
     if(register_list & (1 << i))
     {
-      REG_DA[i] = (s16) MASK_OUT_ABOVE_16(m68ki_read_16(ea));
+      REG_DA[i] = cast(s16) MASK_OUT_ABOVE_16(m68ki_read_16(ea));
       ea += 2;
       count++;
     }
@@ -15213,7 +15213,7 @@ static void m68k_op_movem_16_er_al()
   for(; i < 16; i++)
     if(register_list & (1 << i))
     {
-      REG_DA[i] = (s16) MASK_OUT_ABOVE_16(m68ki_read_16(ea));
+      REG_DA[i] = cast(s16) MASK_OUT_ABOVE_16(m68ki_read_16(ea));
       ea += 2;
       count++;
     }
@@ -15417,7 +15417,7 @@ static void m68k_op_movep_32_er()
 
 static void m68k_op_moveq_32()
 {
-  u32 res = DX = (s8) MASK_OUT_ABOVE_8(REG_IR);
+  u32 res = DX = cast(s8) MASK_OUT_ABOVE_8(REG_IR);
 
   FLAG_N = NFLAG_32(res);
   FLAG_Z = res;
@@ -15429,8 +15429,8 @@ static void m68k_op_moveq_32()
 static void m68k_op_muls_16_d()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) DY;
-  u32 res = MASK_OUT_ABOVE_32( src * (s16) MASK_OUT_ABOVE_16(*r_dst));
+  s32 src = cast(s16) DY;
+  u32 res = MASK_OUT_ABOVE_32( src * cast(s16) MASK_OUT_ABOVE_16(*r_dst));
 
   UseMulsCycles(src);
 
@@ -15446,8 +15446,8 @@ static void m68k_op_muls_16_d()
 static void m68k_op_muls_16_ai()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) OPER_AY_AI_16();
-  u32 res = MASK_OUT_ABOVE_32( src * (s16) MASK_OUT_ABOVE_16(*r_dst));
+  s32 src = cast(s16) OPER_AY_AI_16();
+  u32 res = MASK_OUT_ABOVE_32( src * cast(s16) MASK_OUT_ABOVE_16(*r_dst));
 
   UseMulsCycles(src);
 
@@ -15463,8 +15463,8 @@ static void m68k_op_muls_16_ai()
 static void m68k_op_muls_16_pi()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) OPER_AY_PI_16();
-  u32 res = MASK_OUT_ABOVE_32( src * (s16) MASK_OUT_ABOVE_16(*r_dst));
+  s32 src = cast(s16) OPER_AY_PI_16();
+  u32 res = MASK_OUT_ABOVE_32( src * cast(s16) MASK_OUT_ABOVE_16(*r_dst));
 
   UseMulsCycles(src);
 
@@ -15480,8 +15480,8 @@ static void m68k_op_muls_16_pi()
 static void m68k_op_muls_16_pd()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) OPER_AY_PD_16();
-  u32 res = MASK_OUT_ABOVE_32( src * (s16) MASK_OUT_ABOVE_16(*r_dst));
+  s32 src = cast(s16) OPER_AY_PD_16();
+  u32 res = MASK_OUT_ABOVE_32( src * cast(s16) MASK_OUT_ABOVE_16(*r_dst));
 
   UseMulsCycles(src);
 
@@ -15497,8 +15497,8 @@ static void m68k_op_muls_16_pd()
 static void m68k_op_muls_16_di()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) OPER_AY_DI_16();
-  u32 res = MASK_OUT_ABOVE_32( src * (s16) MASK_OUT_ABOVE_16(*r_dst));
+  s32 src = cast(s16) OPER_AY_DI_16();
+  u32 res = MASK_OUT_ABOVE_32( src * cast(s16) MASK_OUT_ABOVE_16(*r_dst));
 
   UseMulsCycles(src);
 
@@ -15514,8 +15514,8 @@ static void m68k_op_muls_16_di()
 static void m68k_op_muls_16_ix()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) OPER_AY_IX_16();
-  u32 res = MASK_OUT_ABOVE_32( src * (s16) MASK_OUT_ABOVE_16(*r_dst));
+  s32 src = cast(s16) OPER_AY_IX_16();
+  u32 res = MASK_OUT_ABOVE_32( src * cast(s16) MASK_OUT_ABOVE_16(*r_dst));
 
   UseMulsCycles(src);
 
@@ -15531,8 +15531,8 @@ static void m68k_op_muls_16_ix()
 static void m68k_op_muls_16_aw()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) OPER_AW_16();
-  u32 res = MASK_OUT_ABOVE_32( src * (s16) MASK_OUT_ABOVE_16(*r_dst));
+  s32 src = cast(s16) OPER_AW_16();
+  u32 res = MASK_OUT_ABOVE_32( src * cast(s16) MASK_OUT_ABOVE_16(*r_dst));
 
   UseMulsCycles(src);
 
@@ -15548,8 +15548,8 @@ static void m68k_op_muls_16_aw()
 static void m68k_op_muls_16_al()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) OPER_AL_16();
-  u32 res = MASK_OUT_ABOVE_32( src * (s16) MASK_OUT_ABOVE_16(*r_dst));
+  s32 src = cast(s16) OPER_AL_16();
+  u32 res = MASK_OUT_ABOVE_32( src * cast(s16) MASK_OUT_ABOVE_16(*r_dst));
 
   UseMulsCycles(src);
 
@@ -15565,8 +15565,8 @@ static void m68k_op_muls_16_al()
 static void m68k_op_muls_16_pcdi()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) OPER_PCDI_16();
-  u32 res = MASK_OUT_ABOVE_32( src * (s16) MASK_OUT_ABOVE_16(*r_dst));
+  s32 src = cast(s16) OPER_PCDI_16();
+  u32 res = MASK_OUT_ABOVE_32( src * cast(s16) MASK_OUT_ABOVE_16(*r_dst));
 
   UseMulsCycles(src);
 
@@ -15582,8 +15582,8 @@ static void m68k_op_muls_16_pcdi()
 static void m68k_op_muls_16_pcix()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) OPER_PCIX_16();
-  u32 res = MASK_OUT_ABOVE_32( src * (s16) MASK_OUT_ABOVE_16(*r_dst));
+  s32 src = cast(s16) OPER_PCIX_16();
+  u32 res = MASK_OUT_ABOVE_32( src * cast(s16) MASK_OUT_ABOVE_16(*r_dst));
 
   UseMulsCycles(src);
 
@@ -15599,8 +15599,8 @@ static void m68k_op_muls_16_pcix()
 static void m68k_op_muls_16_i()
 {
   u32* r_dst = &DX;
-  s32 src = (s16) OPER_I_16();
-  u32 res = MASK_OUT_ABOVE_32( src * (s16) MASK_OUT_ABOVE_16(*r_dst));
+  s32 src = cast(s16) OPER_I_16();
+  u32 res = MASK_OUT_ABOVE_32( src * cast(s16) MASK_OUT_ABOVE_16(*r_dst));
 
   UseMulsCycles(src);
 
@@ -21751,7 +21751,7 @@ static void m68k_op_suba_16_d()
 {
   u32* r_dst = &AX;
 
-  *r_dst = MASK_OUT_ABOVE_32(*r_dst - (s16) DY);
+  *r_dst = MASK_OUT_ABOVE_32(*r_dst - cast(s16) DY);
 }
 
 
@@ -21766,7 +21766,7 @@ static void m68k_op_suba_16_a()
 static void m68k_op_suba_16_ai()
 {
   u32* r_dst = &AX;
-  u32 src = (s16) OPER_AY_AI_16();
+  u32 src = cast(s16) OPER_AY_AI_16();
 
   *r_dst = MASK_OUT_ABOVE_32(*r_dst - src);
 }
@@ -21775,7 +21775,7 @@ static void m68k_op_suba_16_ai()
 static void m68k_op_suba_16_pi()
 {
   u32* r_dst = &AX;
-  u32 src = (s16) OPER_AY_PI_16();
+  u32 src = cast(s16) OPER_AY_PI_16();
 
   *r_dst = MASK_OUT_ABOVE_32(*r_dst - src);
 }
@@ -21784,7 +21784,7 @@ static void m68k_op_suba_16_pi()
 static void m68k_op_suba_16_pd()
 {
   u32* r_dst = &AX;
-  u32 src = (s16) OPER_AY_PD_16();
+  u32 src = cast(s16) OPER_AY_PD_16();
 
   *r_dst = MASK_OUT_ABOVE_32(*r_dst - src);
 }
@@ -21793,7 +21793,7 @@ static void m68k_op_suba_16_pd()
 static void m68k_op_suba_16_di()
 {
   u32* r_dst = &AX;
-  u32 src = (s16) OPER_AY_DI_16();
+  u32 src = cast(s16) OPER_AY_DI_16();
 
   *r_dst = MASK_OUT_ABOVE_32(*r_dst - src);
 }
@@ -21802,7 +21802,7 @@ static void m68k_op_suba_16_di()
 static void m68k_op_suba_16_ix()
 {
   u32* r_dst = &AX;
-  u32 src = (s16) OPER_AY_IX_16();
+  u32 src = cast(s16) OPER_AY_IX_16();
 
   *r_dst = MASK_OUT_ABOVE_32(*r_dst - src);
 }
@@ -21811,7 +21811,7 @@ static void m68k_op_suba_16_ix()
 static void m68k_op_suba_16_aw()
 {
   u32* r_dst = &AX;
-  u32 src = (s16) OPER_AW_16();
+  u32 src = cast(s16) OPER_AW_16();
 
   *r_dst = MASK_OUT_ABOVE_32(*r_dst - src);
 }
@@ -21820,7 +21820,7 @@ static void m68k_op_suba_16_aw()
 static void m68k_op_suba_16_al()
 {
   u32* r_dst = &AX;
-  u32 src = (s16) OPER_AL_16();
+  u32 src = cast(s16) OPER_AL_16();
 
   *r_dst = MASK_OUT_ABOVE_32(*r_dst - src);
 }
@@ -21829,7 +21829,7 @@ static void m68k_op_suba_16_al()
 static void m68k_op_suba_16_pcdi()
 {
   u32* r_dst = &AX;
-  u32 src = (s16) OPER_PCDI_16();
+  u32 src = cast(s16) OPER_PCDI_16();
 
   *r_dst = MASK_OUT_ABOVE_32(*r_dst - src);
 }
@@ -21838,7 +21838,7 @@ static void m68k_op_suba_16_pcdi()
 static void m68k_op_suba_16_pcix()
 {
   u32* r_dst = &AX;
-  u32 src = (s16) OPER_PCIX_16();
+  u32 src = cast(s16) OPER_PCIX_16();
 
   *r_dst = MASK_OUT_ABOVE_32(*r_dst - src);
 }
@@ -21847,7 +21847,7 @@ static void m68k_op_suba_16_pcix()
 static void m68k_op_suba_16_i()
 {
   u32* r_dst = &AX;
-  u32 src = (s16) OPER_I_16();
+  u32 src = cast(s16) OPER_I_16();
 
   *r_dst = MASK_OUT_ABOVE_32(*r_dst - src);
 }
@@ -23488,14 +23488,14 @@ import m68ki_instruction_jump_table.d;
 /* This is used to generate the opcode handler jump table */
 struct opcode_handler_struct
 {
-  void (*opcode_handler)(); /* handler function */
+  void function() opcode_handler; /* handler function */
   u32  mask;           /* mask on opcode */
   u32  match;          /* what to match after masking */
   u8 cycles;         /* cycles each cpu type takes */
 }
 
 /* opcode handler jump table */
-static void  (*m68ki_instruction_jump_table[0x10000])();
+static void function()[0x10000] m68ki_instruction_jump_table;
 
 /* Opcode handler table */
 static const opcode_handler_struct[] m68k_opcode_handler_table =
@@ -25222,71 +25222,71 @@ static void m68ki_build_opcode_table()
   }
 
   ostruct = &m68k_opcode_handler_table[0];
-  while(ostruct->mask != 0xff00)
+  while(ostruct.mask != 0xff00)
   {
     for(i = 0;i < 0x10000;i++)
     {
-      if((i & ostruct->mask) == ostruct->match)
+      if((i & ostruct.mask) == ostruct.match)
       {
-        m68ki_instruction_jump_table[i] = ostruct->opcode_handler;
-        m68ki_cycles[i] = ostruct->cycles * MUL;
+        m68ki_instruction_jump_table[i] = ostruct.opcode_handler;
+        m68ki_cycles[i] = ostruct.cycles * MUL;
       }
     }
     ostruct++;
   }
-  while(ostruct->mask == 0xff00)
+  while(ostruct.mask == 0xff00)
   {
     for(i = 0;i <= 0xff;i++)
     {
-      m68ki_instruction_jump_table[ostruct->match | i] = ostruct->opcode_handler;
-      m68ki_cycles[ostruct->match | i] = ostruct->cycles * MUL;
+      m68ki_instruction_jump_table[ostruct.match | i] = ostruct.opcode_handler;
+      m68ki_cycles[ostruct.match | i] = ostruct.cycles * MUL;
     }
     ostruct++;
   }
-  while(ostruct->mask == 0xf1f8)
+  while(ostruct.mask == 0xf1f8)
   {
     for(i = 0;i < 8;i++)
     {
       for(j = 0;j < 8;j++)
       {
-        instr = ostruct->match | (i << 9) | j;
-        m68ki_instruction_jump_table[instr] = ostruct->opcode_handler;
-        m68ki_cycles[instr] = ostruct->cycles * MUL;
+        instr = ostruct.match | (i << 9) | j;
+        m68ki_instruction_jump_table[instr] = ostruct.opcode_handler;
+        m68ki_cycles[instr] = ostruct.cycles * MUL;
       }
     }
     ostruct++;
   }
-  while(ostruct->mask == 0xfff0)
+  while(ostruct.mask == 0xfff0)
   {
     for(i = 0;i <= 0x0f;i++)
     {
-      m68ki_instruction_jump_table[ostruct->match | i] = ostruct->opcode_handler;
-      m68ki_cycles[ostruct->match | i] = ostruct->cycles * MUL;
+      m68ki_instruction_jump_table[ostruct.match | i] = ostruct.opcode_handler;
+      m68ki_cycles[ostruct.match | i] = ostruct.cycles * MUL;
     }
     ostruct++;
   }
-  while(ostruct->mask == 0xf1ff)
+  while(ostruct.mask == 0xf1ff)
   {
     for(i = 0;i <= 0x07;i++)
     {
-      m68ki_instruction_jump_table[ostruct->match | (i << 9)] = ostruct->opcode_handler;
-      m68ki_cycles[ostruct->match | (i << 9)] = ostruct->cycles * MUL;
+      m68ki_instruction_jump_table[ostruct.match | (i << 9)] = ostruct.opcode_handler;
+      m68ki_cycles[ostruct.match | (i << 9)] = ostruct.cycles * MUL;
     }
     ostruct++;
   }
-  while(ostruct->mask == 0xfff8)
+  while(ostruct.mask == 0xfff8)
   {
     for(i = 0;i <= 0x07;i++)
     {
-      m68ki_instruction_jump_table[ostruct->match | i] = ostruct->opcode_handler;
-      m68ki_cycles[ostruct->match | i] = ostruct->cycles * MUL;
+      m68ki_instruction_jump_table[ostruct.match | i] = ostruct.opcode_handler;
+      m68ki_cycles[ostruct.match | i] = ostruct.cycles * MUL;
     }
     ostruct++;
   }
-  while(ostruct->mask == 0xffff)
+  while(ostruct.mask == 0xffff)
   {
-    m68ki_instruction_jump_table[ostruct->match] = ostruct->opcode_handler;
-    m68ki_cycles[ostruct->match] = ostruct->cycles * MUL;
+    m68ki_instruction_jump_table[ostruct.match] = ostruct.opcode_handler;
+    m68ki_cycles[ostruct.match] = ostruct.cycles * MUL;
     ostruct++;
   }
 }
