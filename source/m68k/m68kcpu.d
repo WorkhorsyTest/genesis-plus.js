@@ -5,12 +5,13 @@
 import types;
 import system;
 import m68kLib;
+import m68ki_cycles;
 
 
-//alias m68k m68ki_cpu;
 const int MUL = 7;
 static s32 irq_latency;
 static m68ki_cpu_core_t m68ki_cpu;
+alias m68ki_cpu m68k;
 
 
 /* ======================================================================== */
@@ -88,16 +89,17 @@ static ref u32 FLAG_V() { return m68ki_cpu.v_flag; }
 static ref u32 FLAG_C() { return m68ki_cpu.c_flag; }
 static ref u32 FLAG_INT_MASK() { return m68ki_cpu.int_mask; }
 
-u32 CPU_INT_LEVEL() { return m68ki_cpu.int_level; } /* ASG: changed from CPU_INTS_PENDING */
-u32 CPU_STOPPED() { return m68ki_cpu.stopped; }
-u32 CPU_ADDRESS_MASK() { return 0x00ffffff; }
+static ref u32 CPU_INT_LEVEL() { return m68ki_cpu.int_level; } /* ASG: changed from CPU_INTS_PENDING */
+static ref u32 CPU_STOPPED() { return m68ki_cpu.stopped; }
+static u32 CPU_ADDRESS_MASK() { return 0x00ffffff; }
 
 static if(M68K_EMULATE_ADDRESS_ERROR) {
-static u32 CPU_INSTR_MODE() { return m68ki_cpu.instr_mode; }
-static u32 CPU_RUN_MODE() { return m68ki_cpu.run_mode; }
+static ref u32 CPU_INSTR_MODE() { return m68ki_cpu.instr_mode; }
+static ref u32 CPU_RUN_MODE() { return m68ki_cpu.run_mode; }
 }
 
 const u16[256] CYC_EXCEPTION() { return m68ki_exception_cycle_table; }
+alias m68ki_cycles CYC_INSTRUCTION;
 int CYC_BCC_NOTAKE_B() { return -2 * MUL; }
 int CYC_BCC_NOTAKE_W() { return 2 * MUL; }
 int CYC_DBCC_F_NOEXP() { return -2 * MUL; }
