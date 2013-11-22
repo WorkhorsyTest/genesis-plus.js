@@ -63,6 +63,9 @@ u8 pico_current;       /* PICO current page */
 
 static u8[4] tmss;     /* TMSS security register */
 
+// FIXME: we should not use extern
+extern t_config config;
+
 /*--------------------------------------------------------------------------*/
 /* Init, reset, shutdown functions                                          */
 /*--------------------------------------------------------------------------*/
@@ -79,9 +82,7 @@ void gen_init()
   {
     /* initialize main 68k */
     m68k_init();
-    // FIXME: config.addr_error can't be found here
-    // for some reason.
-    //m68k.aerr_enabled = config.addr_error;
+    m68k.aerr_enabled = config.addr_error;
 
     /* initialize main 68k memory map */
 
