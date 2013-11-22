@@ -7,7 +7,7 @@ public import types;
 public import macros;
 public import osd;
 public import loadrom;
-public import m68k;
+public import m68kLib;
 public import z80;
 public import system;
 public import genesis;

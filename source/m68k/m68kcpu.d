@@ -3,11 +3,15 @@
 /* ======================================================================== */
 
 import types;
-import m68k;
+import system;
+import m68kLib;
 
 
-alias m68k m68ki_cpu;
+//alias m68k m68ki_cpu;
 const int MUL = 7;
+static s32 irq_latency;
+static m68ki_cpu_core_t m68ki_cpu;
+
 
 /* ======================================================================== */
 /* ================================ INCLUDES ============================== */
@@ -66,35 +70,33 @@ static const s32 RUN_MODE_BERR_AERR_RESET = 1;
 /* ------------------------------ CPU Access ------------------------------ */
 
 /* Access the CPU registers */
-u32[] REG_DA() { return m68ki_cpu.dar; }                 /* easy access to data and address regs */
-u32[] REG_D() { return m68ki_cpu.dar; }
-u32 REG_A() { return m68ki_cpu.dar[8]; }
-u32 REG_PC() { return m68ki_cpu.pc; }
-u32[] REG_SP_BASE() { return m68ki_cpu.sp; }
-u32 REG_USP() { return m68ki_cpu.sp[0]; }
-u32 REG_ISP() { return m68ki_cpu.sp[4]; }
-u32 REG_SP() { return m68ki_cpu.dar[15]; }
-u32 REG_IR() { return m68ki_cpu.ir; }
-
-u32 FLAG_T1() { return m68ki_cpu.t1_flag; }
-u32 FLAG_S() { return m68ki_cpu.s_flag; }
-u32 FLAG_X() { return m68ki_cpu.x_flag; }
-u32 FLAG_N() { return m68ki_cpu.n_flag; }
-u32 FLAG_Z() { return m68ki_cpu.not_z_flag; }
-u32 FLAG_V() { return m68ki_cpu.v_flag; }
-u32 FLAG_C() { return m68ki_cpu.c_flag; }
-u32 FLAG_INT_MASK() { return m68ki_cpu.int_mask; }
+static u32[] REG_DA() { return m68ki_cpu.dar; }
+static u32[] REG_D() { return m68ki_cpu.dar; }
+static u32[] REG_A() { return m68ki_cpu.dar[8 .. $]; }
+static ref u32 REG_PC() { return m68ki_cpu.pc; }
+static u32[] REG_SP_BASE() { return m68ki_cpu.sp; }
+static ref u32 REG_USP() { return m68ki_cpu.sp[0]; }
+static ref u32 REG_ISP() { return m68ki_cpu.sp[4]; }
+static ref u32 REG_SP() { return m68ki_cpu.dar[15]; }
+static ref u32 REG_IR() { return m68ki_cpu.ir; }
+static ref u32 FLAG_T1() { return m68ki_cpu.t1_flag; }
+static ref u32 FLAG_S() { return m68ki_cpu.s_flag; }
+static ref u32 FLAG_X() { return m68ki_cpu.x_flag; }
+static ref u32 FLAG_N() { return m68ki_cpu.n_flag; }
+static ref u32 FLAG_Z() { return m68ki_cpu.not_z_flag; }
+static ref u32 FLAG_V() { return m68ki_cpu.v_flag; }
+static ref u32 FLAG_C() { return m68ki_cpu.c_flag; }
+static ref u32 FLAG_INT_MASK() { return m68ki_cpu.int_mask; }
 
 u32 CPU_INT_LEVEL() { return m68ki_cpu.int_level; } /* ASG: changed from CPU_INTS_PENDING */
 u32 CPU_STOPPED() { return m68ki_cpu.stopped; }
 u32 CPU_ADDRESS_MASK() { return 0x00ffffff; }
 
 static if(M68K_EMULATE_ADDRESS_ERROR) {
-u32 CPU_INSTR_MODE() { return m68ki_cpu.instr_mode; }
-u32 CPU_RUN_MODE() { return m68ki_cpu.run_mode; }
+static u32 CPU_INSTR_MODE() { return m68ki_cpu.instr_mode; }
+static u32 CPU_RUN_MODE() { return m68ki_cpu.run_mode; }
 }
 
-u8[] CYC_INSTRUCTION() { return m68ki_cycles; }
 const u16[256] CYC_EXCEPTION() { return m68ki_exception_cycle_table; }
 int CYC_BCC_NOTAKE_B() { return -2 * MUL; }
 int CYC_BCC_NOTAKE_W() { return 2 * MUL; }
@@ -199,12 +201,12 @@ static if(M68K_EMULATE_ADDRESS_ERROR) {
  */
 
 /* Data Register Isolation */
-auto DX() { return (REG_D[(REG_IR >> 9) & 7]); }
-auto DY() { return (REG_D[REG_IR & 7]); }
+static u32 DX() { return (REG_D[(REG_IR >> 9) & 7]); }
+static u32 DY() { return (REG_D[REG_IR & 7]); }
 
 /* Address Register Isolation */
-auto AX() { return (REG_A[(REG_IR >> 9) & 7]); }
-auto AY() { return (REG_A[REG_IR & 7]); }
+static ref u32 AX() { return (REG_A[(REG_IR >> 9) & 7]); }
+static ref u32 AY() { return (REG_A[REG_IR & 7]); }
 
 /* Effective Address Calculations */
 static u32 EA_AY_AI_8() { return AY; }                       /* address register indirect */
@@ -622,11 +624,6 @@ u32 ROR_33(u32 A, u32 C) { return                   (LSR_32(A, C) | LSL_32(A, 33
 /* ======================================================================== */
 /* ================================= DATA ================================= */
 /* ======================================================================== */
-
-static s32 irq_latency;
-
-// FIXME: This clashes with the m68k.d import
-//m68ki_cpu_core m68k;
 
 
 /* ======================================================================== */

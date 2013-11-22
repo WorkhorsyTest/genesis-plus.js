@@ -133,7 +133,7 @@ struct cpu_idle_t
   u32 detected;
 }
 
-struct m68ki_cpu_core
+struct m68ki_cpu_core_t
 {
   cpu_memory_map[256] memory_map; /* memory mapping */
 
@@ -180,6 +180,7 @@ struct m68ki_cpu_core
   void function(u32 new_fc) set_fc_callback;     /* Called when the CPU function code changes */
 }
 
+//static m68ki_cpu_core_t m68ki_cpu_core;
 
 
 
