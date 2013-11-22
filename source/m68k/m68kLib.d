@@ -85,33 +85,32 @@ const int M68K_INT_ACK_SPURIOUS     = 0xfffffffe;
 
 
 /* Registers used by m68k_get_reg() and m68k_set_reg() */
-enum m68k_register_t
-{
+enum M68kRegister {
   /* Real registers */
-  M68K_REG_D0,    /* Data registers */
-  M68K_REG_D1,
-  M68K_REG_D2,
-  M68K_REG_D3,
-  M68K_REG_D4,
-  M68K_REG_D5,
-  M68K_REG_D6,
-  M68K_REG_D7,
-  M68K_REG_A0,    /* Address registers */
-  M68K_REG_A1,
-  M68K_REG_A2,
-  M68K_REG_A3,
-  M68K_REG_A4,
-  M68K_REG_A5,
-  M68K_REG_A6,
-  M68K_REG_A7,
-  M68K_REG_PC,    /* Program Counter */
-  M68K_REG_SR,    /* Status Register */
-  M68K_REG_SP,    /* The current Stack Pointer (located in A7) */
-  M68K_REG_USP,   /* User Stack Pointer */
-  M68K_REG_ISP,   /* Interrupt Stack Pointer */
+  D0,    /* Data registers */
+  D1,
+  D2,
+  D3,
+  D4,
+  D5,
+  D6,
+  D7,
+  A0,    /* Address registers */
+  A1,
+  A2,
+  A3,
+  A4,
+  A5,
+  A6,
+  A7,
+  PC,    /* Program Counter */
+  SR,    /* Status Register */
+  SP,    /* The current Stack Pointer (located in A7) */
+  USP,   /* User Stack Pointer */
+  ISP,   /* Interrupt Stack Pointer */
 
   /* Convenience registers */
-  M68K_REG_IR    /* Instruction register */
+  IR    /* Instruction register */
 }
 
 
