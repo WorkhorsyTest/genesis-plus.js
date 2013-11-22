@@ -179,7 +179,57 @@ struct m68ki_cpu_core_t
   void function(u32 new_fc) set_fc_callback;     /* Called when the CPU function code changes */
 }
 
-//static m68ki_cpu_core_t m68ki_cpu_core;
+/* CPU cores */
+extern m68ki_cpu_core_t m68k;
+extern m68ki_cpu_core_t s68k;
+
+/* ======================================================================== */
+/* ====================== FUNCTIONS TO ACCESS THE CPU ===================== */
+/* ======================================================================== */
+
+
+/* Do whatever initialisations the core requires.  Should be called
+ * at least once at init time.
+ */
+extern void m68k_init();
+extern void s68k_init();
+
+/* Pulse the RESET pin on the CPU.
+ * You *MUST* reset the CPU at least once to initialize the emulation
+ */
+extern void m68k_pulse_reset();
+extern void s68k_pulse_reset();
+
+/* Run until given cycle count is reached */
+extern void m68k_run(u32 cycles);
+extern void s68k_run(u32 cycles);
+
+/* Set the IPL0-IPL2 pins on the CPU (IRQ).
+ * A transition from < 7 to 7 will cause a non-maskable interrupt (NMI).
+ * Setting IRQ to 0 will clear an interrupt request.
+ */
+extern void m68k_set_irq(u32 int_level);
+extern void m68k_set_irq_delay(u32 int_level);
+extern void m68k_update_irq(u32 mask);
+extern void s68k_update_irq(u32 mask);
+
+/* Halt the CPU as if you pulsed the HALT pin. */
+extern void m68k_pulse_halt();
+extern void m68k_clear_halt();
+extern void s68k_pulse_halt();
+extern void s68k_clear_halt();
+
+
+/* Peek at the internals of a CPU context.  This can either be a context
+ * retrieved using m68k_get_context() or the currently running context.
+ * If context is NULL, the currently running CPU context will be used.
+ */
+extern u32 m68k_get_reg(M68kRegister reg);
+extern u32 s68k_get_reg(M68kRegister reg);
+
+/* Poke values into the internals of the currently running CPU context */
+extern void m68k_set_reg(M68kRegister reg, u32 value);
+extern void s68k_set_reg(M68kRegister reg, u32 value);
 
 
 

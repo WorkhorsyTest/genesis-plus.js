@@ -3476,7 +3476,7 @@ static void take_interrupt()
 /****************************************************************************
  * Processor initialization
  ****************************************************************************/
-void z80_init(const void *config, s32 function(s32) irqcallback)
+void z80_init(const void *config, int function(s32) irqcallback)
 {
   s32 i, p;
 

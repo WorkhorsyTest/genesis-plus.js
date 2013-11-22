@@ -71,67 +71,69 @@ void gen_init()
   int i;
 
   /* initialize Z80 */
-  z80_init(0,z80_irq_callback);
+  z80_init(null, &z80_irq_callback);
 
   /* 8-bit / 16-bit modes */
   if ((system_hw & SYSTEM_PBC) == SYSTEM_MD)
   {
     /* initialize main 68k */
     m68k_init();
-    m68k.aerr_enabled = config.addr_error; 
+    // FIXME: config.addr_error can't be found here
+    // for some reason.
+    //m68k.aerr_enabled = config.addr_error;
 
     /* initialize main 68k memory map */
 
     /* $800000-$DFFFFF : illegal access by default */
     for (i=0x80; i<0xe0; i++)
     {
-      m68k.memory_map[i].base     = work_ram; /* for VDP DMA */
-      m68k.memory_map[i].read8    = m68k_lockup_r_8;
-      m68k.memory_map[i].read16   = m68k_lockup_r_16;
-      m68k.memory_map[i].write8   = m68k_lockup_w_8;
-      m68k.memory_map[i].write16  = m68k_lockup_w_16;
-      zbank_memory_map[i].read    = zbank_lockup_r;
-      zbank_memory_map[i].write   = zbank_lockup_w;
+      m68k.memory_map[i].base     = work_ram.ptr; /* for VDP DMA */
+      m68k.memory_map[i].read8    = &m68k_lockup_r_8;
+      m68k.memory_map[i].read16   = &m68k_lockup_r_16;
+      m68k.memory_map[i].write8   = &m68k_lockup_w_8;
+      m68k.memory_map[i].write16  = &m68k_lockup_w_16;
+      zbank_memory_map[i].read    = &zbank_lockup_r;
+      zbank_memory_map[i].write   = &zbank_lockup_w;
     }
 
     /* $C0xxxx, $C8xxxx, $D0xxxx, $D8xxxx : VDP ports */
     for (i=0xc0; i<0xe0; i+=8)
     {
-      m68k.memory_map[i].read8    = vdp_read_byte;
-      m68k.memory_map[i].read16   = vdp_read_word;
-      m68k.memory_map[i].write8   = vdp_write_byte;
-      m68k.memory_map[i].write16  = vdp_write_word;
-      zbank_memory_map[i].read    = zbank_read_vdp;
-      zbank_memory_map[i].write   = zbank_write_vdp;
+      m68k.memory_map[i].read8    = &vdp_read_byte;
+      m68k.memory_map[i].read16   = &vdp_read_word;
+      m68k.memory_map[i].write8   = &vdp_write_byte;
+      m68k.memory_map[i].write16  = &vdp_write_word;
+      zbank_memory_map[i].read    = &zbank_read_vdp;
+      zbank_memory_map[i].write   = &zbank_write_vdp;
     }
 
     /* $E00000-$FFFFFF : Work RAM (64k) */
     for (i=0xe0; i<0x100; i++)
     {
-      m68k.memory_map[i].base     = work_ram;
-      m68k.memory_map[i].read8    = NULL;
-      m68k.memory_map[i].read16   = NULL;
-      m68k.memory_map[i].write8   = NULL;
-      m68k.memory_map[i].write16  = NULL;
+      m68k.memory_map[i].base     = work_ram.ptr;
+      m68k.memory_map[i].read8    = null;
+      m68k.memory_map[i].read16   = null;
+      m68k.memory_map[i].write8   = null;
+      m68k.memory_map[i].write16  = null;
 
       /* Z80 can ONLY write to 68k RAM, not read it */
-      zbank_memory_map[i].read    = zbank_unused_r; 
-      zbank_memory_map[i].write   = NULL;
+      zbank_memory_map[i].read    = &zbank_unused_r; 
+      zbank_memory_map[i].write   = null;
     }
 
     if (system_hw == SYSTEM_PICO)
     {
       /* additional registers mapped to $800000-$80FFFF */
-      m68k.memory_map[0x80].read8   = pico_read_byte;
-      m68k.memory_map[0x80].read16  = pico_read_word;
-      m68k.memory_map[0x80].write8  = m68k_unused_8_w;
-      m68k.memory_map[0x80].write16 = m68k_unused_16_w;
+      m68k.memory_map[0x80].read8   = &pico_read_byte;
+      m68k.memory_map[0x80].read16  = &pico_read_word;
+      m68k.memory_map[0x80].write8  = &m68k_unused_8_w;
+      m68k.memory_map[0x80].write16 = &m68k_unused_16_w;
 
       /* there is no I/O area (Notaz) */
-      m68k.memory_map[0xa1].read8   = m68k_read_bus_8;
-      m68k.memory_map[0xa1].read16  = m68k_read_bus_16;
-      m68k.memory_map[0xa1].write8  = m68k_unused_8_w;
-      m68k.memory_map[0xa1].write16 = m68k_unused_16_w;
+      m68k.memory_map[0xa1].read8   = &m68k_read_bus_8;
+      m68k.memory_map[0xa1].read16  = &m68k_read_bus_16;
+      m68k.memory_map[0xa1].write8  = &m68k_unused_8_w;
+      m68k.memory_map[0xa1].write16 = &m68k_unused_16_w;
 
       /* initialize page index (closed) */
       pico_current = 0;
@@ -139,28 +141,28 @@ void gen_init()
     else
     {
       /* $A10000-$A1FFFF : I/O & Control registers */
-      m68k.memory_map[0xa1].read8   = ctrl_io_read_byte;
-      m68k.memory_map[0xa1].read16  = ctrl_io_read_word;
-      m68k.memory_map[0xa1].write8  = ctrl_io_write_byte;
-      m68k.memory_map[0xa1].write16 = ctrl_io_write_word;
-      zbank_memory_map[0xa1].read   = zbank_read_ctrl_io;
-      zbank_memory_map[0xa1].write  = zbank_write_ctrl_io;
+      m68k.memory_map[0xa1].read8   = &ctrl_io_read_byte;
+      m68k.memory_map[0xa1].read16  = &ctrl_io_read_word;
+      m68k.memory_map[0xa1].write8  = &ctrl_io_write_byte;
+      m68k.memory_map[0xa1].write16 = &ctrl_io_write_word;
+      zbank_memory_map[0xa1].read   = &zbank_read_ctrl_io;
+      zbank_memory_map[0xa1].write  = &zbank_write_ctrl_io;
 
       /* initialize Z80 memory map */
       /* $0000-$3FFF is mapped to Z80 RAM (8K mirrored) */
       /* $4000-$FFFF is mapped to hardware but Z80 PC should never point there */
       for (i=0; i<64; i++)
       {
-        z80_readmap[i] = &zram[(i & 7) << 10];
+        z80_readmap[i] = zram[(i & 7) << 10];
       }
 
       /* initialize Z80 memory handlers */
-      z80_writemem  = z80_memory_w;
-      z80_readmem   = z80_memory_r;
+      z80_writemem  = &z80_memory_w;
+      z80_readmem   = &z80_memory_r;
 
       /* initialize Z80 port handlers */
-      z80_writeport = z80_unused_port_w;
-      z80_readport  = z80_unused_port_r;
+      z80_writeport = &z80_unused_port_w;
+      z80_readport  = &z80_unused_port_r;
     }
 
     /* $000000-$7FFFFF : external hardware area */
@@ -189,8 +191,8 @@ void gen_init()
       /* Master System compatibility mode */
       case SYSTEM_PBC:
       {
-        z80_writeport = z80_md_port_w;
-        z80_readport  = z80_md_port_r;
+        z80_writeport = &z80_md_port_w;
+        z80_readport  = &z80_md_port_r;
         break;
       }
 
@@ -202,8 +204,8 @@ void gen_init()
         sms_cart_init();
 
         /* initialize Z80 ports handlers */
-        z80_writeport = z80_gg_port_w;
-        z80_readport  = z80_gg_port_r;
+        z80_writeport = &z80_gg_port_w;
+        z80_readport  = &z80_gg_port_r;
         break;
       }
 
@@ -211,26 +213,29 @@ void gen_init()
       case SYSTEM_SMS:
       case SYSTEM_SMS2:
       {
-        z80_writeport = z80_ms_port_w;
-        z80_readport  = z80_ms_port_r;
+        z80_writeport = &z80_ms_port_w;
+        z80_readport  = &z80_ms_port_r;
         break;
       }
 
       /* Mark-III hardware */
       case SYSTEM_MARKIII:
       {
-        z80_writeport = z80_m3_port_w;
-        z80_readport  = z80_m3_port_r;
+        z80_writeport = &z80_m3_port_w;
+        z80_readport  = &z80_m3_port_r;
         break;
       }
 
       /* SG-1000 hardware */
       case SYSTEM_SG:
       {
-        z80_writeport = z80_sg_port_w;
-        z80_readport  = z80_sg_port_r;
+        z80_writeport = &z80_sg_port_w;
+        z80_readport  = &z80_sg_port_r;
         break;
       }
+
+      default:
+        throw new Exception("Invalid switch case for system_hw.");
     }
   }
 }
@@ -548,7 +553,7 @@ void gen_zbank_w (u32 data)
 /* Z80 interrupt callback                                                */
 /* ----------------------------------------------------------------------*/
 
-int z80_irq_callback ()
+int z80_irq_callback (s32 arg)
 {
   return -1;
 }

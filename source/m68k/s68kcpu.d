@@ -15,6 +15,7 @@ const int MUL = 4;
 import s68kconf;
 import m68kcpu;
 import m68kops;
+import m68kLib;
 
 /* ======================================================================== */
 /* ================================= DATA ================================= */
@@ -36,7 +37,7 @@ static const u8[0x40] irq_level =
   6, 6, 6, 6, 6, 6, 6, 6
 ];
 
-m68ki_cpu_core s68k;
+m68ki_cpu_core_t s68k;
 
 
 /* ======================================================================== */
@@ -54,28 +55,28 @@ m68ki_cpu_core s68k;
 /* ======================================================================== */
 
 /* Access the internals of the CPU */
-u32 s68k_get_reg(m68k_register_t regnum)
+u32 s68k_get_reg(M68kRegister regnum)
 {
   switch(regnum)
   {
-    case M68K_REG_D0:  return m68ki_cpu.dar[0];
-    case M68K_REG_D1:  return m68ki_cpu.dar[1];
-    case M68K_REG_D2:  return m68ki_cpu.dar[2];
-    case M68K_REG_D3:  return m68ki_cpu.dar[3];
-    case M68K_REG_D4:  return m68ki_cpu.dar[4];
-    case M68K_REG_D5:  return m68ki_cpu.dar[5];
-    case M68K_REG_D6:  return m68ki_cpu.dar[6];
-    case M68K_REG_D7:  return m68ki_cpu.dar[7];
-    case M68K_REG_A0:  return m68ki_cpu.dar[8];
-    case M68K_REG_A1:  return m68ki_cpu.dar[9];
-    case M68K_REG_A2:  return m68ki_cpu.dar[10];
-    case M68K_REG_A3:  return m68ki_cpu.dar[11];
-    case M68K_REG_A4:  return m68ki_cpu.dar[12];
-    case M68K_REG_A5:  return m68ki_cpu.dar[13];
-    case M68K_REG_A6:  return m68ki_cpu.dar[14];
-    case M68K_REG_A7:  return m68ki_cpu.dar[15];
-    case M68K_REG_PC:  return MASK_OUT_ABOVE_32(m68ki_cpu.pc);
-    case M68K_REG_SR:  return  m68ki_cpu.t1_flag        |
+    case M68kRegister.D0:  return m68ki_cpu.dar[0];
+    case M68kRegister.D1:  return m68ki_cpu.dar[1];
+    case M68kRegister.D2:  return m68ki_cpu.dar[2];
+    case M68kRegister.D3:  return m68ki_cpu.dar[3];
+    case M68kRegister.D4:  return m68ki_cpu.dar[4];
+    case M68kRegister.D5:  return m68ki_cpu.dar[5];
+    case M68kRegister.D6:  return m68ki_cpu.dar[6];
+    case M68kRegister.D7:  return m68ki_cpu.dar[7];
+    case M68kRegister.A0:  return m68ki_cpu.dar[8];
+    case M68kRegister.A1:  return m68ki_cpu.dar[9];
+    case M68kRegister.A2:  return m68ki_cpu.dar[10];
+    case M68kRegister.A3:  return m68ki_cpu.dar[11];
+    case M68kRegister.A4:  return m68ki_cpu.dar[12];
+    case M68kRegister.A5:  return m68ki_cpu.dar[13];
+    case M68kRegister.A6:  return m68ki_cpu.dar[14];
+    case M68kRegister.A7:  return m68ki_cpu.dar[15];
+    case M68kRegister.PC:  return MASK_OUT_ABOVE_32(m68ki_cpu.pc);
+    case M68kRegister.SR:  return  m68ki_cpu.t1_flag        |
                   (m68ki_cpu.s_flag << 11)              |
                    m68ki_cpu.int_mask                   |
                   ((m68ki_cpu.x_flag & XFLAG_SET) >> 4) |
@@ -83,48 +84,48 @@ u32 s68k_get_reg(m68k_register_t regnum)
                   ((!m68ki_cpu.not_z_flag) << 2)        |
                   ((m68ki_cpu.v_flag & VFLAG_SET) >> 6) |
                   ((m68ki_cpu.c_flag & CFLAG_SET) >> 8);
-    case M68K_REG_SP:  return m68ki_cpu.dar[15];
-    case M68K_REG_USP:  return m68ki_cpu.s_flag ? m68ki_cpu.sp[0] : m68ki_cpu.dar[15];
-    case M68K_REG_ISP:  return m68ki_cpu.s_flag ? m68ki_cpu.dar[15] : m68ki_cpu.sp[4];
-    case M68K_REG_IR:  return m68ki_cpu.ir;
+    case M68kRegister.SP:  return m68ki_cpu.dar[15];
+    case M68kRegister.USP:  return m68ki_cpu.s_flag ? m68ki_cpu.sp[0] : m68ki_cpu.dar[15];
+    case M68kRegister.ISP:  return m68ki_cpu.s_flag ? m68ki_cpu.dar[15] : m68ki_cpu.sp[4];
+    case M68kRegister.IR:  return m68ki_cpu.ir;
     default:      return 0;
   }
 }
 
-void s68k_set_reg(m68k_register_t regnum, u32 value)
+void s68k_set_reg(M68kRegister regnum, u32 value)
 {
   switch(regnum)
   {
-    case M68K_REG_D0:  REG_D[0] = MASK_OUT_ABOVE_32(value); return;
-    case M68K_REG_D1:  REG_D[1] = MASK_OUT_ABOVE_32(value); return;
-    case M68K_REG_D2:  REG_D[2] = MASK_OUT_ABOVE_32(value); return;
-    case M68K_REG_D3:  REG_D[3] = MASK_OUT_ABOVE_32(value); return;
-    case M68K_REG_D4:  REG_D[4] = MASK_OUT_ABOVE_32(value); return;
-    case M68K_REG_D5:  REG_D[5] = MASK_OUT_ABOVE_32(value); return;
-    case M68K_REG_D6:  REG_D[6] = MASK_OUT_ABOVE_32(value); return;
-    case M68K_REG_D7:  REG_D[7] = MASK_OUT_ABOVE_32(value); return;
-    case M68K_REG_A0:  REG_A[0] = MASK_OUT_ABOVE_32(value); return;
-    case M68K_REG_A1:  REG_A[1] = MASK_OUT_ABOVE_32(value); return;
-    case M68K_REG_A2:  REG_A[2] = MASK_OUT_ABOVE_32(value); return;
-    case M68K_REG_A3:  REG_A[3] = MASK_OUT_ABOVE_32(value); return;
-    case M68K_REG_A4:  REG_A[4] = MASK_OUT_ABOVE_32(value); return;
-    case M68K_REG_A5:  REG_A[5] = MASK_OUT_ABOVE_32(value); return;
-    case M68K_REG_A6:  REG_A[6] = MASK_OUT_ABOVE_32(value); return;
-    case M68K_REG_A7:  REG_A[7] = MASK_OUT_ABOVE_32(value); return;
-    case M68K_REG_PC:  m68ki_jump(MASK_OUT_ABOVE_32(value)); return;
-    case M68K_REG_SR:  m68ki_set_sr(value); return;
-    case M68K_REG_SP:  REG_SP = MASK_OUT_ABOVE_32(value); return;
-    case M68K_REG_USP:  if(FLAG_S)
+    case M68kRegister.D0:  REG_D[0] = MASK_OUT_ABOVE_32(value); return;
+    case M68kRegister.D1:  REG_D[1] = MASK_OUT_ABOVE_32(value); return;
+    case M68kRegister.D2:  REG_D[2] = MASK_OUT_ABOVE_32(value); return;
+    case M68kRegister.D3:  REG_D[3] = MASK_OUT_ABOVE_32(value); return;
+    case M68kRegister.D4:  REG_D[4] = MASK_OUT_ABOVE_32(value); return;
+    case M68kRegister.D5:  REG_D[5] = MASK_OUT_ABOVE_32(value); return;
+    case M68kRegister.D6:  REG_D[6] = MASK_OUT_ABOVE_32(value); return;
+    case M68kRegister.D7:  REG_D[7] = MASK_OUT_ABOVE_32(value); return;
+    case M68kRegister.A0:  REG_A[0] = MASK_OUT_ABOVE_32(value); return;
+    case M68kRegister.A1:  REG_A[1] = MASK_OUT_ABOVE_32(value); return;
+    case M68kRegister.A2:  REG_A[2] = MASK_OUT_ABOVE_32(value); return;
+    case M68kRegister.A3:  REG_A[3] = MASK_OUT_ABOVE_32(value); return;
+    case M68kRegister.A4:  REG_A[4] = MASK_OUT_ABOVE_32(value); return;
+    case M68kRegister.A5:  REG_A[5] = MASK_OUT_ABOVE_32(value); return;
+    case M68kRegister.A6:  REG_A[6] = MASK_OUT_ABOVE_32(value); return;
+    case M68kRegister.A7:  REG_A[7] = MASK_OUT_ABOVE_32(value); return;
+    case M68kRegister.PC:  m68ki_jump(MASK_OUT_ABOVE_32(value)); return;
+    case M68kRegister.SR:  m68ki_set_sr(value); return;
+    case M68kRegister.SP:  REG_SP = MASK_OUT_ABOVE_32(value); return;
+    case M68kRegister.USP:  if(FLAG_S)
                 REG_USP = MASK_OUT_ABOVE_32(value);
               else
                 REG_SP = MASK_OUT_ABOVE_32(value);
               return;
-    case M68K_REG_ISP:  if(FLAG_S)
+    case M68kRegister.ISP:  if(FLAG_S)
                 REG_SP = MASK_OUT_ABOVE_32(value);
               else
                 REG_ISP = MASK_OUT_ABOVE_32(value);
               return;
-    case M68K_REG_IR:  REG_IR = MASK_OUT_ABOVE_16(value); return;
+    case M68kRegister.IR:  REG_IR = MASK_OUT_ABOVE_16(value); return;
     default:      return;
   }
 }
@@ -169,7 +170,7 @@ void s68k_run(u32 cycles)
   s68k.cycle_end = cycles;
 
   /* Return point for when we have an address error (TODO: use goto) */
-  m68ki_set_address_error_trap() /* auto-disable (see m68kcpu.h) */
+  m68ki_set_address_error_trap(); /* auto-disable (see m68kcpu.h) */
 
 version(LOG_SCD) {
   error("[%d][%d] s68k run to %d cycles (%x), irq mask = %x (%x)\n", v_counter, s68k.cycles, cycles, s68k.pc,FLAG_INT_MASK, CPU_INT_LEVEL);
