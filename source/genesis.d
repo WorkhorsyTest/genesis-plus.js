@@ -284,10 +284,10 @@ void gen_reset(int hard_reset)
     }
 
     /* Z80 bus is released & Z80 is reseted */
-    m68k.memory_map[0xa0].read8   = m68k_read_bus_8;
-    m68k.memory_map[0xa0].read16  = m68k_read_bus_16;
-    m68k.memory_map[0xa0].write8  = m68k_unused_8_w;
-    m68k.memory_map[0xa0].write16 = m68k_unused_16_w;
+    m68k.memory_map[0xa0].read8   = &m68k_read_bus_8;
+    m68k.memory_map[0xa0].read16  = &m68k_read_bus_16;
+    m68k.memory_map[0xa0].write8  = &m68k_unused_8_w;
+    m68k.memory_map[0xa0].write16 = &m68k_unused_16_w;
     zstate = 0;
 
     /* assume default bank is $000000-$007FFF */
@@ -304,12 +304,12 @@ void gen_reset(int hard_reset)
       /* VDP access is locked by default */
       for (i=0xc0; i<0xe0; i+=8)
       {
-        m68k.memory_map[i].read8   = m68k_lockup_r_8;
-        m68k.memory_map[i].read16  = m68k_lockup_r_16;
-        m68k.memory_map[i].write8  = m68k_lockup_w_8;
-        m68k.memory_map[i].write16 = m68k_lockup_w_16;
-        zbank_memory_map[i].read   = zbank_lockup_r;
-        zbank_memory_map[i].write  = zbank_lockup_w;
+        m68k.memory_map[i].read8   = &m68k_lockup_r_8;
+        m68k.memory_map[i].read16  = &m68k_lockup_r_16;
+        m68k.memory_map[i].write8  = &m68k_lockup_w_8;
+        m68k.memory_map[i].write16 = &m68k_lockup_w_16;
+        zbank_memory_map[i].read   = &zbank_lockup_r;
+        zbank_memory_map[i].write  = &zbank_lockup_w;
       }
 
       /* check if BOOT ROM is loaded */
@@ -388,24 +388,24 @@ void gen_tmss_w(u32 offset, u32 data)
   {
     for (i=0xc0; i<0xe0; i+=8)
     {
-      m68k.memory_map[i].read8    = vdp_read_byte;
-      m68k.memory_map[i].read16   = vdp_read_word;
-      m68k.memory_map[i].write8   = vdp_write_byte;
-      m68k.memory_map[i].write16  = vdp_write_word;
-      zbank_memory_map[i].read    = zbank_read_vdp;
-      zbank_memory_map[i].write   = zbank_write_vdp;
+      m68k.memory_map[i].read8    = &vdp_read_byte;
+      m68k.memory_map[i].read16   = &vdp_read_word;
+      m68k.memory_map[i].write8   = &vdp_write_byte;
+      m68k.memory_map[i].write16  = &vdp_write_word;
+      zbank_memory_map[i].read    = &zbank_read_vdp;
+      zbank_memory_map[i].write   = &zbank_write_vdp;
     }
   }
   else
   {
     for (i=0xc0; i<0xe0; i+=8)
     {
-      m68k.memory_map[i].read8    = m68k_lockup_r_8;
-      m68k.memory_map[i].read16   = m68k_lockup_r_16;
-      m68k.memory_map[i].write8   = m68k_lockup_w_8;
-      m68k.memory_map[i].write16  = m68k_lockup_w_16;
-      zbank_memory_map[i].read    = zbank_lockup_r;
-      zbank_memory_map[i].write   = zbank_lockup_w;
+      m68k.memory_map[i].read8    = &m68k_lockup_r_8;
+      m68k.memory_map[i].read16   = &m68k_lockup_r_16;
+      m68k.memory_map[i].write8   = &m68k_lockup_w_8;
+      m68k.memory_map[i].write16  = &m68k_lockup_w_16;
+      zbank_memory_map[i].read    = &zbank_lockup_r;
+      zbank_memory_map[i].write   = &zbank_lockup_w;
     }
   }
 }
@@ -455,10 +455,10 @@ void gen_zbusreq_w(u32 data, u32 cycles)
       z80_run(cycles);
 
       /* enable 68k access to Z80 bus */
-      m68k.memory_map[0xa0].read8   = z80_read_byte;
-      m68k.memory_map[0xa0].read16  = z80_read_word;
-      m68k.memory_map[0xa0].write8  = z80_write_byte;
-      m68k.memory_map[0xa0].write16 = z80_write_word;
+      m68k.memory_map[0xa0].read8   = &z80_read_byte;
+      m68k.memory_map[0xa0].read16  = &z80_read_word;
+      m68k.memory_map[0xa0].write8  = &z80_write_byte;
+      m68k.memory_map[0xa0].write16 = &z80_write_word;
     }
 
     /* update Z80 bus status */
@@ -473,10 +473,10 @@ void gen_zbusreq_w(u32 data, u32 cycles)
       Z80.cycles = cycles;
 
       /* disable 68k access to Z80 bus */
-      m68k.memory_map[0xa0].read8   = m68k_read_bus_8;
-      m68k.memory_map[0xa0].read16  = m68k_read_bus_16;
-      m68k.memory_map[0xa0].write8  = m68k_unused_8_w;
-      m68k.memory_map[0xa0].write16 = m68k_unused_16_w;
+      m68k.memory_map[0xa0].read8   = &m68k_read_bus_8;
+      m68k.memory_map[0xa0].read16  = &m68k_read_bus_16;
+      m68k.memory_map[0xa0].write8  = &m68k_unused_8_w;
+      m68k.memory_map[0xa0].write16 = &m68k_unused_16_w;
     }
 
     /* update Z80 bus status */
@@ -503,10 +503,10 @@ void gen_zreset_w(u32 data, u32 cycles)
     else if (zstate == 2)
     {
       /* enable 68k access to Z80 bus */
-      m68k.memory_map[0xa0].read8   = z80_read_byte;
-      m68k.memory_map[0xa0].read16  = z80_read_word;
-      m68k.memory_map[0xa0].write8  = z80_write_byte;
-      m68k.memory_map[0xa0].write16 = z80_write_word;
+      m68k.memory_map[0xa0].read8   = &z80_read_byte;
+      m68k.memory_map[0xa0].read16  = &z80_read_word;
+      m68k.memory_map[0xa0].write8  = &z80_write_byte;
+      m68k.memory_map[0xa0].write16 = &z80_write_word;
 
       /* reset Z80 & YM2612 */
       z80_reset();
@@ -529,10 +529,10 @@ void gen_zreset_w(u32 data, u32 cycles)
     else if (zstate == 3)
     {
       /* disable 68k access to Z80 bus */
-      m68k.memory_map[0xa0].read8   = m68k_read_bus_8;
-      m68k.memory_map[0xa0].read16  = m68k_read_bus_16;
-      m68k.memory_map[0xa0].write8  = m68k_unused_8_w;
-      m68k.memory_map[0xa0].write16 = m68k_unused_16_w;
+      m68k.memory_map[0xa0].read8   = &m68k_read_bus_8;
+      m68k.memory_map[0xa0].read16  = &m68k_read_bus_16;
+      m68k.memory_map[0xa0].write8  = &m68k_unused_8_w;
+      m68k.memory_map[0xa0].write16 = &m68k_unused_16_w;
     }
 
     /* stop YM2612 */
