@@ -39,6 +39,7 @@
  *
  ****************************************************************************************/
 
+import std.random;
 import types;
 import common;
 import md_cart;
@@ -256,7 +257,9 @@ void gen_reset(int hard_reset)
   }
 
   /* 68k & Z80 could be anywhere in VDP frame (Bonkers, Eternal Champions, X-Men 2) */
-  m68k.cycles = Z80.cycles = cast(u32)((MCYCLES_PER_LINE * lines_per_frame) * (cast(double)rand() / cast(double)RAND_MAX));
+  auto rnd = std.random.Xorshift32(std.random.unpredictableSeed());
+  auto rand = cast(double)rnd.front / cast(double)rnd.max;
+  m68k.cycles = Z80.cycles = cast(u32)((MCYCLES_PER_LINE * lines_per_frame) * rand);
 
   /* 68k cycles should be a multiple of 7 */
   m68k.cycles = (m68k.cycles / 7) * 7;
