@@ -704,14 +704,14 @@ version(LSB_FIRST) {
   romtype = system_hw;
 
   /* PICO ROM */
-  if (strstr(rominfo.consoletype, "SEGA PICO") != null)
+  if ("SEGA PICO" in rominfo.consoletype)
   {
     /* PICO hardware */
     system_hw = SYSTEM_PICO;
   }
 
   /* CD BOOTROM */
-  else if (strstr(rominfo.ROMType, "BR") != null)
+  else if ("BR" in rominfo.ROMType)
   {
     /* enable CD hardware */
     system_hw = SYSTEM_MCD;
@@ -730,9 +730,9 @@ version(LSB_FIRST) {
   }
 
   /* ROM cartridges with CD support */
-  else if ((strstr(rominfo.domestic,"FLUX") != null) ||
-           (strstr(rominfo.domestic,"WONDER LIBRARY") != null) ||
-           (strstr(rominfo.product,"T-5740") != null))
+  else if ("FLUX" in rominfo.domestic ||
+           "WONDER LIBRARY" in rominfo.domestic ||
+           "T-5740" in rominfo.product)
   {
     /* check if console hardware is set to AUTO */
     if (config.system == 0x00)
@@ -795,7 +795,7 @@ version(LSB_FIRST) {
   input.y_offset = 0;
 
   /* autodetect gun support */
-  if (strstr(rominfo.international,"MENACER") != null)
+  if ("MENACER" in rominfo.international)
   {
     /* save current setting */
     if (old_system[0] == -1)
@@ -813,7 +813,7 @@ version(LSB_FIRST) {
     input.x_offset = 82;
     input.y_offset = 0;
   }
-  else if (strstr(rominfo.international,"T2 ; THE ARCADE GAME") != null)
+  else if ("T2 ; THE ARCADE GAME" in rominfo.international)
   {
     /* save current setting */
     if (old_system[0] == -1)
@@ -831,7 +831,7 @@ version(LSB_FIRST) {
     input.x_offset = 133;
     input.y_offset = -8;
   }
-  else if (strstr(rominfo.international,"BODY COUNT") != null)
+  else if ("BODY COUNT" in rominfo.international)
   {
     /* save current setting */
     if (old_system[0] == -1)
@@ -849,7 +849,7 @@ version(LSB_FIRST) {
     input.x_offset = 68;
     input.y_offset = -24;
   }
-  else if (strstr(rominfo.international,"CORPSE KILLER") != null)
+  else if ("CORPSE KILLER" in rominfo.international)
   {
     /* save current setting */
     if (old_system[0] == -1)
@@ -867,7 +867,7 @@ version(LSB_FIRST) {
     input.x_offset = 64;
     input.y_offset = -8;
   }
-  else if (strstr(rominfo.international,"CRIME PATROL") != null)
+  else if ("CRIME PATROL" in rominfo.international)
   {
     /* save current setting */
     if (old_system[0] == -1)
@@ -885,7 +885,7 @@ version(LSB_FIRST) {
     input.x_offset = 61;
     input.y_offset = 0;
   }
-  else if (strstr(rominfo.international,"MAD DOG II THE LOST GOLD") != null)
+  else if ("MAD DOG II THE LOST GOLD" in rominfo.international)
   {
     /* save current setting */
     if (old_system[0] == -1)
@@ -903,7 +903,7 @@ version(LSB_FIRST) {
     input.x_offset = 70;
     input.y_offset = 18;
   }
-  else if (strstr(rominfo.international,"MAD DOG MCCREE") != null)
+  else if ("MAD DOG MCCREE" in rominfo.international)
   {
     /* save current setting */
     if (old_system[0] == -1)
@@ -921,7 +921,7 @@ version(LSB_FIRST) {
     input.x_offset = 49;
     input.y_offset = 0;
   }
-  else if (strstr(rominfo.international,"WHO SHOT JOHNNY ROCK?") != null)
+  else if ("WHO SHOT JOHNNY ROCK?" in rominfo.international)
   {
     /* save current setting */
     if (old_system[0] == -1)
@@ -939,8 +939,8 @@ version(LSB_FIRST) {
     input.x_offset = 60;
     input.y_offset = 30;
   }
-  else if ((strstr(rominfo.international,"LETHAL ENFORCERS") != null) ||
-           (strstr(rominfo.international,"SNATCHER") != null))
+  else if ("LETHAL ENFORCERS" in rominfo.international ||
+           "SNATCHER" in rominfo.international)
   {
     /* save current setting */
     if (old_system[0] == -1)
@@ -955,7 +955,7 @@ version(LSB_FIRST) {
     /* force JUSTIFIER configuration */
     input.system[0] = SYSTEM_MD_GAMEPAD;
     input.system[1] = SYSTEM_JUSTIFIER;
-    input.x_offset = (strstr(rominfo.international,"GUN FIGHTERS") != null) ? 24 : 0;
+    input.x_offset = ("GUN FIGHTERS" in rominfo.international) ? 24 : 0;
     input.y_offset = 0;
   }
 
@@ -1039,15 +1039,15 @@ void get_region(char *romheader)
       else region_code = REGION_USA;
 
       /* some games need specific region settings but have wrong header*/
-      if (((strstr(rominfo.product,"T-45033") != null) && (rominfo.checksum == 0x0F81)) || /* Alisia Dragon (Europe) */
-           (strstr(rominfo.product,"T-69046-50") != null) ||    /* Back to the Future III (Europe) */
-           (strstr(rominfo.product,"T-120106-00") != null) ||   /* Brian Lara Cricket (Europe) */
-           (strstr(rominfo.product,"T-70096 -00") != null))     /* Muhammad Ali Heavyweight Boxing (Europe) */
+      if (("T-45033" in rominfo.product && rominfo.checksum == 0x0F81) || /* Alisia Dragon (Europe) */
+           "T-69046-50" in rominfo.product ||    /* Back to the Future III (Europe) */
+           "T-120106-00" in rominfo.product ||   /* Brian Lara Cricket (Europe) */
+           "T-70096 -00" in rominfo.product)     /* Muhammad Ali Heavyweight Boxing (Europe) */
       {
         /* need PAL settings */
         region_code = REGION_EUROPE;
       }
-      else if ((rominfo.realchecksum == 0x532e) && (strstr(rominfo.product,"1011-00") != null)) 
+      else if (rominfo.realchecksum == 0x532e && "1011-00" in rominfo.product) 
       {
         /* On Dal Jang Goon (Korea) needs JAPAN region code */
         region_code = REGION_JAPAN_NTSC;

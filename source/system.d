@@ -79,7 +79,7 @@ struct t_bitmap
     s32 changed;    /* 1= Viewport width or height have changed */
   }
 
-  u8 *data;      /* Bitmap data */
+  u8[] data;      /* Bitmap data */
   s32 width;        /* Bitmap width */
   s32 height;       /* Bitmap height */
   s32 pitch;        /* Bitmap pitch */
@@ -242,7 +242,7 @@ void audio_shutdown()
   }
 }
 
-s32 audio_update(s16 *buffer)
+s32 audio_update(s16* buffer)
 {
   /* run sound chips until end of frame */
   s32 size = sound_update(mcycles_vdp);
@@ -1409,61 +1409,61 @@ void system_frame_sms(s32 do_skip)
 
 version(LSB_FIRST) {
 
-u8 READ_BYTE(u8* BASE, u32 ADDR) {
+u8 READ_BYTE(u8[] BASE, u32 ADDR) {
     return BASE[ADDR^1];
 }
 
-u16 READ_WORD(u8* BASE, u32 ADDR) {
-    return (((BASE)[ADDR]<<8) | (BASE)[(ADDR)+1]);
+u16 READ_WORD(u8[] BASE, u32 ADDR) {
+    return ((BASE[ADDR]<<8) | BASE[ADDR+1]);
 }
 
-u32 READ_WORD_LONG(u8* BASE, u32 ADDR) { 
-    return (((BASE)[(ADDR)+1]<<24) |
-           ((BASE)[(ADDR)]<<16) |
-           ((BASE)[(ADDR)+3]<<8) |
-           (BASE)[(ADDR)+2]);
+u32 READ_WORD_LONG(u8[] BASE, u32 ADDR) { 
+    return ((BASE[ADDR+1]<<24) |
+           (BASE[ADDR]<<16) |
+           (BASE[ADDR+3]<<8) |
+           BASE[ADDR+2]);
 }
 
-void WRITE_BYTE(u8* BASE, u32 ADDR, u8 VAL) {
-    (BASE)[(ADDR)^1] = (VAL)&0xff;
+void WRITE_BYTE(u8[] BASE, u32 ADDR, u8 VAL) {
+    BASE[ADDR^1] = VAL&0xff;
 }
 
-void WRITE_WORD(u8* BASE, u32 ADDR, u16 VAL) {
-    (BASE)[ADDR] = ((VAL)>>8) & 0xff;
-    (BASE)[(ADDR)+1] = (VAL)&0xff;
+void WRITE_WORD(u8[] BASE, u32 ADDR, u16 VAL) {
+    BASE[ADDR] = (VAL>>8) & 0xff;
+    BASE[ADDR+1] = VAL & 0xff;
 }
 
-void WRITE_WORD_LONG(u8* BASE, u32 ADDR, u32 VAL) {
-    (BASE)[(ADDR+1)] = ((VAL)>>24) & 0xff;
-    (BASE)[(ADDR)] = ((VAL)>>16)&0xff;
-    (BASE)[(ADDR+3)] = ((VAL)>>8)&0xff;
-    (BASE)[(ADDR+2)] = (VAL)&0xff;
+void WRITE_WORD_LONG(u8[] BASE, u32 ADDR, u32 VAL) {
+    BASE[ADDR+1] = (VAL>>24) & 0xff;
+    BASE[ADDR] = (VAL>>16)&0xff;
+    BASE[ADDR+3] = (VAL>>8)&0xff;
+    BASE[ADDR+2] = VAL&0xff;
 }
 
 } else {
 
-u8 READ_BYTE(u8* BASE, u32 ADDR) {
+u8 READ_BYTE(u8[] BASE, u32 ADDR) {
     return BASE[ADDR];
 }
 
-u16 READ_WORD(u8* BASE, u32 ADDR) {
-    return *cast(u16 *)(BASE + ADDR);
+u16 READ_WORD(u8[] BASE, u32 ADDR) {
+    return (cast(u16[])BASE[ADDR .. $])[0];
 }
 
-u32 READ_WORD_LONG(u8* BASE, u32 ADDR) {
-    return *cast(u32 *)(BASE + ADDR);
+u32 READ_WORD_LONG(u8[] BASE, u32 ADDR) {
+    return (cast(u32[])BASE[ADDR .. $])[0];
 }
 
-void WRITE_BYTE(u8* BASE, u32 ADDR, u8 VAL) {
+void WRITE_BYTE(u8[] BASE, u32 ADDR, u8 VAL) {
     BASE[ADDR] = VAL & 0xff;
 }
 
-void WRITE_WORD(u8* BASE, u32 ADDR, u16 VAL) {
-    *cast(u16 *)(BASE + ADDR) = VAL & 0xffff;
+void WRITE_WORD(u8[] BASE, u32 ADDR, u16 VAL) {
+    (cast(u16[])BASE[ADDR .. $])[0] = VAL & 0xffff;
 }
 
-void WRITE_WORD_LONG(u8* BASE, u32 ADDR, u32 VAL) {
-    *cast(u32 *)(BASE + ADDR) = VAL & 0xffffffff;
+void WRITE_WORD_LONG(u8[] BASE, u32 ADDR, u32 VAL) {
+    (cast(u32[])BASE[ADDR .. $])[0] = VAL & 0xffffffff;
 }
 
 }

@@ -167,7 +167,7 @@ void eeprom_i2c_init()
   /* look into game database */
   while (i<GAME_CNT)
   {
-    if (strstr(rominfo.product, database[i].game_id) != null)
+    if (database[i].game_id in rominfo.product)
     {
       /* additional check (Micro Machines, Rockman Mega World) */
       if ((database[i].chk == 0x0000) || (database[i].chk == rominfo.realchecksum))

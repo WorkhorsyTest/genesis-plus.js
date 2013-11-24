@@ -89,7 +89,7 @@ void gen_init()
     /* $800000-$DFFFFF : illegal access by default */
     for (i=0x80; i<0xe0; i++)
     {
-      m68k.memory_map[i].base     = work_ram.ptr; /* for VDP DMA */
+      m68k.memory_map[i].base     = work_ram; /* for VDP DMA */
       m68k.memory_map[i].read8    = &m68k_lockup_r_8;
       m68k.memory_map[i].read16   = &m68k_lockup_r_16;
       m68k.memory_map[i].write8   = &m68k_lockup_w_8;
@@ -112,7 +112,7 @@ void gen_init()
     /* $E00000-$FFFFFF : Work RAM (64k) */
     for (i=0xe0; i<0x100; i++)
     {
-      m68k.memory_map[i].base     = work_ram.ptr;
+      m68k.memory_map[i].base     = work_ram;
       m68k.memory_map[i].read8    = null;
       m68k.memory_map[i].read16   = null;
       m68k.memory_map[i].write8   = null;
@@ -385,7 +385,7 @@ void gen_tmss_w(u32 offset, u32 data)
   int i;
 
   /* write TMSS register */
-  WRITE_WORD(tmss, offset, data);
+  WRITE_WORD(tmss, offset, cast(u16) data);
 
   /* VDP requires "SEGA" value to be written in TMSS register */
   if (memcmp(cast(char *)tmss, "SEGA", 4) == 0)

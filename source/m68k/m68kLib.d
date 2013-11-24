@@ -117,7 +117,7 @@ enum M68kRegister {
 /* 68k memory map structure */
 struct cpu_memory_map
 {
-  u8* base;                             /* memory-based access (ROM, RAM) */
+  u8[] base;                             /* memory-based access (ROM, RAM) */
   u32 function(u32 address) read8;               /* I/O byte read access */
   u32 function(u32 address) read16;              /* I/O word read access */
   void function(u32 address, u32 data) write8;  /* I/O byte write access */

@@ -75,7 +75,7 @@ struct cart_hw_t
 struct md_cart_t
 {
   u8[MAXROMSIZE] rom;  /* ROM area */
-  u8 *base;    /* ROM base (saved for OS/Cartridge ROM swap) */
+  u8[] base;    /* ROM base (saved for OS/Cartridge ROM swap) */
   u32 romsize; /* ROM size */
   u32 mask;    /* ROM mask */
   u8 special;  /* Lock-On, J-Cart or SMS 3-D glasses hardware */
@@ -304,7 +304,7 @@ void md_cart_init()
   }
 
   /* Sonic & Knuckles */
-  if (strstr(rominfo.international,"SONIC & KNUCKLES") != null)
+  if ("SONIC & KNUCKLES" in rominfo.international)
   {
     /* disable ROM mirroring at $200000-$3fffff (normally mapped to external cartridge) */
     size = 0x400000;
@@ -341,7 +341,7 @@ void md_cart_init()
   }
 
   /* support for Quackshot REV 01 (real) dump */
-  if ((strstr(rominfo.product,"00004054-01") != null) && (cart.romsize == 0x80000))
+  if ("00004054-01" in rominfo.product && cart.romsize == 0x80000)
   {
     /* $000000-$0fffff: first 256K mirrored (A18 not connected to ROM chip, A19 not decoded) */
     for (i=0x00; i<0x10; i++)
@@ -387,7 +387,7 @@ void md_cart_init()
           SVP CHIP 
   ***********************************************/
   svp = null;
-  if (strstr(rominfo.international,"Virtua Racing") != null)
+  if ("Virtua Racing" == rominfo.international)
   {
     svp_init();
 
@@ -407,14 +407,14 @@ void md_cart_init()
           J-CART 
   ***********************************************/
   cart.special = 0;
-  if (((strstr(rominfo.product,"00000000")  != null) && (rominfo.checksum == 0x168b)) ||  /* Super Skidmarks, Micro Machines Military */
-      ((strstr(rominfo.product,"00000000")  != null) && (rominfo.checksum == 0x165e)) ||  /* Pete Sampras Tennis (1991), Micro Machines 96 */
-      ((strstr(rominfo.product,"00000000")  != null) && (rominfo.checksum == 0xcee0)) ||  /* Micro Machines Military (bad) */
-      ((strstr(rominfo.product,"00000000")  != null) && (rominfo.checksum == 0x2c41)) ||  /* Micro Machines 96 (bad) */
-      ((strstr(rominfo.product,"XXXXXXXX")  != null) && (rominfo.checksum == 0xdf39)) ||  /* Sampras Tennis 96 */
-      ((strstr(rominfo.product,"T-123456")  != null) && (rominfo.checksum == 0x1eae)) ||  /* Sampras Tennis 96 */
-      ((strstr(rominfo.product,"T-120066")  != null) && (rominfo.checksum == 0x16a4)) ||  /* Pete Sampras Tennis (1994)*/
-      (strstr(rominfo.product,"T-120096")    != null))                                    /* Micro Machines 2 */
+  if (("00000000" in rominfo.product && rominfo.checksum == 0x168b) ||  /* Super Skidmarks, Micro Machines Military */
+      ("00000000" in rominfo.product && rominfo.checksum == 0x165e) ||  /* Pete Sampras Tennis (1991), Micro Machines 96 */
+      ("00000000" in rominfo.product && rominfo.checksum == 0xcee0) ||  /* Micro Machines Military (bad) */
+      ("00000000" in rominfo.product && rominfo.checksum == 0x2c41) ||  /* Micro Machines 96 (bad) */
+      ("XXXXXXXX" in rominfo.product && rominfo.checksum == 0xdf39) ||  /* Sampras Tennis 96 */
+      ("T-123456" in rominfo.product && rominfo.checksum == 0x1eae) ||  /* Sampras Tennis 96 */
+      ("T-120066" in rominfo.product && rominfo.checksum == 0x16a4) ||  /* Pete Sampras Tennis (1994)*/
+      ("T-120096" in rominfo.product))                                    /* Micro Machines 2 */
   {
     if (cart.romsize <= 0x380000)  /* just to be sure (checksum might not be enough) */
     {
@@ -577,7 +577,7 @@ version(LSB_FIRST) {
   }
 
   /* detect specific mappers */
-  if (strstr(rominfo.domestic,"SUPER STREET FIGHTER2") != null)
+  if ("SUPER STREET FIGHTER2" in rominfo.domestic)
   {
     /* SSF2 mapper */
     cart.hw.bankshift = 1;
@@ -585,7 +585,7 @@ version(LSB_FIRST) {
     /* specific !TIME handler */
     cart.hw.time_w = mapper_ssf2_w;
   }
-  else if (strstr(rominfo.product,"T-5740") != null)
+  else if ("T-5740" in rominfo.product)
   {
     /* T-5740XX-XX mapper */
     cart.hw.bankshift = 1;
@@ -599,7 +599,7 @@ version(LSB_FIRST) {
     /* initialize SPI EEPROM board */
     eeprom_spi_init();
   }
-  else if ((strstr(rominfo.ROMType,"SF") != null) && (strstr(rominfo.product,"001") != null))
+  else if ("SF" in rominfo.ROMType && "001" in rominfo.product)
   {
     /* SF-001 mapper */
     m68k.memory_map[0x00].write8 = mapper_sf001_w;
@@ -609,7 +609,7 @@ version(LSB_FIRST) {
     /* no !TIME handler */
     cart.hw.time_w = m68k_unused_8_w;
   }
-  else if ((strstr(rominfo.ROMType,"SF") != null) && (strstr(rominfo.product,"002") != null))
+  else if ("SF" in rominfo.ROMType && "002" in rominfo.product)
   {
     /* SF-002 mapper */
     m68k.memory_map[0x00].write8 = mapper_sf002_w;
@@ -619,7 +619,7 @@ version(LSB_FIRST) {
     /* no !TIME handler */
     cart.hw.time_w = m68k_unused_8_w;
   }
-  else if ((strstr(rominfo.ROMType,"SF") != null) && (strstr(rominfo.product,"004") != null))
+  else if ("SF" in rominfo.ROMType && "004" in rominfo.product)
   {
     /* SF-004 mapper */
     m68k.memory_map[0x00].write8 = mapper_sf004_w;

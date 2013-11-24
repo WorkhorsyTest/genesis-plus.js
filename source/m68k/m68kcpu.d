@@ -384,7 +384,7 @@ static void SET_CYCLES(u32 A) { m68ki_cpu.cycles = A; }
 
 /* Read data immediately following the PC */
 static u32 m68k_read_immediate_16(u32 address) {
-	return *cast(u16 *)(m68ki_cpu.memory_map[((address)>>16)&0xff].base + ((address) & 0xffff));
+	return (cast(u16[])(m68ki_cpu.memory_map[(address>>16)&0xff].base[(address & 0xffff) .. $]))[0];
 }
 static u32 m68k_read_immediate_32(u32 address) {
 	return (m68k_read_immediate_16(address) << 16) | (m68k_read_immediate_16(address+2));
@@ -392,7 +392,7 @@ static u32 m68k_read_immediate_32(u32 address) {
 
 /* Read data relative to the PC */
 static u32 m68k_read_pcrelative_8(u32 address) {
-    return READ_BYTE(m68ki_cpu.memory_map[((address)>>16)&0xff].base, (address) & 0xffff);
+    return READ_BYTE(m68ki_cpu.memory_map[(address>>16)&0xff].base, address & 0xffff);
 }
 static u32 m68k_read_pcrelative_16(u32 address) {
     return m68k_read_immediate_16(address);
@@ -920,7 +920,7 @@ u32 m68ki_read_16_fc(u32 address, u32 fc)
   
   temp = &m68ki_cpu.memory_map[(address>>16)&0xff];
   if (temp.read16) return temp.read16(ADDRESS_68K(address));
-  else return *cast(u16 *)(temp.base + (address & 0xffff));
+  else return (cast(u16[])temp.base[(address & 0xffff) .. $])[0];
 }
 
 u32 m68ki_read_32_fc(u32 address, u32 fc)
@@ -929,7 +929,7 @@ u32 m68ki_read_32_fc(u32 address, u32 fc)
 
   m68ki_check_address_error(address, MODE_READ, fc); /* auto-disable (see m68kcpu.h) */
 
-  temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
+  temp = &m68ki_cpu.memory_map[(address>>16)&0xff];
   if (temp.read16) return (temp.read16(ADDRESS_68K(address)) << 16) | (temp.read16(ADDRESS_68K(address + 2)));
   else return m68k_read_immediate_32(address);
 }
@@ -938,9 +938,9 @@ void m68ki_write_8_fc(u32 address, u32 value)
 {
   cpu_memory_map *temp;
 
-  temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
+  temp = &m68ki_cpu.memory_map[(address>>16)&0xff];
   if (temp.write8) temp.write8(ADDRESS_68K(address),value);
-  else WRITE_BYTE(temp.base, (address) & 0xffff, cast(u8) value);
+  else WRITE_BYTE(temp.base, address & 0xffff, cast(u8) value);
 }
 
 void m68ki_write_16_fc(u32 address, u32 fc, u32 value)
@@ -949,9 +949,9 @@ void m68ki_write_16_fc(u32 address, u32 fc, u32 value)
 
   m68ki_check_address_error(address, MODE_WRITE, fc); /* auto-disable (see m68kcpu.h) */
 
-  temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
+  temp = &m68ki_cpu.memory_map[(address>>16)&0xff];
   if (temp.write16) temp.write16(ADDRESS_68K(address),value);
-  else *(cast(u16 *)temp.base + (address & 0xffff)) = cast(u16) value;
+  else (cast(u16[])temp.base[(address & 0xffff) .. $])[0] = cast(u16) value;
 }
 
 void m68ki_write_32_fc(u32 address, u32 fc, u32 value)
@@ -960,13 +960,13 @@ void m68ki_write_32_fc(u32 address, u32 fc, u32 value)
 
   m68ki_check_address_error(address, MODE_WRITE, fc); /* auto-disable (see m68kcpu.h) */
 
-  temp = &m68ki_cpu.memory_map[((address)>>16)&0xff];
+  temp = &m68ki_cpu.memory_map[(address>>16)&0xff];
   if (temp.write16) temp.write16(ADDRESS_68K(address),value>>16);
-  else *cast(u16 *)(temp.base + ((address) & 0xffff)) = value >> 16;
+  else (cast(u16[])temp.base[(address & 0xffff) .. $])[0] = value >> 16;
 
   temp = &m68ki_cpu.memory_map[((address + 2)>>16)&0xff];
   if (temp.write16) temp.write16(ADDRESS_68K(address+2),value&0xffff);
-  else *cast(u16 *)(temp.base + ((address + 2) & 0xffff)) = cast(u16) value;
+  else (cast(u16[])temp.base[((address + 2) & 0xffff) .. $])[0] = cast(u16) value;
 }
 
 
@@ -1105,15 +1105,15 @@ void m68ki_push_16(u32 value)
 {
   REG_SP = MASK_OUT_ABOVE_32(REG_SP - 2);
   /*m68ki_write_16(REG_SP, value);*/
-  *cast(u16 *)(m68ki_cpu.memory_map[(REG_SP>>16)&0xff].base + (REG_SP & 0xffff)) = cast(u16) value;
+  (cast(u16[])m68ki_cpu.memory_map[(REG_SP>>16)&0xff].base[(REG_SP & 0xffff) .. $])[0] = cast(u16) value;
 }
 
 void m68ki_push_32(u32 value)
 {
   REG_SP = MASK_OUT_ABOVE_32(REG_SP - 4);
   /*m68ki_write_32(REG_SP, value);*/
-  *cast(u16 *)(m68ki_cpu.memory_map[(REG_SP>>16)&0xff].base + (REG_SP & 0xffff)) = value >> 16;
-  *cast(u16 *)(m68ki_cpu.memory_map[((REG_SP + 2)>>16)&0xff].base + ((REG_SP + 2) & 0xffff)) = value & 0xffff;
+  (cast(u16[])m68ki_cpu.memory_map[(REG_SP>>16)&0xff].base[(REG_SP & 0xffff) .. $])[0] = value >> 16;
+  (cast(u16[])m68ki_cpu.memory_map[((REG_SP + 2)>>16)&0xff].base[((REG_SP + 2) & 0xffff) .. $])[0] = value & 0xffff;
 }
 
 u32 m68ki_pull_16()
