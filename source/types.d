@@ -1,14 +1,16 @@
 
 
-alias byte   s8;
-alias short  s16;
-alias int    s32;
-alias long   s64;
+import std.stdint;
 
-alias ubyte  u8;
-alias ushort u16;
-alias uint   u32;
-alias ulong  u64;
+alias int8_t    s8;
+alias int16_t   s16;
+alias int32_t   s32;
+alias int64_t   s64;
+
+alias uint8_t   u8;
+alias uint16_t  u16;
+alias uint32_t  u32;
+alias uint64_t  u64;
 
 
 union reg16_t {
