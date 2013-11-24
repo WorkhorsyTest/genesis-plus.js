@@ -396,7 +396,7 @@ static int sdl_control_update(SDLKey keystate)
 
 int sdl_input_update()
 {
-  u8 *keystate = SDL_GetKeyState(NULL);
+  u8 *keystate = SDL_GetKeyState(null);
 
   /* reset input */
   input.pad[joynum] = 0;
@@ -427,7 +427,7 @@ int sdl_input_update()
     {
       /* get mouse (absolute values) */
       int x;
-      int state = SDL_GetMouseState(&x, NULL);
+      int state = SDL_GetMouseState(&x, null);
 
       /* Range is [0;256], 128 being middle position */
       input.analog[joynum][0] = x * 256 /VIDEO_WIDTH;
@@ -605,7 +605,7 @@ int main(string[] args) {
   /* Genesis BOOT ROM support (2KB max) */
   memset(boot_rom, 0xFF, 0x800);
   fp = fopen(MD_BIOS, "rb");
-  if (fp != NULL)
+  if (fp != null)
   {
     int i;
 
@@ -664,7 +664,7 @@ int main(string[] args) {
   {
     /* load internal backup RAM */
     fp = fopen("./scd.brm", "rb");
-    if (fp!=NULL)
+    if (fp!=null)
     {
       fread(scd.bram, 0x2000, 1, fp);
       fclose(fp);
@@ -688,7 +688,7 @@ int main(string[] args) {
     if (scd.cartridge.id)
     {
       fp = fopen("./cart.brm", "rb");
-      if (fp!=NULL)
+      if (fp!=null)
       {
         fread(scd.cartridge.area, scd.cartridge.mask + 1, 1, fp);
         fclose(fp);
@@ -714,7 +714,7 @@ int main(string[] args) {
   {
     /* load SRAM */
     fp = fopen("./game.srm", "rb");
-    if (fp!=NULL)
+    if (fp!=null)
     {
       fread(sram.sram,0x10000,1, fp);
       fclose(fp);
@@ -740,7 +740,7 @@ int main(string[] args) {
   while(running)
   {
     /* Get the time at the start of the loop */
-    gettimeofday(&frame_start, NULL);
+    gettimeofday(&frame_start, null);
 
     SDL_Event event;
     if (SDL_PollEvent(&event)) 
@@ -751,7 +751,7 @@ int main(string[] args) {
         {
           char caption[100];  
           sprintf(caption,"Genesis Plus GX - %d fps - %s)", event.user.code, (rominfo.international[0] != 0x20) ? rominfo.international : rominfo.domestic);
-          SDL_WM_SetCaption(caption, NULL);
+          SDL_WM_SetCaption(caption, null);
           break;
         }
 
@@ -773,7 +773,7 @@ int main(string[] args) {
     sdl_sound_update(use_sound);
 
     /* Get the time at the end of the loop */
-    gettimeofday(&frame_end, NULL);
+    gettimeofday(&frame_end, null);
     double end = frame_end.tv_usec + (frame_end.tv_sec * 1000000.0);
     double start = frame_start.tv_usec + (frame_start.tv_sec * 1000000.0);
 
@@ -793,7 +793,7 @@ int main(string[] args) {
     if (!memcmp(scd.bram + 0x2000 - 0x20, brm_format + 0x20, 0x20))
     {
       fp = fopen("./scd.brm", "wb");
-      if (fp!=NULL)
+      if (fp!=null)
       {
         fwrite(scd.bram, 0x2000, 1, fp);
         fclose(fp);
@@ -806,7 +806,7 @@ int main(string[] args) {
       if (!memcmp(scd.cartridge.area + scd.cartridge.mask + 1 - 0x20, brm_format + 0x20, 0x20))
       {
         fp = fopen("./cart.brm", "wb");
-        if (fp!=NULL)
+        if (fp!=null)
         {
           fwrite(scd.cartridge.area, scd.cartridge.mask + 1, 1, fp);
           fclose(fp);
@@ -819,7 +819,7 @@ int main(string[] args) {
   {
     /* save SRAM */
     fp = fopen("./game.srm", "wb");
-    if (fp!=NULL)
+    if (fp!=null)
     {
       fwrite(sram.sram,0x10000,1, fp);
       fclose(fp);

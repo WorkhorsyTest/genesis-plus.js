@@ -1133,7 +1133,7 @@ static void debug_function(u32 pc, u32 op)
         char *baddr = buff + 2;
         i = 0;
         if (buff[3] == ' ') { i = buff[2] - '0'; baddr = buff + 4; }
-        bpts[i] = strtol(baddr, NULL, 16) >> 1;
+        bpts[i] = strtol(baddr, null, 16) >> 1;
         printf("breakpoint %i set @ %04x\n", i, bpts[i]<<1);
         break;
       }

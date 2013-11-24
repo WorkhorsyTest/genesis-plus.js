@@ -222,7 +222,7 @@ extern void s68k_clear_halt();
 
 /* Peek at the internals of a CPU context.  This can either be a context
  * retrieved using m68k_get_context() or the currently running context.
- * If context is NULL, the currently running CPU context will be used.
+ * If context is null, the currently running CPU context will be used.
  */
 extern u32 m68k_get_reg(M68kRegister reg);
 extern u32 s68k_get_reg(M68kRegister reg);

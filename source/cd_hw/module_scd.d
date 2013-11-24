@@ -493,21 +493,21 @@ void word_ram_switch(u8 mode)
     {
       /* MAIN-CPU: $200000-$23FFFF is mapped to 256K Word-RAM */
       m68k.memory_map[i].base    = scd.word_ram_2M + ((i & 0x03) << 16);
-      m68k.memory_map[i].read8   = NULL;
-      m68k.memory_map[i].read16  = NULL;
-      m68k.memory_map[i].write8  = NULL;
-      m68k.memory_map[i].write16 = NULL;
-      zbank_memory_map[i].read   = NULL;
-      zbank_memory_map[i].write  = NULL;
+      m68k.memory_map[i].read8   = null;
+      m68k.memory_map[i].read16  = null;
+      m68k.memory_map[i].write8  = null;
+      m68k.memory_map[i].write16 = null;
+      zbank_memory_map[i].read   = null;
+      zbank_memory_map[i].write  = null;
     }
 
     for (i=0x08; i<0x0c; i++)
     {
       /* SUB-CPU: $080000-$0BFFFF is mapped to 256K Word-RAM */
-      s68k.memory_map[i].read8   = NULL;
-      s68k.memory_map[i].read16  = NULL;
-      s68k.memory_map[i].write8  = NULL;
-      s68k.memory_map[i].write16 = NULL;
+      s68k.memory_map[i].read8   = null;
+      s68k.memory_map[i].read16  = null;
+      s68k.memory_map[i].write8  = null;
+      s68k.memory_map[i].write16 = null;
     }
 
     for (i=0x0c; i<0x0e; i++)
@@ -616,10 +616,10 @@ version(LOG_SCD) {
             {
               /* Word-RAM 0 data mapped at $0C0000-$0DFFFF */
               s68k.memory_map[i].base    = scd.word_ram[0] + ((i & 0x01) << 16);
-              s68k.memory_map[i].read8   = NULL;
-              s68k.memory_map[i].read16  = NULL;
-              s68k.memory_map[i].write8  = NULL;
-              s68k.memory_map[i].write16 = NULL;
+              s68k.memory_map[i].read8   = null;
+              s68k.memory_map[i].read16  = null;
+              s68k.memory_map[i].write8  = null;
+              s68k.memory_map[i].write16 = null;
             }
 
             /* writing 1 to RET bit in 1M mode returns Word-RAM to MAIN-CPU in 2M mode */
@@ -659,10 +659,10 @@ version(LOG_SCD) {
             {
               /* Word-RAM 1 data mapped at $0C0000-$0DFFFF */
               s68k.memory_map[i].base    = scd.word_ram[1] + ((i & 0x01) << 16);
-              s68k.memory_map[i].read8   = NULL;
-              s68k.memory_map[i].read16  = NULL;
-              s68k.memory_map[i].write8  = NULL;
-              s68k.memory_map[i].write16 = NULL;
+              s68k.memory_map[i].read8   = null;
+              s68k.memory_map[i].read16  = null;
+              s68k.memory_map[i].write8  = null;
+              s68k.memory_map[i].write16 = null;
             }
           }
 
@@ -889,10 +889,10 @@ version(LOG_SCD) {
             {
               /* Word-RAM 0 data mapped at $0C0000-$0DFFFF */
               s68k.memory_map[i].base    = scd.word_ram[0] + ((i & 0x01) << 16);
-              s68k.memory_map[i].read8   = NULL;
-              s68k.memory_map[i].read16  = NULL;
-              s68k.memory_map[i].write8  = NULL;
-              s68k.memory_map[i].write16 = NULL;
+              s68k.memory_map[i].read8   = null;
+              s68k.memory_map[i].read16  = null;
+              s68k.memory_map[i].write8  = null;
+              s68k.memory_map[i].write16 = null;
             }
 
             /* writing 1 to RET bit in 1M mode returns Word-RAM to MAIN-CPU in 2M mode */
@@ -932,10 +932,10 @@ version(LOG_SCD) {
             {
               /* Word-RAM 1 data mapped at $0C0000-$0DFFFF */
               s68k.memory_map[i].base    = scd.word_ram[1] + ((i & 0x01) << 16);
-              s68k.memory_map[i].read8   = NULL;
-              s68k.memory_map[i].read16  = NULL;
-              s68k.memory_map[i].write8  = NULL;
-              s68k.memory_map[i].write16 = NULL;
+              s68k.memory_map[i].read8   = null;
+              s68k.memory_map[i].read16  = null;
+              s68k.memory_map[i].write8  = null;
+              s68k.memory_map[i].write16 = null;
             }
           }
 
@@ -1102,12 +1102,12 @@ void scd_init()
     {
       /* $020000-$03FFFF (resp. $420000-$43FFFF): PRG-RAM (first 128KB bank, mirrored each 256KB) */
       m68k.memory_map[i].base    = scd.prg_ram + ((i & 1) << 16);
-      m68k.memory_map[i].read8   = NULL;
-      m68k.memory_map[i].read16  = NULL;
-      m68k.memory_map[i].write8  = NULL;
-      m68k.memory_map[i].write16 = NULL;
-      zbank_memory_map[i].read   = NULL;
-      zbank_memory_map[i].write  = NULL;
+      m68k.memory_map[i].read8   = null;
+      m68k.memory_map[i].read16  = null;
+      m68k.memory_map[i].write8  = null;
+      m68k.memory_map[i].write16 = null;
+      zbank_memory_map[i].read   = null;
+      zbank_memory_map[i].write  = null;
 
     }
     else
@@ -1115,11 +1115,11 @@ void scd_init()
       /* $000000-$01FFFF (resp. $400000-$41FFFF): internal ROM (128KB, mirrored each 256KB) */
       /* NB: Flux expects it to be mapped at $440000-$45FFFF */
       m68k.memory_map[i].base    = scd.bootrom + ((i & 1) << 16);
-      m68k.memory_map[i].read8   = NULL;
-      m68k.memory_map[i].read16  = NULL;
+      m68k.memory_map[i].read8   = null;
+      m68k.memory_map[i].read16  = null;
       m68k.memory_map[i].write8  = m68k_unused_8_w;
       m68k.memory_map[i].write16 = m68k_unused_16_w;
-      zbank_memory_map[i].read   = NULL;
+      zbank_memory_map[i].read   = null;
       zbank_memory_map[i].write  = zbank_unused_w;
     }
   }
@@ -1128,12 +1128,12 @@ void scd_init()
   for (i=base+0x20; i<base+0x40; i++)
   {
     m68k.memory_map[i].base    = scd.word_ram_2M + ((i & 3) << 16);
-    m68k.memory_map[i].read8   = NULL;
-    m68k.memory_map[i].read16  = NULL;
-    m68k.memory_map[i].write8  = NULL;
-    m68k.memory_map[i].write16 = NULL;
-    zbank_memory_map[i].read   = NULL;
-    zbank_memory_map[i].write  = NULL;
+    m68k.memory_map[i].read8   = null;
+    m68k.memory_map[i].read16  = null;
+    m68k.memory_map[i].write8  = null;
+    m68k.memory_map[i].write16 = null;
+    zbank_memory_map[i].read   = null;
+    zbank_memory_map[i].write  = null;
   }
   
   /****************************************************************/
@@ -1144,22 +1144,22 @@ void scd_init()
   for (i=0x00; i<0x08; i++)
   {
     s68k.memory_map[i].base    = scd.prg_ram + (i << 16);
-    s68k.memory_map[i].read8   = NULL;
-    s68k.memory_map[i].read16  = NULL;
+    s68k.memory_map[i].read8   = null;
+    s68k.memory_map[i].read16  = null;
 
     /* first 128KB is write-protected */
-    s68k.memory_map[i].write8  = (i < 0x02) ? prg_ram_write_byte : NULL;
-    s68k.memory_map[i].write16 = (i < 0x02) ? prg_ram_write_word : NULL;
+    s68k.memory_map[i].write8  = (i < 0x02) ? prg_ram_write_byte : null;
+    s68k.memory_map[i].write16 = (i < 0x02) ? prg_ram_write_word : null;
   }
 
   /* $080000-$0BFFFF:  Word-RAM in 2M mode (256KB)*/
   for (i=0x08; i<0x0c; i++)
   {
     s68k.memory_map[i].base    = scd.word_ram_2M + ((i & 3) << 16);
-    s68k.memory_map[i].read8   = NULL;
-    s68k.memory_map[i].read16  = NULL;
-    s68k.memory_map[i].write8  = NULL;
-    s68k.memory_map[i].write16 = NULL;
+    s68k.memory_map[i].read8   = null;
+    s68k.memory_map[i].read16  = null;
+    s68k.memory_map[i].write8  = null;
+    s68k.memory_map[i].write16 = null;
   }
   
   /* $0C0000-$FD0000: Unused area (Word-RAM mirrored ?) */
@@ -1175,7 +1175,7 @@ void scd_init()
   /* $FD0000-$FF0000 (odd address only): 8KB backup RAM, mirrored(Wonder Mega / X'Eye BIOS access it at $FD0000-$FD1FFF) */
   for (i=0xfd; i<0xff; i++)
   {
-    s68k.memory_map[i].base     = NULL;
+    s68k.memory_map[i].base     = null;
     s68k.memory_map[i].read8    = bram_read_byte;
     s68k.memory_map[i].read16   = bram_read_word;
     s68k.memory_map[i].write8   = bram_write_byte;
@@ -1183,7 +1183,7 @@ void scd_init()
   }
 
   /* $FF0000-$FFFFFF: PCM hardware & SUB-CPU registers  */
-  s68k.memory_map[0xff].base     = NULL;
+  s68k.memory_map[0xff].base     = null;
   s68k.memory_map[0xff].read8    = scd_read_byte;
   s68k.memory_map[0xff].read16   = scd_read_word;
   s68k.memory_map[0xff].write8   = scd_write_byte;
@@ -1525,10 +1525,10 @@ s32 scd_context_load(u8 *state)
       {
         /* Word-RAM 0 data mapped at $0C0000-$0DFFFF */
         s68k.memory_map[i].base    = scd.word_ram[0] + ((i & 0x01) << 16);
-        s68k.memory_map[i].read8   = NULL;
-        s68k.memory_map[i].read16  = NULL;
-        s68k.memory_map[i].write8  = NULL;
-        s68k.memory_map[i].write16 = NULL;
+        s68k.memory_map[i].read8   = null;
+        s68k.memory_map[i].read16  = null;
+        s68k.memory_map[i].write8  = null;
+        s68k.memory_map[i].write16 = null;
       }
     }
     else
@@ -1565,10 +1565,10 @@ s32 scd_context_load(u8 *state)
       {
         /* Word-RAM 1 data mapped at $0C0000-$0DFFFF */
         s68k.memory_map[i].base    = scd.word_ram[1] + ((i & 0x01) << 16);
-        s68k.memory_map[i].read8   = NULL;
-        s68k.memory_map[i].read16  = NULL;
-        s68k.memory_map[i].write8  = NULL;
-        s68k.memory_map[i].write16 = NULL;
+        s68k.memory_map[i].read8   = null;
+        s68k.memory_map[i].read16  = null;
+        s68k.memory_map[i].write8  = null;
+        s68k.memory_map[i].write16 = null;
       }
     }
   }
@@ -1581,21 +1581,21 @@ s32 scd_context_load(u8 *state)
     {
       /* MAIN-CPU: $200000-$23FFFF is mapped to 256K Word-RAM */
       m68k.memory_map[i].base    = scd.word_ram_2M + ((i & 0x03) << 16);
-      m68k.memory_map[i].read8   = NULL;
-      m68k.memory_map[i].read16  = NULL;
-      m68k.memory_map[i].write8  = NULL;
-      m68k.memory_map[i].write16 = NULL;
-      zbank_memory_map[i].read   = NULL;
-      zbank_memory_map[i].write  = NULL;
+      m68k.memory_map[i].read8   = null;
+      m68k.memory_map[i].read16  = null;
+      m68k.memory_map[i].write8  = null;
+      m68k.memory_map[i].write16 = null;
+      zbank_memory_map[i].read   = null;
+      zbank_memory_map[i].write  = null;
     }
 
     for (i=0x08; i<0x0c; i++)
     {
       /* SUB-CPU: $080000-$0BFFFF is mapped to 256K Word-RAM */
-      s68k.memory_map[i].read8   = NULL;
-      s68k.memory_map[i].read16  = NULL;
-      s68k.memory_map[i].write8  = NULL;
-      s68k.memory_map[i].write16 = NULL;
+      s68k.memory_map[i].read8   = null;
+      s68k.memory_map[i].read16  = null;
+      s68k.memory_map[i].write8  = null;
+      s68k.memory_map[i].write16 = null;
     }
 
     for (i=0x0c; i<0x0e; i++)

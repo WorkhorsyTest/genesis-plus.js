@@ -65,7 +65,7 @@ void ggenie_init()
 
   /* Open Game Genie ROM file */
   f = fopen(GG_ROM,"rb");
-  if (f == NULL) return;
+  if (f == null) return;
 
   /* Load ROM */
   for (i=0; i<0x8000; i+=0x1000)
@@ -127,7 +127,7 @@ void ggenie_reset(int hard)
     m68k.memory_map[0].write16  = ggenie_write_word;
 
     /* Disable registers reads */
-    m68k.memory_map[0].read16 = NULL;
+    m68k.memory_map[0].read16 = null;
   }
 }
 
@@ -215,15 +215,15 @@ static void ggenie_write_regs(u32 offset, u32 data)
     {
       /* $0000-$7ffff reads mapped to Cartridge ROM */
       m68k.memory_map[0].base = cart.rom;
-      m68k.memory_map[0].read8 = NULL; 
-      m68k.memory_map[0].read16 = NULL; 
+      m68k.memory_map[0].read8 = null; 
+      m68k.memory_map[0].read16 = null; 
     }
     else
     {
       /* $0000-$7ffff reads mapped to Game Genie ROM */
       m68k.memory_map[0].base = ggenie.rom;
-      m68k.memory_map[0].read8 = NULL; 
-      m68k.memory_map[0].read16 = NULL; 
+      m68k.memory_map[0].read8 = null; 
+      m68k.memory_map[0].read16 = null; 
 
       /* READ_ENABLE bit */
       if (data & 0x200)

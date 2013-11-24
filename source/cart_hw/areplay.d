@@ -121,10 +121,10 @@ void areplay_init()
       if (action_replay.enabled)
       {
         m68k.memory_map[sp[1]].base      = action_replay.ram;
-        m68k.memory_map[sp[1]].read8     = NULL;
-        m68k.memory_map[sp[1]].read16    = NULL;
+        m68k.memory_map[sp[1]].read8     = null;
+        m68k.memory_map[sp[1]].read16    = null;
         m68k.memory_map[sp[1]].write8    = ar_write_ram_8;
-        m68k.memory_map[sp[1]].write16   = NULL;
+        m68k.memory_map[sp[1]].write16   = null;
       }
       break;
     }

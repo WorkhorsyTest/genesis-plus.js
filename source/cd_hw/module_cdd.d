@@ -303,7 +303,7 @@ s32 cdd_load(char *filename, char *header)
       lptr = strstr(line, "FILE");
       while (!lptr)
       {
-        if (fgets(line, 128, fd) == NULL)
+        if (fgets(line, 128, fd) == null)
         {
           break;
         }
@@ -418,14 +418,14 @@ s32 cdd_load(char *filename, char *header)
     /* skip first (DATA) track */
     while (!strstr(line, "INDEX 01") && !strstr(line, "INDEX 1"))
     {
-      if (fgets(line, 128, fd) == NULL)
+      if (fgets(line, 128, fd) == null)
       {
         break;
       }
     }
 
     /* read next lines until end of file */
-    while (fgets(line, 128, fd) != NULL)
+    while (fgets(line, 128, fd) != null)
     {
       /* skip any SPACE characters */
       lptr = line;
@@ -674,7 +674,7 @@ s32 cdd_load(char *filename, char *header)
   if (cdd.toc.last == 1)
   {
     /* Some games require exact TOC infos */
-    if (strstr(header + 0x180,"T-95035") != NULL)
+    if (strstr(header + 0x180,"T-95035") != null)
     {
       /* Snatcher */
       cdd.toc.last = cdd.toc.end = 0;
@@ -687,7 +687,7 @@ s32 cdd_load(char *filename, char *header)
       }
       while (cdd.toc.last < 21);
     }
-    else if (strstr(header + 0x180,"T-127015") != NULL)
+    else if (strstr(header + 0x180,"T-127015") != null)
     {
       /* Lunar - The Silver Star */
       cdd.toc.last = cdd.toc.end = 0;
@@ -700,7 +700,7 @@ s32 cdd_load(char *filename, char *header)
       }
       while (cdd.toc.last < 52);
     }
-    else if (strstr(header + 0x180,"T-113045") != NULL)
+    else if (strstr(header + 0x180,"T-113045") != null)
     {
       /* Shadow of the Beast II */
       cdd.toc.last = cdd.toc.end = 0;
@@ -713,7 +713,7 @@ s32 cdd_load(char *filename, char *header)
       }
       while (cdd.toc.last < 15);
     }
-    else if (strstr(header + 0x180,"T-143025") != NULL)
+    else if (strstr(header + 0x180,"T-143025") != null)
     {
       /* Dungeon Explorer */
       cdd.toc.last = cdd.toc.end = 0;
@@ -726,7 +726,7 @@ s32 cdd_load(char *filename, char *header)
       }
       while (cdd.toc.last < 13);
     }
-    else if (strstr(header + 0x180,"MK-4410") != NULL)
+    else if (strstr(header + 0x180,"MK-4410") != null)
     {
       /* Final Fight CD (USA, Europe) */
       cdd.toc.last = cdd.toc.end = 0;
@@ -739,7 +739,7 @@ s32 cdd_load(char *filename, char *header)
       }
       while (cdd.toc.last < 26);
     }
-    else if (strstr(header + 0x180,"G-6013") != NULL)
+    else if (strstr(header + 0x180,"G-6013") != null)
     {
       /* Final Fight CD (Japan) */
       cdd.toc.last = cdd.toc.end = 0;

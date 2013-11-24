@@ -85,7 +85,7 @@ void sram_init()
     sram.end   = READ_WORD_LONG(cart.rom, 0x1b8);
 
     /* autodetect games with wrong header infos */
-    if (strstr(rominfo.product,"T-26013") != NULL)
+    if (strstr(rominfo.product,"T-26013") != null)
     {
       /* Psy-O-Blade (wrong header) */
       sram.start = 0x200001;
@@ -107,21 +107,21 @@ void sram_init()
   else
   {
     /* autodetect games with missing header infos */
-    if (strstr(rominfo.product,"T-50086") != NULL)
+    if (strstr(rominfo.product,"T-50086") != null)
     {
       /* PGA Tour Golf */
       sram.on = 1;
       sram.start = 0x200001;
       sram.end = 0x203fff;
     }
-    else if (strstr(rominfo.product,"ACLD007") != NULL)
+    else if (strstr(rominfo.product,"ACLD007") != null)
     {
       /* Winter Challenge */
       sram.on = 1;
       sram.start = 0x200001;
       sram.end = 0x200fff;
     }
-    else if (strstr(rominfo.product,"T-50286") != NULL)
+    else if (strstr(rominfo.product,"T-50286") != null)
     {
       /* Buck Rogers - Countdown to Doomsday */
       sram.on = 1;
@@ -136,7 +136,7 @@ void sram_init()
       sram.start = 0x400001;
       sram.end = 0x40ffff;
     }
-    else if ((strstr(rominfo.ROMType,"SF") != NULL) && (strstr(rominfo.product,"001") != NULL))
+    else if ((strstr(rominfo.ROMType,"SF") != null) && (strstr(rominfo.product,"001") != null))
     {
       /* SF-001 */
       sram.on = 1;
@@ -153,14 +153,14 @@ void sram_init()
         sram.end = 0x40ffff;
       }
     }
-    else if ((strstr(rominfo.ROMType,"SF") != NULL) && (strstr(rominfo.product,"004") != NULL))
+    else if ((strstr(rominfo.ROMType,"SF") != null) && (strstr(rominfo.product,"004") != null))
     {
       /* SF-004 (use bankswitching) */
       sram.on = 1;
       sram.start = 0x200001;
       sram.end = 0x203fff;
     }
-    else if (strstr(rominfo.international,"SONIC & KNUCKLES") != NULL)
+    else if (strstr(rominfo.international,"SONIC & KNUCKLES") != null)
     {
       /* standalone Sonic & Knuckle does not use backup RAM */
       if (cart.romsize == 0x400000)
@@ -174,12 +174,12 @@ void sram_init()
     }
 
     /* auto-detect games which need disabled backup RAM */
-    else if (strstr(rominfo.product,"T-113016") != NULL)
+    else if (strstr(rominfo.product,"T-113016") != null)
     {
       /* Pugsy (try writing outside ROM area as copy protection) */
       sram.on = 0;
     }
-    else if (strstr(rominfo.international,"SONIC THE HEDGEHOG 2") != NULL)
+    else if (strstr(rominfo.international,"SONIC THE HEDGEHOG 2") != null)
     {
       /* Sonic the Hedgehog 2 (does not use backup RAM) */
       /* this prevents backup RAM from being mapped in place of mirrored ROM when using S&K LOCK-ON feature */

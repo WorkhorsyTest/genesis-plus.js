@@ -45,7 +45,7 @@ m68ki_cpu_core_t s68k;
 /* ======================================================================== */
 
 /* Default callbacks used if the callback hasn't been set yet, or if the
- * callback is set to NULL
+ * callback is set to null
  */
 
 

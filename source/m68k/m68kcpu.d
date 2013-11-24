@@ -633,7 +633,7 @@ u32 ROR_33(u32 A, u32 C) { return                   (LSR_32(A, C) | LSL_32(A, 33
 /* ======================================================================== */
 
 /* Default callbacks used if the callback hasn't been set yet, or if the
- * callback is set to NULL
+ * callback is set to null
  */
 
 
@@ -1012,7 +1012,7 @@ u32 m68ki_get_ea_pcix()
  * SCALE:   00=1, 01=2, 10=4, 11=8                  (*SCALE)
  * BS:      0=add base reg, 1=suppress base reg     (An suppressed)
  * IS:      0=add index, 1=suppress index           (Xn suppressed)
- * BD SIZE: 00=reserved, 01=NULL, 10=Word, 11=Long  (size of bd)
+ * BD SIZE: 00=reserved, 01=null, 10=Word, 11=Long  (size of bd)
  *
  * IS I/IS Operation
  * 0  000  No Memory Indirect

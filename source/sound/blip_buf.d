@@ -117,7 +117,7 @@ static void check_assumptions( void )
 
 /** Creates new buffer that can hold at most sample_count samples. Sets rates
 so that there are blip_max_ratio clocks per sample. Returns pointer to new
-buffer, or NULL if insufficient memory. */
+buffer, or null if insufficient memory. */
 blip_t* blip_new( int size )
 {
 	blip_t* m;
@@ -138,7 +138,7 @@ version(BLIP_ASSERT) {
 	return m;
 }
 
-/** Frees buffer. No effect if NULL is passed. */
+/** Frees buffer. No effect if null is passed. */
 void blip_delete( blip_t* m )
 {
 	if ( m != null )

@@ -43,7 +43,7 @@ struct md_ntsc_setup_t {
 const int md_ntsc_palette_size = 512;
 
 /* Initializes and adjusts parameters. Can be called multiple times on the same
-md_ntsc_t object. Can pass NULL for either parameter. */
+md_ntsc_t object. Can pass null for either parameter. */
 //typedef struct md_ntsc_t md_ntsc_t;
 void md_ntsc_init( md_ntsc_t* ntsc, const md_ntsc_setup_t* setup );
 
