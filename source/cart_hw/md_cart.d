@@ -46,7 +46,7 @@ import eeprom_i2c;
 import eeprom_spi;
 import gamepad;
 
-alias ext.md_cart cart;
+ref md_cart_t cart() { return ext.md_cart; }
 
 /* Lock-On cartridge type */
 const int TYPE_GG = 0x01;  /* Game Genie */

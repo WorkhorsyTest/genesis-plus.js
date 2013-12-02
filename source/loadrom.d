@@ -343,19 +343,19 @@ version(LSB_FIRST) {
       switch (romheader[offset + 0x0f] >> 4)
       {
         case 3:
-          strcpy(rominfo.country,"SMS Japan");
+          rominfo.country = "SMS Japan";
           break;
         case 4:
-          strcpy(rominfo.country,"SMS Export");
+          rominfo.country = "SMS Export";
           break;
         case 5:
-          strcpy(rominfo.country,"GG Japan");
+          rominfo.country = "GG Japan";
           break;
         case 6:
-          strcpy(rominfo.country,"GG Export");
+          rominfo.country = "GG Export";
           break;
         case 7:
-          strcpy(rominfo.country,"GG International");
+          rominfo.country = "GG International";
           break;
         default:
           sprintf(rominfo.country,"Unknown (%d)", romheader[offset + 0x0f] >> 4);

@@ -77,17 +77,17 @@ u16 lines_per_frame;           /* PAL: 313 lines, NTSC: 262 lines */
 s32 fifo_write_cnt;             /* VDP writes fifo count */
 u32 fifo_lastwrite;            /* last VDP write cycle */
 u32 hvc_latch;                 /* latched HV counter */
-const u8 *hctab;               /* pointer to H Counter table */
+/*const*/ u8[] hctab;               /* pointer to H Counter table */
 
 /* Mark a pattern as modified */
-void MARK_BG_DIRTY(int index, int* name)
+void MARK_BG_DIRTY(int index, out int name)
 {
-  *name = (index >> 5) & 0x7FF;
-  if(bg_name_dirty[*name] == 0)
+  name = (index >> 5) & 0x7FF;
+  if(bg_name_dirty[name] == 0)
   {
-    bg_name_list[bg_list_index++] = *name;
+    bg_name_list[bg_list_index++] = cast(u16) name;
   }
-  bg_name_dirty[*name] |= (1 << ((index >> 2) & 7));
+  bg_name_dirty[name] |= (1 << ((index >> 2) & 7));
 }
 
 /* Function pointers */
@@ -169,14 +169,14 @@ void vdp_init()
   if ((system_hw & SYSTEM_PBC) == SYSTEM_MD)
   {
     /* 68k cpu */
-    set_irq_line = m68k_set_irq;
-    set_irq_line_delay = m68k_set_irq_delay;
+    set_irq_line = &m68k_set_irq;
+    set_irq_line_delay = &m68k_set_irq_delay;
   }
   else
   {
     /* Z80 cpu */
-    set_irq_line = z80_set_irq_line;
-    set_irq_line_delay = z80_set_irq_line;
+    set_irq_line = &z80_set_irq_line;
+    set_irq_line_delay = &z80_set_irq_line;
   }
 }
 
@@ -231,9 +231,9 @@ void vdp_reset()
 
   /* default HVC */
   hvc_latch = 0x10000;
-  hctab = cycle2hc32;
+  hctab = cast(ubyte[]) cycle2hc32;
   vc_max = vc_table[0][vdp_pal];
-  v_counter = lines_per_frame - 1;
+  v_counter = cast(u16) (lines_per_frame - 1);
 
   /* default Window clipping */
   window_clip(0,0);
@@ -2105,7 +2105,7 @@ static void vdp_bus_w(u32 data)
         *p = data;
 
         /* Update pattern cache */
-        MARK_BG_DIRTY (index, &name);
+        MARK_BG_DIRTY (index, name);
       }
 
 version(LOGVDP) {
@@ -2277,7 +2277,7 @@ static void vdp_68k_data_w_m4(u32 data)
       *p = data;
 
       /* Update the pattern cache */
-      MARK_BG_DIRTY (index, &name);
+      MARK_BG_DIRTY (index, name);
     }
   }
 
@@ -2477,7 +2477,7 @@ static void vdp_z80_data_w_m4(u32 data)
       vram[index] = data;
 
       /* Update pattern cache */
-      MARK_BG_DIRTY(index, &name);
+      MARK_BG_DIRTY(index, name);
     }
   }
 
@@ -2514,7 +2514,7 @@ static void vdp_z80_data_w_m5(u32 data)
         WRITE_BYTE(vram, index, data);
 
         /* Update pattern cache */
-        MARK_BG_DIRTY (index, &name);
+        MARK_BG_DIRTY (index, name);
       }
       break;
     }
@@ -2690,7 +2690,7 @@ static void vdp_z80_data_w_ms(u32 data)
     {
       int name;
       vram[index] = data;
-      MARK_BG_DIRTY(index, &name);
+      MARK_BG_DIRTY(index, name);
     }
 
 version(LOGVDP) {
@@ -2757,7 +2757,7 @@ static void vdp_z80_data_w_gg(u32 data)
     {
       int name;
       vram[index] = data;
-      MARK_BG_DIRTY(index, &name);
+      MARK_BG_DIRTY(index, name);
     }
 version(LOGVDP) {
     error("[%d(%d)][%d(%d)] VRAM 0x%x write -> 0x%x (%x)\n", v_counter, Z80.cycles/MCYCLES_PER_LINE-1, Z80.cycles, Z80.cycles%MCYCLES_PER_LINE, index, data, Z80.pc.w.l);
@@ -2977,7 +2977,7 @@ static void vdp_dma_copy(u32 length)
       WRITE_BYTE(vram, addr, data);
 
       /* Update pattern cache */
-      MARK_BG_DIRTY(addr, &name);
+      MARK_BG_DIRTY(addr, name);
 
       /* Increment source address */
       source++;
@@ -3014,7 +3014,7 @@ static void vdp_dma_fill(u32 length)
       WRITE_BYTE(vram, addr ^ 1, data);
 
       /* Update pattern cache */
-      MARK_BG_DIRTY (addr, &name);
+      MARK_BG_DIRTY (addr, name);
 
       /* Increment VRAM address */
       addr += reg[15];
