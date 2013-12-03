@@ -43,7 +43,7 @@ import module_gfx;
 import module_pcm;
 import cd_cart;
 
-alias ext.cd_hw scd;
+ref cd_hw_t scd() { return ext.cd_hw; }
 
 /* 5000000 SCD clocks/s = ~3184 clocks/line with a Master Clock of 53.693175 MHz */
 /* This would be slightly (~30 clocks) more on PAL systems because of the slower */

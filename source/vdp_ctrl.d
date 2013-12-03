@@ -498,8 +498,8 @@ int vdp_context_load(u8 *state)
   /* invalidate cache */
   for (i=0;i<bg_list_index;i++) 
   {
-    bg_name_list[i]=i;
-    bg_name_dirty[i]=0xFF;
+    bg_name_list[i] = cast(u16) i;
+    bg_name_dirty[i] = 0xFF;
   }
 
   return bufferptr;
@@ -609,7 +609,7 @@ version(LOGVDP) {
     if (!dma_length)
     {
       /* DMA source address registers are incremented during DMA */
-      u16 end = reg[21] + (reg[22] << 8) + reg[19] + (reg[20] << 8);
+      u16 end = cast(u16) (reg[21] + (reg[22] << 8) + reg[19] + (reg[20] << 8));
       reg[21] = end & 0xff;
       reg[22] = end >> 8;
 

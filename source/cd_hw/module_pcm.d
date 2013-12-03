@@ -65,7 +65,7 @@ struct pcm_t
 
 const int PCM_SCYCLES_RATIO = 384 * 4;
 
-alias scd.pcm_hw pcm;
+ref pcm_t pcm() { return scd.pcm_hw; }
 
 static blip_t[2] blip;
 

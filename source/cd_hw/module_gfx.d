@@ -38,7 +38,7 @@
 import common;
 import module_scd;
 
-alias scd.gfx_hw gfx;
+ref gfx_t gfx() { return scd.gfx_hw; }
 
 struct gfx_t
 {

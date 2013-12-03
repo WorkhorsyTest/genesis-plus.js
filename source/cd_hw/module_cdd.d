@@ -39,7 +39,7 @@ import common;
 import blip_buf;
 import module_scd;
 
-alias scd.cdd_hw cdd;
+ref cdd_t cdd() { return scd.cdd_hw; }
 
 /* CDD status */
 const int NO_DISC  = 0x00;

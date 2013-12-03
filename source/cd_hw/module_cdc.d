@@ -39,7 +39,7 @@
 import common;
 import module_scd;
 
-alias scd.cdc_hw cdc;
+ref cdc_t cdc() { return scd.cdc_hw; }
 
 /* CDC hardware */
 struct cdc_t
