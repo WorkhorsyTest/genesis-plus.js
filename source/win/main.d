@@ -49,12 +49,12 @@ static void sdl_sound_callback(void *userdata, u8 *stream, int len)
     stream[0 .. len] = 0;
   }
   else {
-    memcpy(stream, sdl_sound.buffer, len);
+    core.stdc.string.memcpy(stream, sdl_sound.buffer, len);
     /* loop to compensate desync */
     do {
       sdl_sound.current_emulated_samples -= len;
     } while(sdl_sound.current_emulated_samples > 2 * len);
-    memcpy(sdl_sound.buffer,
+    core.stdc.string.memcpy(sdl_sound.buffer,
            sdl_sound.current_pos - sdl_sound.current_emulated_samples,
            sdl_sound.current_emulated_samples);
     sdl_sound.current_pos = sdl_sound.buffer + sdl_sound.current_emulated_samples;
@@ -681,7 +681,7 @@ int main(string[] args) {
       brm_format[0x11] = brm_format[0x13] = brm_format[0x15] = brm_format[0x17] = (sizeof(scd.bram) / 64) - 3;
 
       /* format internal backup RAM */
-      memcpy(scd.bram + 0x2000 - 0x40, brm_format, 0x40);
+      core.stdc.string.memcpy(scd.bram + 0x2000 - 0x40, brm_format, 0x40);
     }
 
     /* load cartridge backup RAM */
@@ -705,7 +705,7 @@ int main(string[] args) {
         brm_format[0x11] = brm_format[0x13] = brm_format[0x15] = brm_format[0x17] = (((scd.cartridge.mask + 1) / 64) - 3) & 0xff;
 
         /* format cartridge backup RAM */
-        memcpy(scd.cartridge.area + scd.cartridge.mask + 1 - sizeof(brm_format), brm_format, sizeof(brm_format));
+        core.stdc.string.memcpy(scd.cartridge.area + scd.cartridge.mask + 1 - sizeof(brm_format), brm_format, sizeof(brm_format));
       }
     }
   }

@@ -88,7 +88,7 @@ version(LSB_FIRST) {
 }
 
   /* $0000-$7fff mirrored into $8000-$ffff */
-  memcpy(ggenie.rom + 0x8000, ggenie.rom, 0x8000);
+  core.stdc.string.memcpy(ggenie.rom + 0x8000, ggenie.rom, 0x8000);
 
   /* set flag */
   ggenie.enabled = 1;

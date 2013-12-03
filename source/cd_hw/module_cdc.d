@@ -302,7 +302,7 @@ s32 cdc_decoder_update(u32 header)
       if (offset > (0x4000 - 2048 - 4))
       {
         /* data should be written at the start of buffer */
-        memcpy(cdc.ram, cdc.ram + 0x4000, offset + 2048 + 4 - 0x4000);
+        core.stdc.string.memcpy(cdc.ram, cdc.ram + 0x4000, offset + 2048 + 4 - 0x4000);
       }
 
       /* read next data block */

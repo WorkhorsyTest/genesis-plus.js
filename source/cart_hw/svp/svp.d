@@ -30,7 +30,7 @@ void svp_init()
 
 void svp_reset()
 {
-  memcpy(svp.iram_rom + 0x800, cart.rom + 0x800, 0x20000 - 0x800);
+  core.stdc.string.memcpy(svp.iram_rom + 0x800, cart.rom + 0x800, 0x20000 - 0x800);
   ssp1601_reset(&svp.ssp1601);
 }
 

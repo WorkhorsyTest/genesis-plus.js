@@ -271,25 +271,25 @@ void vdp_reset()
   }
 
   /* default rendering mode */
-  update_bg_pattern_cache = update_bg_pattern_cache_m4;
+  update_bg_pattern_cache = &update_bg_pattern_cache_m4;
   if (system_hw < SYSTEM_MD)
   {
     /* Mode 0 */
-    render_bg = render_bg_m0;
-    render_obj = render_obj_tms;
-    parse_satb = parse_satb_tms;
+    render_bg = &render_bg_m0;
+    render_obj = &render_obj_tms;
+    parse_satb = &parse_satb_tms;
   }
   else
   {
     /* Mode 4 */
-    render_bg = render_bg_m4;
-    render_obj = render_obj_m4;
-    parse_satb = parse_satb_m4;
+    render_bg = &render_bg_m4;
+    render_obj = &render_obj_m4;
+    parse_satb = &parse_satb_m4;
   }
 
   /* 68k bus access mode (Mode 4 by default) */
-  vdp_68k_data_w = vdp_68k_data_w_m4;
-  vdp_68k_data_r = vdp_68k_data_r_m4;
+  vdp_68k_data_w = &vdp_68k_data_w_m4;
+  vdp_68k_data_r = &vdp_68k_data_r_m4;
 
   /* Z80 bus access mode */
   switch (system_hw)
@@ -297,16 +297,16 @@ void vdp_reset()
     case SYSTEM_SG:
     {
       /* SG-1000 port access */
-      vdp_z80_data_w = vdp_z80_data_w_sg;
-      vdp_z80_data_r = vdp_z80_data_r_m4;
+      vdp_z80_data_w = &vdp_z80_data_w_sg;
+      vdp_z80_data_r = &vdp_z80_data_r_m4;
       break;
     }
 
     case SYSTEM_GG:
     {
       /* Game Gear port access */
-      vdp_z80_data_w = vdp_z80_data_w_gg;
-      vdp_z80_data_r = vdp_z80_data_r_m4;
+      vdp_z80_data_w = &vdp_z80_data_w_gg;
+      vdp_z80_data_r = &vdp_z80_data_r_m4;
       break;
     }
 
@@ -316,16 +316,16 @@ void vdp_reset()
     case SYSTEM_GGMS:
     {
       /* Master System port access */
-      vdp_z80_data_w = vdp_z80_data_w_ms;
-      vdp_z80_data_r = vdp_z80_data_r_m4;
+      vdp_z80_data_w = &vdp_z80_data_w_ms;
+      vdp_z80_data_r = &vdp_z80_data_r_m4;
       break;
     }
 
     default:
     {
       /* Genesis port access */
-      vdp_z80_data_w = vdp_z80_data_w_m4;
-      vdp_z80_data_r = vdp_z80_data_r_m4;
+      vdp_z80_data_w = &vdp_z80_data_w_m4;
+      vdp_z80_data_r = &vdp_z80_data_r_m4;
       break;
     }
   }
@@ -354,9 +354,9 @@ void vdp_reset()
     vdp_reg_w(10, 0xFF, 0);
 
     /* Mode 4 */
-    render_bg = render_bg_m4;
-    render_obj = render_obj_m4;
-    parse_satb = parse_satb_m4;
+    render_bg = &render_bg_m4;
+    render_obj = &render_obj_m4;
+    parse_satb = &parse_satb_m4;
   }
 
   /* Mega Drive specific */
@@ -382,23 +382,24 @@ int vdp_context_save(u8 *state)
 {
   int bufferptr = 0;
 
-  save_param(&bufferptr, state, sat, sizeof(sat));
-  save_param(&bufferptr, state, vram, sizeof(vram));
-  save_param(&bufferptr, state, cram, sizeof(cram));
-  save_param(&bufferptr, state, vsram, sizeof(vsram));
-  save_param(&bufferptr, state, reg, sizeof(reg));
-  save_param(&bufferptr, state, &addr, sizeof(addr));
-  save_param(&bufferptr, state, &addr_latch, sizeof(addr_latch));
-  save_param(&bufferptr, state, &code, sizeof(code));
-  save_param(&bufferptr, state, &pending, sizeof(pending));
-  save_param(&bufferptr, state, &status, sizeof(status));
-  save_param(&bufferptr, state, &dmafill, sizeof(dmafill));
-  save_param(&bufferptr, state, &hint_pending, sizeof(hint_pending));
-  save_param(&bufferptr, state, &vint_pending, sizeof(vint_pending));
-  save_param(&bufferptr, state, &dma_length, sizeof(dma_length));
-  save_param(&bufferptr, state, &dma_type, sizeof(dma_type));
-  save_param(&bufferptr, state, &dma_src, sizeof(dma_src));
-  save_param(&bufferptr, state, &cached_write, sizeof(cached_write));
+  // FIXME: It looks like these are using sizeof instead of the actual length
+  save_param(&bufferptr, state, sat.ptr, sat.sizeof);
+  save_param(&bufferptr, state, vram.ptr, vram.sizeof);
+  save_param(&bufferptr, state, cram.ptr, cram.sizeof);
+  save_param(&bufferptr, state, vsram.ptr, vsram.sizeof);
+  save_param(&bufferptr, state, reg.ptr, reg.sizeof);
+  save_param(&bufferptr, state, &addr, addr.sizeof);
+  save_param(&bufferptr, state, &addr_latch, addr_latch.sizeof);
+  save_param(&bufferptr, state, &code, code.sizeof);
+  save_param(&bufferptr, state, &pending, pending.sizeof);
+  save_param(&bufferptr, state, &status, status.sizeof);
+  save_param(&bufferptr, state, &dmafill, dmafill.sizeof);
+  save_param(&bufferptr, state, &hint_pending, hint_pending.sizeof);
+  save_param(&bufferptr, state, &vint_pending, vint_pending.sizeof);
+  save_param(&bufferptr, state, &dma_length, dma_length.sizeof);
+  save_param(&bufferptr, state, &dma_type, dma_type.sizeof);
+  save_param(&bufferptr, state, &dma_src, dma_src.sizeof);
+  save_param(&bufferptr, state, &cached_write, cached_write.sizeof);
   return bufferptr;
 }
 
@@ -407,11 +408,12 @@ int vdp_context_load(u8 *state)
   int i, bufferptr = 0;
   u8 temp_reg[0x20];
 
-  load_param(&bufferptr, state, sat, sizeof(sat));
-  load_param(&bufferptr, state, vram, sizeof(vram));
-  load_param(&bufferptr, state, cram, sizeof(cram));
-  load_param(&bufferptr, state, vsram, sizeof(vsram));
-  load_param(&bufferptr, state, temp_reg, sizeof(temp_reg));
+// FIXME: It looks like these are using sizeof instead of the actual length
+  load_param(&bufferptr, state, sat.ptr, sat.sizeof);
+  load_param(&bufferptr, state, vram.ptr, vram.sizeof);
+  load_param(&bufferptr, state, cram.ptr, cram.sizeof);
+  load_param(&bufferptr, state, vsram.ptr, vsram.sizeof);
+  load_param(&bufferptr, state, temp_reg.ptr, temp_reg.sizeof);
 
   /* restore VDP registers */
   if (system_hw < SYSTEM_MD)
@@ -443,19 +445,20 @@ int vdp_context_load(u8 *state)
     }
   }
 
-  load_param(&bufferptr, state, &addr, sizeof(addr));
-  load_param(&bufferptr, state, &addr_latch, sizeof(addr_latch));
-  load_param(&bufferptr, state, &code, sizeof(code));
-  load_param(&bufferptr, state, &pending, sizeof(pending));
-  load_param(&bufferptr, state, &status, sizeof(status));
-  load_param(&bufferptr, state, &dmafill, sizeof(dmafill));
-  load_param(&bufferptr, state, &hint_pending, sizeof(hint_pending));
-  load_param(&bufferptr, state, &vint_pending, sizeof(vint_pending));
-  load_param(&bufferptr, state, &dma_length, sizeof(dma_length));
-  load_param(&bufferptr, state, &dma_type, sizeof(dma_type));
-  load_param(&bufferptr, state, &dma_src, sizeof(dma_src));
+  // FIXME: It looks like these are using sizeof instead of the actual length
+  load_param(&bufferptr, state, &addr, addr.sizeof);
+  load_param(&bufferptr, state, &addr_latch, addr_latch.sizeof);
+  load_param(&bufferptr, state, &code, code.sizeof);
+  load_param(&bufferptr, state, &pending, pending.sizeof);
+  load_param(&bufferptr, state, &status, status.sizeof);
+  load_param(&bufferptr, state, &dmafill, dmafill.sizeof);
+  load_param(&bufferptr, state, &hint_pending, hint_pending.sizeof);
+  load_param(&bufferptr, state, &vint_pending, vint_pending.sizeof);
+  load_param(&bufferptr, state, &dma_length, dma_length.sizeof);
+  load_param(&bufferptr, state, &dma_type, dma_type.sizeof);
+  load_param(&bufferptr, state, &dma_src, dma_src.sizeof);
 
-  load_param(&bufferptr, state, &cached_write, sizeof(cached_write));
+  load_param(&bufferptr, state, &cached_write, cached_write.sizeof);
 
   /* restore FIFO timings */
   fifo_latency = (reg[12] & 1) ? 190 : 214;

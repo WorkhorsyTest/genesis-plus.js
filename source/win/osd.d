@@ -8,7 +8,7 @@ import sdl;
 public import system;
 public import common;
 public import main;
-public import config;
+public import configuration;
 public import error;
 public import fileio;
 

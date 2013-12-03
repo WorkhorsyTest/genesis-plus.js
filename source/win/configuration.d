@@ -45,7 +45,7 @@ struct t_config
   t_input_config[MAX_INPUTS] input;
 }
 
-t_config config;
+t_config g_config;
 
 
 void set_config_defaults()

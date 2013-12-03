@@ -174,7 +174,7 @@ void eeprom_i2c_init()
       {
         sram.custom = 1;
         sram.on = 1;
-        memcpy(&eeprom_i2c.config, &database[i].config, sizeof(T_CONFIG_I2C));
+        core.stdc.string.memcpy(&eeprom_i2c.config, &database[i].config, sizeof(T_CONFIG_I2C));
         i = GAME_CNT;
       }
     }
@@ -188,7 +188,7 @@ void eeprom_i2c_init()
     {
       /* set SEGA mapper as default */
       sram.custom = 1;
-      memcpy(&eeprom_i2c.config, &database[9].config, sizeof(T_CONFIG_I2C));
+      core.stdc.string.memcpy(&eeprom_i2c.config, &database[9].config, sizeof(T_CONFIG_I2C));
     }
   }
 

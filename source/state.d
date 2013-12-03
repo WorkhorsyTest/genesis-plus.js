@@ -42,12 +42,12 @@ const int STATE_SIZE    = 0xfd000;
 const string STATE_VERSION = "GENPLUS-GX 1.7.1";
 
 void load_param(int* bufferptr, u8* state, void* param, size_t size) {
-  memcpy(param, &state[*bufferptr], size);
+  core.stdc.string.memcpy(param, &state[*bufferptr], size);
   (*bufferptr) += size;
 }
 
 void save_param(int* bufferptr, u8* state, void* param, size_t size) {
-  memcpy(state[*bufferptr], param, size);
+  core.stdc.string.memcpy(state[*bufferptr], param, size);
   (*bufferptr) += size;
 }
 

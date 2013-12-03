@@ -535,7 +535,7 @@ version(LSB_FIRST) {
       int j = rom_database[i].bank_start;
 
       /* retrieve hardware information */
-      memcpy(&cart.hw, &(rom_database[i].cart_hw), sizeof(cart.hw));
+      core.stdc.string.memcpy(&cart.hw, &(rom_database[i].cart_hw), sizeof(cart.hw));
 
       /* initialize memory handlers for $400000-$7FFFFF region */
       while (j <= rom_database[i].bank_end)
@@ -566,7 +566,7 @@ version(LSB_FIRST) {
     /* 8k BOOT ROM */
     for (i=0; i<8; i++)
     {
-      memcpy(cart.rom + 0x900000 + i*0x2000, cart.rom + 0x7e000, 0x2000);
+      core.stdc.string.memcpy(cart.rom + 0x900000 + i*0x2000, cart.rom + 0x7e000, 0x2000);
     }
 
     /* BOOT ROM is mapped to $000000-$3FFFFF */
@@ -1518,8 +1518,8 @@ static void mapper_32k_w(u32 data)
       m68k.memory_map[i].base = &cart.rom[0x400000 + (i << 16)];
 
       /* address = address OR (value << 15) */
-      memcpy(m68k.memory_map[i].base, cart.rom + ((i << 16) | (data & 0x3f) << 15), 0x8000);
-      memcpy(m68k.memory_map[i].base + 0x8000, cart.rom + ((i << 16) | ((data | 1) & 0x3f) << 15), 0x8000);
+      core.stdc.string.memcpy(m68k.memory_map[i].base, cart.rom + ((i << 16) | (data & 0x3f) << 15), 0x8000);
+      core.stdc.string.memcpy(m68k.memory_map[i].base + 0x8000, cart.rom + ((i << 16) | ((data | 1) & 0x3f) << 15), 0x8000);
     }
   }
   else

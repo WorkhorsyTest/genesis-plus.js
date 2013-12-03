@@ -627,8 +627,8 @@ void sms_cart_switch(u8 mode)
       if (cart.romsize <= 0x100000)
       {
         /* copy to BIOS ROM */
-        memcpy(cart.rom + 0x400000, cart.rom, cart.romsize);
-        memcpy(bios_rom.fcr, cart_rom.fcr, 4);
+        core.stdc.string.memcpy(cart.rom + 0x400000, cart.rom, cart.romsize);
+        core.stdc.string.memcpy(bios_rom.fcr, cart_rom.fcr, 4);
         bios_rom.mapper = cart_rom.mapper;
         bios_rom.pages = cart_rom.pages;
 

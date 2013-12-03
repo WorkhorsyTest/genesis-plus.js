@@ -237,7 +237,7 @@ static void deinterleave_block(u8 * src)
 {
   s32 i;
   u8[0x4000] block;
-  memcpy (block, src, 0x4000);
+  core.stdc.string.memcpy (block, src, 0x4000);
   for (i = 0; i < 0x2000; i += 1)
   {
     src[i * 2 + 0] = block[0x2000 + (i)];
@@ -259,8 +259,8 @@ void getrominfo(char *romheader)
   {
     s32 i,j;
 
-    memcpy (&rominfo.consoletype, romheader + ROMCONSOLE, 16);
-    memcpy (&rominfo.copyright, romheader + ROMCOPYRIGHT, 16);
+    core.stdc.string.memcpy (&rominfo.consoletype, romheader + ROMCONSOLE, 16);
+    core.stdc.string.memcpy (&rominfo.copyright, romheader + ROMCOPYRIGHT, 16);
 
     /* Domestic (japanese) name */
     rominfo.domestic[0] = romheader[ROMDOMESTIC];
@@ -289,12 +289,12 @@ void getrominfo(char *romheader)
     rominfo.international[j] = 0;
 
     /* ROM informations */
-    memcpy (&rominfo.ROMType, romheader + ROMTYPE, 2);
-    memcpy (&rominfo.product, romheader + ROMPRODUCT, 12);
-    memcpy (&rominfo.checksum, romheader + ROMCHECKSUM, 2);
-    memcpy (&rominfo.romstart, romheader + ROMROMSTART, 4);
-    memcpy (&rominfo.romend, romheader + ROMROMEND, 4);
-    memcpy (&rominfo.country, romheader + ROMCOUNTRY, 16);
+    core.stdc.string.memcpy (&rominfo.ROMType, romheader + ROMTYPE, 2);
+    core.stdc.string.memcpy (&rominfo.product, romheader + ROMPRODUCT, 12);
+    core.stdc.string.memcpy (&rominfo.checksum, romheader + ROMCHECKSUM, 2);
+    core.stdc.string.memcpy (&rominfo.romstart, romheader + ROMROMSTART, 4);
+    core.stdc.string.memcpy (&rominfo.romend, romheader + ROMROMEND, 4);
+    core.stdc.string.memcpy (&rominfo.country, romheader + ROMCOUNTRY, 16);
 
     /* Checksums */
 version(LSB_FIRST) {
@@ -647,7 +647,7 @@ s32 load_rom(char *filename)
     {
       /* remove header */
       size -= 512;
-      memcpy (cart.rom, cart.rom + 512, size);
+      core.stdc.string.memcpy (cart.rom, cart.rom + 512, size);
 
       /* assume interleaved Genesis ROM format (.smd) */
       if (system_hw == SYSTEM_MD)
@@ -720,7 +720,7 @@ version(LSB_FIRST) {
     scd.cartridge.boot = 0x00;
 
     /* copy ROM to BOOTROM area */
-    memcpy(scd.bootrom, cart.rom, sizeof(scd.bootrom));
+    core.stdc.string.memcpy(scd.bootrom, cart.rom, sizeof(scd.bootrom));
 
     /* mark CD BIOS as being loaded */
     system_bios = system_bios | 0x10;
