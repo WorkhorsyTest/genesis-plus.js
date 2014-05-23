@@ -3,7 +3,7 @@
 #
 # (c) 1999, 2000, 2001, 2002, 2003  Charles MacDonald
 # modified by Eke-Eke <eke_eke31@yahoo.fr>
-# (c) 2013 Matthew Brennan Jones <mattjones@workhorsy.org>
+# (c) 2013 Matthew Brennan Jones <matthew.brennan.jones@gmail.com>
 #
 # Defines :
 # -DLSB_FIRST : for little endian systems.
